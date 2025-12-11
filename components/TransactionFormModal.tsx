@@ -133,7 +133,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 className="w-full bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-3xl font-black text-text-primary outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500"
                 placeholder="0.00"
                 inputMode="decimal"
-                autoFocus={!initialTransaction}
+                autoFocus={false}
               />
             </div>
           </div>

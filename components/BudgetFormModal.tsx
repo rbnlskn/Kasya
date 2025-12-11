@@ -95,7 +95,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Name <span className="text-red-500">*</span></label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2.5 px-4 text-sm text-text-primary font-medium" required placeholder="e.g. Food Budget" />
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2.5 px-4 text-sm text-text-primary font-medium" required placeholder="e.g. Food Budget" />
           </div>
 
           <div>

@@ -4,16 +4,9 @@ import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from '.
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './theme.js';
 
-export const APP_VERSION = '3.0.2';
+export const APP_VERSION = '1.0.0';
 
-export const CHANGELOG = [
-  { version: '3.0.2', date: 'August 2024', changes: ['Implemented a more compact UI with reduced spacing.', 'Fixed inconsistent dark mode application.', 'Redesigned transfer transactions display format.', 'Fixed the time selector arm not being anchored to the center.'] },
-  { version: '3.0.1', date: 'August 2024', changes: ['Fixed theme switching and inconsistent dark mode colors.', 'Standardized app logo and icons to primary branding.', 'Corrected minor UI alignment in the changelog modal.'] },
-  { version: '3.0.0', date: 'August 2024', changes: ['Visual Overhaul: A complete redesign focusing on consistency, depth, and clarity.', 'Glassmorphism: Introduced modern glass effects for navigation and headers.', 'Refined Typography: Improved hierarchy and readability across the app.', 'Unified Forms: Standardized input styles and interactions for a premium feel.', 'Floating Navigation: New dock-style bottom navigation for better accessibility.'] },
-  { version: '2.8.3', date: 'July 2024', changes: ['Complete Time Picker Overhaul', 'Commitments UI Refinement', 'Enhanced Wallet Card Visuals', 'Form Input Fixes', 'Improved Color Contrast'] },
-  { version: '2.8.2', date: 'July 2024', changes: ['Implemented robust transaction sorting', 'Introduced a new two-stage time picker', 'Completely redesigned Commitments tab UI', 'Standardized form selector pop-ups', 'Corrected UI inconsistencies'] },
-  { version: '2.8.1', date: 'July 2024', changes: ['Centralized Color Palette', 'Semantic Styling', 'Theming support'] },
-];
+export const CHANGELOG = [];
 
 export const CURRENCY_SYMBOL = '₱';
 

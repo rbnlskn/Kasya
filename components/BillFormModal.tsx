@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, FileText, Repeat } from 'lucide-react';
 import { Bill, RecurrenceFrequency } from '../types';
-import DayPicker from './DayPicker';
 
 interface BillFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (bill: Omit<Bill, 'id'>, id?: string) => void;
+  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string) => void;
   onDelete: (id: string) => void;
   initialBill?: Bill;
   currencySymbol: string;
@@ -15,67 +14,72 @@ interface BillFormModalProps {
 }
 
 const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialBill, currencySymbol, isExiting }) => {
+  const [type, setType] = useState<'BILL' | 'SUBSCRIPTION'>('BILL');
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
+  const [dueDay, setDueDay] = useState('');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>('MONTHLY');
   const [icon, setIcon] = useState('⚡');
-  const [recurrence, setRecurrence] = useState<RecurrenceFrequency>('MONTHLY');
-  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     if (isOpen) {
       if (initialBill) {
+        setType(initialBill.type || 'BILL');
         setName(initialBill.name);
         setAmount(initialBill.amount.toString());
-        setIcon(initialBill.icon);
-        setRecurrence(initialBill.recurrence);
-        const now = new Date();
-        const day = initialBill.dueDay === 0 ? now.getDate() : initialBill.dueDay;
-        // Handle edge cases where day > days in current month
-        setSelectedDate(new Date(now.getFullYear(), now.getMonth(), day));
+        setDueDay(initialBill.dueDay.toString());
+        setStartDate(initialBill.startDate ? new Date(initialBill.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+        setFrequency(initialBill.recurrence);
       } else {
+        setType('BILL');
         setName('');
         setAmount('');
-        setIcon('⚡');
-        setRecurrence('MONTHLY');
-        setSelectedDate(new Date());
+        setDueDay('');
+        setStartDate(new Date().toISOString().split('T')[0]);
+        setFrequency('MONTHLY');
       }
     }
   }, [isOpen, initialBill]);
+
+  useEffect(() => {
+    setIcon(type === 'BILL' ? '⚡' : '💬');
+  }, [type]);
 
   if (!isOpen && !isExiting) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !amount) return;
+    if (!name || !amount || !dueDay) return;
 
     onSave({
       name,
       amount: parseFloat(amount),
-      dueDay: selectedDate.getDate(),
-      recurrence,
+      dueDay: parseInt(dueDay),
+      recurrence: frequency,
       icon,
-      type: 'BILL',
-      startDate: new Date().toISOString()
+      type,
+      startDate: new Date(startDate).toISOString()
     }, initialBill?.id);
     onClose();
   };
 
   const handleDelete = () => {
-    if (initialBill && window.confirm('Delete this bill?')) {
+    if (initialBill && window.confirm(`Delete this ${type.toLowerCase()}?`)) {
       onDelete(initialBill.id);
       onClose();
     }
   };
 
-  const ICONS = ['⚡', '💧', '🌐', '🏠', '📱', '🎬', '🏋️', '🎓', '🏥', '🚗', '🛡️', '🧹'];
+  const headerText = initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`;
 
   return (
     <>
     <div className="fixed inset-0 z-[70] flex items-end justify-center pointer-events-none pb-safe">
-      <div className="absolute inset-0 bg-black/50 pointer-events-auto transition-opacity" onClick={onClose}></div>
-      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+      <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose}></div>
+      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300' : 'animate-in slide-in-from-bottom duration-300'}`}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-text-primary">{initialBill ? 'Edit Bill' : 'New Bill'}</h2>
+          <h2 className="text-xl font-bold text-text-primary">{headerText}</h2>
           <div className="flex items-center space-x-2">
             {initialBill && <button type="button" onClick={handleDelete} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>}
             <button type="button" onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
@@ -83,14 +87,18 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl shadow-inner border border-amber-200">
-              {icon}
-            </div>
-            <div className="flex-1">
-              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g., Netflix, Rent" required />
-            </div>
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <button type="button" onClick={() => setType('BILL')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'BILL' ? 'bg-surface shadow text-amber-500' : 'text-text-secondary'}`}>
+                <FileText className="w-4 h-4"/> Bill
+            </button>
+            <button type="button" onClick={() => setType('SUBSCRIPTION')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'SUBSCRIPTION' ? 'bg-surface shadow text-sky-500' : 'text-text-secondary'}`}>
+                <Repeat className="w-4 h-4"/> Subscription
+            </button>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g., Netflix, Rent" required />
           </div>
 
           <div>
@@ -102,22 +110,26 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Icon</label>
-            <div className="grid grid-cols-6 gap-2">
-              {ICONS.map(i => (
-                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-full h-10 rounded-lg flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-amber-400 text-white scale-110 shadow-md' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{i}</button>
-              ))}
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Due Day</label>
+            <input type="number" value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="Day of the month (e.g., 15)" required min="1" max="31"/>
+          </div>
+
+          <div className="flex space-x-3">
+            <div className="flex-1">
+              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500"/>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Frequency</label>
+              <select value={frequency} onChange={e => setFrequency(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2.5 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="WEEKLY">Weekly</option>
+                <option value="MONTHLY">Monthly</option>
+                <option value="YEARLY">Yearly</option>
+              </select>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Due Day</label>
-            <div className="bg-slate-100 dark:bg-slate-800 p-2 sm:p-3 rounded-xl">
-                <DayPicker selectedDate={selectedDate} onChange={setSelectedDate} />
-            </div>
-          </div>
-
-          <button type="submit" className="w-full bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all active:scale-[0.98] mt-2">{initialBill ? 'Save Changes' : 'Add Bill'}</button>
+          <button type="submit" className="w-full bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all active:scale-[0.98] mt-2">{initialBill ? 'Save Changes' : 'Add Item'}</button>
         </form>
       </div>
     </div>
