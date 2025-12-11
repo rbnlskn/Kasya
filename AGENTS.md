@@ -1,18 +1,13 @@
 # Agent Guidelines
 
-## Project Overview
-[Briefly describe what your project does here]
+## 1. Project Overview
+This is a personal project. Please help me maintain and update the code.
 
-## Tech Stack
-- **Language:** [e.g., TypeScript, Python]
-- **Framework:** [e.g., React, Ionic, Next.js]
-- **Styling:** [e.g., Tailwind, CSS]
+## 2. Work Process (CRITICAL)
+- **Automatic Review:** When you have finished a task, **ALWAYS** open a Pull Request (PR).
+- **Verification:** Do not merge the PR yourself. I (the user) will review the code to check if it is fixed.
+- **Testing:** Include a brief explanation in the PR of how I can test your changes.
 
-## Coding Standards
-- Write clean, maintainable code.
-- Add comments for complex logic.
-- Ensure all new features include unit tests.
-
-## Behavior
-- When fixing bugs, explain the root cause.
-- When adding features, propose a plan before writing code.
+## 3. Coding Standards
+- Write clean, commented code.
+- If you change a feature, ensure it doesn't break existing functionality.
