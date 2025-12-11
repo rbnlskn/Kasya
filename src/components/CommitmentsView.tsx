@@ -216,8 +216,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <WalletCard 
                         wallet={cc}
                         currencySymbol={currencySymbol}
-                        showCreditUsage={true}
-                        onPay={(e) => onPayCC(cc)}
                         onClick={(w) => onWalletClick && onWalletClick(w)}
                     />
                     <div className="absolute top-3 right-3 bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm z-20 pointer-events-none font-bold">

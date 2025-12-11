@@ -1,41 +1,28 @@
 
-import { COLORS } from './theme.js';
-
-function withOpacity(variableName) {
-  return ({ opacityValue }) => {
-    if (opacityValue !== undefined) {
-      return `rgba(var(${variableName}), ${opacityValue})`;
-    }
-    return `rgb(var(${variableName}))`;
-  };
-}
+import { COLORS } from './src/theme.js';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class',
   content: [
     "./index.html",
-    "./*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./services/**/*.{js,ts,jsx,tsx}",
-    "./data/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        primary: withOpacity('--color-primary'),
-        'primary-hover': withOpacity('--color-primary-hover'),
-        'app-bg': withOpacity('--color-bg'),
-        surface: withOpacity('--color-surface'),
-        'text-primary': withOpacity('--color-text-primary'),
-        'text-secondary': withOpacity('--color-text-secondary'),
-        border: withOpacity('--color-border'),
-        income: withOpacity('--color-income'),
-        'income-bg': withOpacity('--color-income-bg'),
-        expense: withOpacity('--color-expense'),
-        'expense-bg': withOpacity('--color-expense-bg'),
-        transfer: withOpacity('--color-transfer'),
-        warning: withOpacity('--color-warning'),
+        primary: COLORS.primary.DEFAULT,
+        'primary-hover': COLORS.primary.hover,
+        'app-bg': COLORS.background.light,
+        surface: COLORS.surface.light,
+        'text-primary': COLORS.text.primary,
+        'text-secondary': COLORS.text.secondary,
+        border: COLORS.border.light,
+        income: COLORS.success.DEFAULT,
+        'income-bg': COLORS.success.bg,
+        expense: COLORS.danger.DEFAULT,
+        'expense-bg': COLORS.danger.bg,
+        transfer: COLORS.info.DEFAULT,
+        warning: COLORS.warning.DEFAULT,
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],

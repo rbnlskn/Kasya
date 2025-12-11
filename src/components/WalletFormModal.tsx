@@ -91,7 +91,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     const finalBg = `bg-[${customBg}]`;
     const finalText = `text-[${customText}]`;
 
-    let adjustment = undefined;
+    let adjustment: { amount: number, isExpense: boolean, description?: string } | undefined = undefined;
     const isCreditCard = type === WalletType.CREDIT_CARD;
 
     if (initialWallet && isAdjustment) {
