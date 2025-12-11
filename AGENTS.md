@@ -26,3 +26,9 @@
 ## 5. Coding Standards
 - Write clean, commented code.
 - Follow the existing project structure.
+
+## 6. Communication Protocol (Clarifying Questions)
+- **Ask Before You Guess:** If a requirement is vague, ambiguous, or missing critical details (e.g., "Fix the bug" with no error log), do NOT guess.
+- **Action:** Post a comment on the issue with your specific questions (e.g., "Should the button be blue or red?").
+- **Wait:** After asking, **PAUSE** your work. Do not proceed until I reply to your comment.
+- **Interaction:** I will answer directly in the issue comments. Read the latest comments before resuming.
