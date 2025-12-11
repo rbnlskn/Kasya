@@ -30,14 +30,14 @@ jobs:
   kasya_manager:
     runs-on: ubuntu-latest
     steps:
-      # STEP 1: Debug Log
+      # STEP 1: Debug Log (This will ALWAYS run, proving the file works)
       - name: 🔍 Diagnostic Log
         run: |
           echo "Event: ${{ github.event_name }}"
           echo "Action: ${{ github.event.action }}"
           echo "Actor: ${{ github.actor }}"
 
-      # STEP 2: Logic Router
+      # STEP 2: Logic Router (Decides what to do based on the event)
       - name: 🧠 Router & Execution
         uses: actions/github-script@v7
         with:
@@ -53,7 +53,7 @@ jobs:
             if (event === 'workflow_dispatch') {
               issueNumber = parseInt('${{ inputs.debug_issue_number }}');
               console.log(`🔧 MANUAL DEBUG MODE: Targeting Issue #${issueNumber}`);
-              triggerType = 'ACTIVATE'; 
+              triggerType = 'ACTIVATE'; // Manual runs force activation
             } 
             else if (event === 'issues') {
               issueNumber = context.issue.number;
@@ -65,7 +65,7 @@ jobs:
                  triggerType = 'ACTIVATE';
               } else {
                  console.log(`ℹ️ Issue #${issueNumber} does NOT have 'ready' label. Ignoring.`);
-                 return; 
+                 return; // EXIT SCRIPT
               }
             }
             else if (event === 'issue_reaction' && payload.reaction.content === '+1') {
@@ -116,87 +116,73 @@ jobs:
               let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT\n> **System Note:** Merged content from sub-issues.\n\n";
 
               if (matches.length > 0) {
-                // Add temp context label
-                await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['context'] });
-                
                 for (const match of matches) {
-                  const subId = parseInt(match[1]);
-                  if (subId === issueNumber) continue;
+                  const subIssueNum = parseInt(match[1]);
+                  console.log(`Processing sub-issue #${subIssueNum}`);
+
                   try {
-                    const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subId });
-                    
-                    // Update sub-issue status
-                    try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'backlog' }); } catch(e){}
-                    await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['in progress'] });
-                    
-                    contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n${subIssue.data.body}\n\n---\n`;
-                  } catch (e) {}
+                    // Add 'in progress' to sub-issue
+                    await github.rest.issues.addLabels({ owner, repo, issue_number: subIssueNum, labels: ['in progress'] });
+
+                    // Fetch sub-issue content
+                    const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subIssueNum });
+                    contextContent += `### Sub-Issue #${subIssueNum}: ${subIssue.data.title}\n${subIssue.data.body}\n\n`;
+                  } catch (err) {
+                    console.log(`Failed to process sub-issue #${subIssueNum}: ${err.message}`);
+                  }
                 }
+              } else {
+                contextContent += "No sub-issues found in description.";
               }
 
-              // Update Batch Body & Add Final Labels
-              await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
-              try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
-              
-              await github.rest.issues.addLabels({ 
-                owner, repo, issue_number: issueNumber, 
-                labels: ['jules', 'planning'] 
-              });
-              console.log("🎉 Activation Complete: Jules triggered in Planning mode.");
+              // Update Main Issue with Context
+              const newBody = body + contextContent;
+              await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: newBody });
+
+              // Add Labels to Main Issue (Triggers Agent)
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['planning', 'jules'] });
             }
 
-            // HANDLER 2: PLAN APPROVAL (Reaction -> Execution)
-            if (triggerType === 'APPROVE_PLAN') {
-               const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-               const labels = issue.data.labels.map(l => l.name);
-               
-               if (labels.includes('planning')) {
-                  await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
-                  await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in progress', 'jules'] });
-                  await github.rest.issues.createComment({
-                    owner, repo, issue_number: issueNumber,
-                    body: "👍 **Plan Approved.** Jules is starting execution now."
-                  });
-                  console.log("✅ Plan Approved. Switched to Execution.");
-               } else {
-                  console.log("Reaction detected, but issue was not in 'planning' mode.");
+            // HANDLER 2: APPROVE PLAN (User +1 -> Execution)
+            else if (triggerType === 'APPROVE_PLAN') {
+               console.log(`👍 Approval detected on Issue #${issueNumber}`);
+               try {
+                 const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+                 const hasPlanning = issue.data.labels.some(l => l.name === 'planning');
+
+                 if (hasPlanning) {
+                   console.log("Transitioning from PLANNING to EXECUTION.");
+                   await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
+                   await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in progress', 'jules'] });
+                 } else {
+                   console.log("Issue is not in PLANNING state. Ignoring approval.");
+                 }
+               } catch (e) {
+                 console.log(`Error in APPROVE_PLAN: ${e.message}`);
                }
             }
 
-            // HANDLER 3: STATUS UPDATE (Jules Comment -> Review)
-            if (triggerType === 'UPDATE_STATUS') {
-               const body = payload.comment.body.toLowerCase();
-               if (body.includes('pull request') || body.includes('/pull/')) {
-                  try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'in progress' }); } catch(e){}
-                  await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in review'] });
-                  console.log("👀 PR detected. Moved to Review.");
-               }
+            // HANDLER 3: UPDATE STATUS (Jules Comment)
+            else if (triggerType === 'UPDATE_STATUS') {
+              console.log("📝 Status update from Jules detected.");
+              // Placeholder: Could update a project board or log metrics
             }
 
-            // HANDLER 4: CLOSE ON MERGE
-            if (triggerType === 'CLOSE_MERGE') {
-               const pr = payload.pull_request;
-               const prBody = pr.body || "";
-               const matches = [...prBody.matchAll(/#(\d+)/g)];
+            // HANDLER 4: CLOSE MERGE (PR Merged -> Close Issues)
+            else if (triggerType === 'CLOSE_MERGE') {
+              console.log("🎉 PR Merged. Attempting to close linked issues.");
+              const prBody = payload.pull_request.body || "";
+              // Find "Fixes #123", "Closes #123", or just "#123" if that's the convention
+              // Using a broad regex for numbers mentioned
+              const matches = [...prBody.matchAll(/#(\d+)/g)];
 
-               for (const match of matches) {
-                  const batchId = parseInt(match[1]);
-                  console.log(`Closing Batch #${batchId}`);
-                  
-                  try { await github.rest.issues.removeLabel({ owner, repo, issue_number: batchId, name: 'in review' }); } catch(e){}
-                  await github.rest.issues.addLabels({ owner, repo, issue_number: batchId, labels: ['completed'] });
-                  await github.rest.issues.update({ owner, repo, issue_number: batchId, state: 'closed' });
-
-                  const batchIssue = await github.rest.issues.get({ owner, repo, issue_number: batchId });
-                  const subMatches = [...(batchIssue.data.body || "").matchAll(/#(\d+)/g)];
-                  for (const sub of subMatches) {
-                     const subId = parseInt(sub[1]);
-                     if (subId === batchId) continue;
-                     try {
-                        try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'in progress' }); } catch(e){}
-                        await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['completed'] });
-                        await github.rest.issues.update({ owner, repo, issue_number: subId, state: 'closed' });
-                     } catch(err) {}
-                  }
-               }
+              for (const match of matches) {
+                const num = parseInt(match[1]);
+                try {
+                  console.log(`Closing issue #${num}`);
+                  await github.rest.issues.update({ owner, repo, issue_number: num, state: 'closed' });
+                } catch (e) {
+                  console.log(`Could not close issue #${num}: ${e.message}`);
+                }
+              }
             }
