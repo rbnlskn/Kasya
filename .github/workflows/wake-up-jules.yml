@@ -5,7 +5,7 @@ on:
 
 jobs:
   activate-jules:
-    # Trigger only when the 'Ready' label is added
+    # 1. Trigger ONLY when the 'Ready' label is added
     if: github.event.label.name == 'Ready'
     runs-on: ubuntu-latest
     permissions:
@@ -15,7 +15,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // 1. Add 'Jules' label (Capitalized to match your repo)
+            // 2. Add the OFFICIAL lowercase 'jules' label
+            // The bot listens best to strict lowercase.
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -23,7 +24,7 @@ jobs:
               labels: ['jules']
             });
 
-            // 2. Assign YOU
+            // 3. Assign YOU (The trigger-er)
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -31,7 +32,7 @@ jobs:
               assignees: [context.actor]
             });
 
-            // 3. CLEANUP: Remove 'Backlog' label
+            // 4. CLEANUP: Remove 'Backlog' label if it exists
             try {
               await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
@@ -40,5 +41,5 @@ jobs:
                 name: 'Backlog'
               });
             } catch (e) {
-              // Ignore error if 'Backlog' wasn't there
+              // Ignore if 'Backlog' wasn't there
             }
