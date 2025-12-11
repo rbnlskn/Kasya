@@ -8,14 +8,15 @@ jobs:
     # Trigger only when the 'Ready' label is added
     if: github.event.label.name == 'Ready'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
       - name: Activate, Assign, and Cleanup
         uses: actions/github-script@v7
         with:
+          # CRITICAL: This uses your Personal Access Token to act as YOU (not a bot).
+          # This forces the Jules agent to see the event and wake up.
+          github-token: ${{ secrets.JULES_PAT }}
           script: |
-            // STEP 1: Remove 'Ready' (and 'Backlog') FIRST
+            // STEP 1: Remove 'Ready' and 'Backlog' labels
             const labelsToRemove = ['Ready', 'Backlog'];
             for (const label of labelsToRemove) {
               try {
@@ -38,7 +39,8 @@ jobs:
               assignees: [context.actor]
             });
 
-            // STEP 3: Add 'Jules' tag LAST (starts the agent)
+            // STEP 3: Add 'Jules' label (Capitalized)
+            // Because we used the PAT above, this triggers the agent successfully.
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
