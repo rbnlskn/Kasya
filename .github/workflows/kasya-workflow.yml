@@ -2,8 +2,8 @@ name: Kasya Workflow Automation
 
 on:
   issues:
-    # UPDATED: Listen for 'opened' too, in case you add labels during creation
-    types: [labeled, opened]
+    # Trigger on open (with labels) OR when a label is added later
+    types: [opened, labeled]
   issue_comment:
     types: [created]
   issue_reaction:
@@ -17,11 +17,13 @@ permissions:
   contents: write
 
 jobs:
+  # ------------------------------------------------------------------
+  # JOB 1: ACTIVATION (Triggered by 'ready' label)
+  # ------------------------------------------------------------------
   activate_batch:
-    # UPDATED CONDITION: Checks if label was just added OR if it exists on a new issue
-    if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'ready') ||
-      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'ready'))
+    # FIXED LOGIC: Simply checks "Does this issue have the 'ready' label?"
+    # This works for both new issues and existing ones.
+    if: contains(github.event.issue.labels.*.name, 'ready')
     runs-on: ubuntu-latest
     steps:
       - name: Build Context and Trigger Planning
@@ -34,7 +36,9 @@ jobs:
             const repo = context.repo.repo;
             const actor = context.actor;
 
-            // 1. CLEANUP LABELS
+            console.log(`🚀 Activation Triggered for Issue #${issueNumber}`);
+
+            // 1. CLEANUP LABELS (Prevents loops)
             const labelsToRemove = ['backlog', 'ready'];
             for (const name of labelsToRemove) {
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
@@ -59,6 +63,7 @@ jobs:
                 if (subId === issueNumber) continue;
                 try {
                   const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subId });
+                  // Clean sub-issue status
                   try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'backlog' }); } catch(e){}
                   await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['in progress'] });
                   contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n${subIssue.data.body}\n\n---\n`;
@@ -71,11 +76,15 @@ jobs:
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
             
             // 3. TRIGGER PLANNING PHASE
+            // Add 'planning' and 'jules'
             await github.rest.issues.addLabels({ 
               owner, repo, issue_number: issueNumber, 
               labels: ['jules', 'planning'] 
             });
 
+  # ------------------------------------------------------------------
+  # JOB 2: PROMOTE TO EXECUTION (Triggered by 👍 Reaction)
+  # ------------------------------------------------------------------
   approve_plan:
     if: github.event_name == 'issue_reaction' && github.event.reaction.content == '+1'
     runs-on: ubuntu-latest
@@ -106,6 +115,9 @@ jobs:
               });
             }
 
+  # ------------------------------------------------------------------
+  # JOB 3: STATUS UPDATE (Jules comments 'PR Created')
+  # ------------------------------------------------------------------
   update_status_review:
     if: github.event_name == 'issue_comment' && contains(github.event.comment.user.login, 'jules')
     runs-on: ubuntu-latest
@@ -124,6 +136,9 @@ jobs:
               await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in review'] });
             }
 
+  # ------------------------------------------------------------------
+  # JOB 4: COMPLETION (Merge PR)
+  # ------------------------------------------------------------------
   close_on_merge:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
