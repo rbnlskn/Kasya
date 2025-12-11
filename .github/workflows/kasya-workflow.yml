@@ -16,9 +16,6 @@ permissions:
   contents: write
 
 jobs:
-  # ------------------------------------------------------------------
-  # JOB 1: ACTIVATION (Triggered by 'ready' label)
-  # ------------------------------------------------------------------
   activate_batch:
     if: github.event.label.name == 'ready'
     runs-on: ubuntu-latest
@@ -33,16 +30,13 @@ jobs:
             const repo = context.repo.repo;
             const actor = context.actor;
 
-            // 1. CLEANUP LABELS
             const labelsToRemove = ['backlog', 'ready'];
             for (const name of labelsToRemove) {
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
             }
             
-            // Assign to User
             await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [actor] });
 
-            // 2. CONTEXT BUILDING
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
             const body = issue.data.body || "";
             const issueRegex = /#(\d+)/g;
@@ -65,20 +59,14 @@ jobs:
               }
             }
 
-            // Update Body
             await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
             
-            // 3. TRIGGER PLANNING PHASE
-            // Add 'planning' and 'jules' (so he wakes up to write the plan)
             await github.rest.issues.addLabels({ 
               owner, repo, issue_number: issueNumber, 
               labels: ['jules', 'planning'] 
             });
 
-  # ------------------------------------------------------------------
-  # JOB 2: PROMOTE TO EXECUTION (Triggered by 👍 Reaction)
-  # ------------------------------------------------------------------
   approve_plan:
     if: github.event_name == 'issue_reaction' && github.event.reaction.content == '+1'
     runs-on: ubuntu-latest
@@ -92,33 +80,23 @@ jobs:
             const repo = context.repo.repo;
             const issueNumber = context.issue.number;
             
-            // Get current labels
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
             const labels = issue.data.labels.map(l => l.name);
             
-            // Only act if we are in 'planning' mode
             if (labels.includes('planning')) {
-              console.log("Plan approved. Switching to execution mode.");
-              
-              // 1. Remove 'planning'
               await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
               
-              // 2. Add 'in progress' and wake 'jules' up again
               await github.rest.issues.addLabels({ 
                 owner, repo, issue_number: issueNumber, 
                 labels: ['in progress', 'jules'] 
               });
               
-              // 3. Acknowledge
               await github.rest.issues.createComment({
                 owner, repo, issue_number: issueNumber,
                 body: "👍 **Plan Approved.** Jules is starting execution now."
               });
             }
 
-  # ------------------------------------------------------------------
-  # JOB 3: STATUS UPDATE (Jules comments 'PR Created')
-  # ------------------------------------------------------------------
   update_status_review:
     if: github.event_name == 'issue_comment' && contains(github.event.comment.user.login, 'jules')
     runs-on: ubuntu-latest
@@ -137,9 +115,6 @@ jobs:
               await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in review'] });
             }
 
-  # ------------------------------------------------------------------
-  # JOB 4: COMPLETION (Merge PR)
-  # ------------------------------------------------------------------
   close_on_merge:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
@@ -161,12 +136,10 @@ jobs:
             for (const match of matches) {
               const batchId = parseInt(match[1]);
               
-              // Close Batch
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: batchId, name: 'in review' }); } catch(e){}
               await github.rest.issues.addLabels({ owner, repo, issue_number: batchId, labels: ['completed'] });
               await github.rest.issues.update({ owner, repo, issue_number: batchId, state: 'closed' });
 
-              // Close Sub-issues
               const batchIssue = await github.rest.issues.get({ owner, repo, issue_number: batchId });
               const subMatches = [...(batchIssue.data.body || "").matchAll(issueRegex)];
               for (const sub of subMatches) {
