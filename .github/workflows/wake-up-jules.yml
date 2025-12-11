@@ -1,27 +1,30 @@
-name: Wake Up Jules
+name: Wake Up Jules on 'Ready'
 on:
   issues:
-    types: [opened]
+    types: [labeled]
 
 jobs:
-  auto-assign-and-label:
+  activate-jules:
+    # Trigger only when the specific 'Ready' label is added
+    if: github.event.label.name == 'Ready'
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - name: Label and Assign
+      - name: Activate and Assign
         uses: actions/github-script@v7
         with:
           script: |
-            // 1. Add the 'jules' label to wake up the agent
+            // 1. Add 'Jules' label to wake up the agent
+            // Using "Jules" (Capitalized) to match your screenshot
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: ['jules']
+              labels: ['Jules']
             });
 
-            // 2. Assign the issue to the person who created it (You)
+            // 2. Assign YOU (The trigger-er)
             await github.rest.issues.addAssignees({
               owner: context.repo.owner,
               repo: context.repo.repo,
