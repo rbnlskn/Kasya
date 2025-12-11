@@ -38,8 +38,8 @@ jobs:
             // Add the intermediate 'Hydrate Context' label
             await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['Hydrate Context'] });
 
-            // Pass the issue number and actor to the next step
-            const core = require('@actions/core');
+            // Set outputs for the next steps
+            // We use 'core.setOutput' directly here, no need to require it again.
             core.setOutput('issue_number', issueNumber);
 
 
@@ -51,7 +51,6 @@ jobs:
             const issueNumber = ${{ steps.initialization.outputs.issue_number }};
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const core = require('@actions/core');
 
             // Fetch the issue body (must be refetched after the first step's changes if any)
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
@@ -123,9 +122,12 @@ jobs:
             const repo = context.repo.repo;
 
             // Always remove the 'Hydrate Context' status label
-            await github.rest.issues.removeLabel({
-              owner, repo, issue_number: issueNumber, name: 'Hydrate Context'
-            });
+            try {
+              await github.rest.issues.removeLabel({
+                owner, repo, issue_number: issueNumber, name: 'Hydrate Context'
+              });
+            } catch (e) { /* Ignore if label is already gone */ }
+
 
             // Only add the 'Jules' trigger if context was successfully loaded.
             if (contextAdded) {
