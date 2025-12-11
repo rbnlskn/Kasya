@@ -94,6 +94,8 @@ jobs:
 
             // HANDLER 1: ACTIVATION (Ready -> Jules)
             if (triggerType === 'ACTIVATE') {
+              console.log(`🚀 Starting ACTIVATION for Issue #${issueNumber}`);
+
               // Cleanup Labels
               const labelsToRemove = ['backlog', 'ready'];
               for (const name of labelsToRemove) {
@@ -101,11 +103,14 @@ jobs:
               }
               
               // Assign User
-              await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [context.actor] });
+              try {
+                await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [context.actor] });
+              } catch (e) { console.log("Could not assign user: " + e.message); }
 
               // Build Context
               const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
               const body = issue.data.body || "";
+              // Regex to find #123
               const matches = [...body.matchAll(/#(\d+)/g)];
               
               let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT\n> **System Note:** Merged content from sub-issues.\n\n";
