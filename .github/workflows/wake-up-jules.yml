@@ -5,7 +5,7 @@ on:
 
 jobs:
   activate-jules:
-    # Only run if the label added was specifically 'Ready'
+    # Trigger only when the 'Ready' label is added
     if: github.event.label.name == 'Ready'
     runs-on: ubuntu-latest
     permissions:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // 1. Add 'Jules' label
+            // 1. Add 'Jules' label (Capitalized to match your repo)
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
