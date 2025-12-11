@@ -162,16 +162,15 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
              <div 
-                className="flex-shrink-0 w-48 h-32 rounded-xl p-4 relative shadow-sm overflow-hidden"
+                className="flex-shrink-0 w-48 h-28 rounded-xl p-3 relative shadow-md overflow-hidden"
                 style={{ backgroundColor: customBg, color: customText }}
              >
                 <div className="flex flex-col justify-between h-full relative z-10">
                     <div className="flex justify-between items-start">
                         <span className="text-[10px] font-medium opacity-70 uppercase tracking-wider">{isCreditCard ? 'LIMIT' : 'BALANCE'}</span>
-                        <span className="text-sm tracking-widest leading-none opacity-80 pb-0.5">****</span>
                     </div>
 
                     <div className="flex-1 flex items-center">
@@ -194,14 +193,14 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
           
           <div>
-            <label className="text-xs font-semibold text-text-secondary uppercase mb-2 block">Templates</label>
-            <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-1.5 block">Templates</label>
+            <div className="grid grid-cols-4 gap-2">
                 {WALLET_TEMPLATES.map((c, idx) => (
                     <button
                         key={idx}
                         type="button"
                         onClick={() => handleTemplateSelect(c)}
-                        className={`flex-shrink-0 w-16 h-12 rounded-lg ${c.bg} ${c.text} flex items-center justify-center font-bold text-[10px] shadow-sm transition-transform active:scale-95 flex-col leading-tight p-1`}
+                        className={`w-full h-12 rounded-lg ${c.bg} ${c.text} flex items-center justify-center font-bold text-[10px] shadow-sm transition-transform active:scale-95 flex-col leading-tight p-1`}
                     >
                         <span>{c.name}</span>
                         <span className="text-[8px] opacity-70 font-normal">{c.type}</span>
@@ -210,20 +209,20 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-             <div onClick={() => { setActiveColorTab('BG'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
-                 <div className="w-8 h-8 rounded-lg border border-border shadow-sm" style={{ backgroundColor: customBg }}></div>
-                 <span className="text-sm font-medium text-text-primary">Wallet Color</span>
+          <div className="grid grid-cols-2 gap-3">
+             <div onClick={() => { setActiveColorTab('BG'); setIsColorPickerOpen(true); }} className="flex items-center space-x-2 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                 <div className="w-7 h-7 rounded-lg border border-border shadow-sm" style={{ backgroundColor: customBg }}></div>
+                 <span className="text-sm font-medium text-text-primary">Color</span>
              </div>
-             <div onClick={() => { setActiveColorTab('TEXT'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
-                 <div className="w-8 h-8 rounded-lg border border-border shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
-                 <span className="text-sm font-medium text-text-primary">Text Color</span>
+             <div onClick={() => { setActiveColorTab('TEXT'); setIsColorPickerOpen(true); }} className="flex items-center space-x-2 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                 <div className="w-7 h-7 rounded-lg border border-border shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
+                 <span className="text-sm font-medium text-text-primary">Text</span>
              </div>
           </div>
 
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Type</label>
-            <div onClick={() => setIsSelectingType(true)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 flex justify-between items-center cursor-pointer h-[54px]">
+            <div onClick={() => setIsSelectingType(true)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2.5 px-4 flex justify-between items-center cursor-pointer h-11">
               <span className={`font-medium text-sm ${type ? 'text-text-primary' : 'text-text-secondary'}`}>{type || 'Select a type'}</span>
               <ChevronDown className="w-4 h-4 text-text-secondary" />
             </div>
@@ -231,18 +230,18 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 text-text-primary" required />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2.5 px-4 text-sm font-medium text-text-primary" required />
           </div>
 
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
               <input 
                 type="number" 
                 value={balance} 
                 onChange={e => setBalance(e.target.value)}
-                className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 pl-10 pr-4 text-lg font-bold text-text-primary"
+                className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2 pl-8 pr-4 text-xl font-bold text-text-primary"
                 required 
                 inputMode="decimal"
                 step="0.01"
@@ -251,7 +250,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
           
           {initialWallet && (
-              <div className="flex items-center space-x-2 text-sm">
+              <div className="flex items-center space-x-2 text-sm pt-1">
                  <input type="checkbox" id="isAdj" checked={isAdjustment} onChange={(e) => setIsAdjustment(e.target.checked)} className="w-4 h-4 rounded text-primary" />
                  <label htmlFor="isAdj" className="text-text-secondary">
                      Record balance change as a transaction?
@@ -260,16 +259,16 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           )}
 
           {isCreditCard && (
-              <div className="flex items-center space-x-4 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
+              <div className="flex items-center space-x-4 bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl">
                   <div className="flex items-center space-x-2 flex-1">
                       <Calendar className="w-4 h-4 text-text-secondary"/>
                       <label className="text-sm font-medium text-text-primary">Statement Day</label>
                   </div>
-                  <button type="button" onClick={() => setIsDayPickerOpen(true)} className="px-4 py-2 bg-surface border rounded-lg font-bold text-sm text-text-primary">{statementDay}</button>
+                  <button type="button" onClick={() => setIsDayPickerOpen(true)} className="px-3 py-1.5 bg-surface border rounded-lg font-bold text-sm text-text-primary">{statementDay}</button>
               </div>
           )}
 
-          <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
+          <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
         </form>
       </div>
     </div>

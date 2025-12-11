@@ -106,73 +106,73 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Type Toggle */}
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            <button type="button" onClick={() => setType('PAYABLE')} className={`flex-1 py-3 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'PAYABLE' ? 'bg-surface shadow text-red-500' : 'text-text-secondary'}`}>
+            <button type="button" onClick={() => setType('PAYABLE')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'PAYABLE' ? 'bg-surface shadow text-red-500' : 'text-text-secondary'}`}>
                 <ArrowDownLeft className="w-4 h-4"/> I Owe (Payable)
             </button>
-            <button type="button" onClick={() => setType('RECEIVABLE')} className={`flex-1 py-3 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'RECEIVABLE' ? 'bg-surface shadow text-green-500' : 'text-text-secondary'}`}>
+            <button type="button" onClick={() => setType('RECEIVABLE')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'RECEIVABLE' ? 'bg-surface shadow text-green-500' : 'text-text-secondary'}`}>
                 <ArrowUpRight className="w-4 h-4"/> They Owe (Receivable)
             </button>
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
               {icon}
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full text-lg font-bold border-b-2 border-border focus:border-indigo-500 outline-none py-1 bg-transparent text-text-primary" placeholder="Bank Loan, Friend..." required autoFocus={false} />
+                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g., Car Loan, Friend" required />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Principal Amount</label>
             <div className="relative">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
-              <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full pl-6 py-2 text-2xl font-black border-b-2 border-border focus:border-indigo-500 outline-none bg-transparent text-text-primary" placeholder="0.00" required inputMode="decimal" step="0.01" />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
+              <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 pl-8 pr-3 text-2xl font-black text-text-primary outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00" required inputMode="decimal" step="0.01" />
             </div>
           </div>
 
-          <div className="flex space-x-4">
+          <div className="flex space-x-3">
               <div className="flex-1">
                 <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Interest</label>
                 <div className="relative">
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-sm">{currencySymbol}</span>
-                    <input type="number" value={interest} onChange={e => setInterest(e.target.value)} className="w-full pl-4 py-2 font-bold border-b-2 border-border focus:border-indigo-500 outline-none bg-transparent text-text-primary" placeholder="0.00" inputMode="decimal" />
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-sm">{currencySymbol}</span>
+                    <input type="number" value={interest} onChange={e => setInterest(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 pl-6 pr-2 font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00" inputMode="decimal" />
                 </div>
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Fee</label>
                 <div className="relative">
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-sm">{currencySymbol}</span>
-                    <input type="number" value={fee} onChange={e => setFee(e.target.value)} className="w-full pl-4 py-2 font-bold border-b-2 border-border focus:border-indigo-500 outline-none bg-transparent text-text-primary" placeholder="0.00" inputMode="decimal" />
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-sm">{currencySymbol}</span>
+                    <input type="number" value={fee} onChange={e => setFee(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 pl-6 pr-2 font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0.00" inputMode="decimal" />
                 </div>
               </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-2">Icon</label>
-            <div className="flex flex-wrap gap-3 p-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Icon</label>
+            <div className="grid grid-cols-5 gap-2">
               {ICONS.map(i => (
-                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-surface shadow-md scale-110' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{i}</button>
+                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-full h-10 rounded-lg flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-indigo-500 text-white scale-110 shadow-md' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{i}</button>
               ))}
             </div>
           </div>
 
           {/* Due Date Picker (Using DayPicker for recurring day) */}
           <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-2">Due Day (Monthly)</label>
-             <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Due Day (Monthly)</label>
+             <div className="bg-slate-100 dark:bg-slate-800 p-2 sm:p-3 rounded-xl">
                 <DayPicker selectedDate={selectedDate} onChange={setSelectedDate} />
              </div>
           </div>
 
           {/* New Loan Options */}
           {!initialLoan && (
-              <div className="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-xl">
-                  <div className="flex items-center justify-between mb-2">
+              <div className="bg-blue-50 dark:bg-blue-900/50 p-3 rounded-xl">
+                  <div className="flex items-center justify-between">
                       <label className="text-sm font-bold text-blue-800 dark:text-blue-200">Record transaction now?</label>
                       <input type="checkbox" checked={createTransaction} onChange={(e) => setCreateTransaction(e.target.checked)} className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" />
                   </div>
@@ -182,16 +182,16 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                           <select
                             value={selectedWalletId}
                             onChange={(e) => setSelectedWalletId(e.target.value)}
-                            className="w-full p-2 rounded-lg border border-blue-200 dark:bg-slate-800 dark:border-blue-700 text-sm font-medium focus:outline-none focus:border-blue-500 text-text-primary"
+                            className="w-full p-2 rounded-lg border-2 border-blue-200 dark:bg-slate-800 dark:border-blue-700 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-text-primary"
                           >
                               {wallets.map(w => (
                                   <option key={w.id} value={w.id}>{w.name} ({currencySymbol}{w.balance})</option>
                               ))}
                           </select>
-                          <p className="text-[10px] text-blue-600 dark:text-blue-300 mt-1 leading-tight">
+                          <p className="text-xs text-blue-600 dark:text-blue-300 mt-1.5 leading-tight">
                               {type === 'PAYABLE'
-                                ? `This will add +${currencySymbol}${parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')} to the selected wallet (Principal - Fee).`
-                                : `This will deduct -${currencySymbol}${parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')} from the selected wallet.`
+                                ? `Adds ${currencySymbol}${(parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')).toLocaleString()} to the wallet.`
+                                : `Deducts ${currencySymbol}${(parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')).toLocaleString()} from the wallet.`
                               }
                           </p>
                       </div>
@@ -199,7 +199,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
               </div>
           )}
 
-          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-transform active:scale-95">{initialLoan ? 'Save Changes' : 'Create Loan'}</button>
+          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-indigo-500/30 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2">{initialLoan ? 'Save Changes' : 'Create Loan'}</button>
         </form>
       </div>
     </div>
