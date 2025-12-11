@@ -68,5 +68,5 @@ jobs:
               owner,
               repo,
               issue_number: issueNumber,
-              body: "@Jules The context from all sub-issues has been loaded above. Please proceed with the batch updates in this single session."
+              body: "Jules! The context from all sub-issues has been loaded above. Please proceed with the batch updates in this single session."
             });
