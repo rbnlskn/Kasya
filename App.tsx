@@ -21,7 +21,7 @@ import BillFormModal from './components/BillFormModal';
 import LoanFormModal from './components/LoanFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
-import { Plus, BarChart3, Loader2, Sparkles } from 'lucide-react';
+import { Plus, BarChart3, Loader2, Zap } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -71,14 +71,6 @@ const App: React.FC = () => {
   useEffect(() => {
     const initApp = async () => {
         try {
-            if (Capacitor.isNativePlatform()) {
-                try {
-                    await StatusBar.setBackgroundColor({ color: '#f8fafc' }); 
-                    await StatusBar.setStyle({ style: Style.Light }); 
-                } catch (e) {
-                    console.warn("Status bar not available or failed", e);
-                }
-            }
             const loadedData = await loadData();
             setData(loadedData);
         } catch (e) {
@@ -90,24 +82,33 @@ const App: React.FC = () => {
     initApp();
   }, []);
 
-  // Save data whenever it changes
-  useEffect(() => {
-    if (!isLoading) {
+  const useThemeEffect = (theme: 'DARK' | 'LIGHT' | 'SYSTEM' | undefined, isLoading: boolean) => {
+    useEffect(() => {
+        if (isLoading) return;
+
+        const applyTheme = () => {
+            const root = window.document.documentElement;
+            const isDark = theme === 'DARK' || (theme === 'SYSTEM' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            root.classList.toggle('dark', isDark);
+
+            if (Capacitor.isNativePlatform()) {
+                StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+                StatusBar.setBackgroundColor({ color: isDark ? '#020617' : '#f8fafc' });
+            }
+        };
+
+        applyTheme();
         saveData(data);
 
-        // Apply Theme
-        const root = window.document.documentElement;
-        root.classList.remove('dark');
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', applyTheme);
+        return () => mediaQuery.removeEventListener('change', applyTheme);
 
-        if (data.theme === 'DARK') {
-            root.classList.add('dark');
-        } else if (!data.theme || data.theme === 'SYSTEM') {
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                root.classList.add('dark');
-            }
-        }
-    }
-  }, [data, isLoading]);
+    }, [theme, isLoading, data]);
+  };
+
+  useThemeEffect(data.theme, isLoading);
 
   // --- NAVIGATION LOGIC ---
 
