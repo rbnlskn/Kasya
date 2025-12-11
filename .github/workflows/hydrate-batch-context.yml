@@ -1,16 +1,19 @@
-name: Hydrate Batch Issue Context
+name: Hydrate Batch & Sync Sub-Issues (Delayed Trigger)
 on:
   issues:
     types: [labeled]
 
 jobs:
-  consolidate_context:
-    if: github.event.label.name == 'hydrate-context'
+  process_batch:
+    # This job only runs when the 'Hydrate Context' label is added.
+    if: github.event.label.name == 'Hydrate Context'
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      contents: write
     steps:
-      - name: Consolidate Linked Issues
+      - name: Process Sub-Issues & Load Context
+        id: context_loading
         uses: actions/github-script@v6
         with:
           script: |
@@ -19,54 +22,108 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // 1. Regex to find linked issues (format: #123 or https://github.com/.../issues/123)
-            // Looks for patterns like "- [ ] #123" or just "#123"
+            // 1. Regex to find linked issues (e.g. #123)
             const issueRegex = /#(\d+)/g;
             const matches = [...issueBody.matchAll(issueRegex)];
             
             if (matches.length === 0) {
               console.log("No linked issues found.");
+              // Set an output flag if no context was added
+              core.setOutput('context_added', 'false');
               return;
             }
+            
+            // Accessing GitHub Actions core functions to set outputs
+            const core = require('@actions/core');
 
-            let consolidatedContent = "\n\n---\n# 🤖 CONSOLIDATED CONTEXT FOR JULES \n*Auto-generated context from linked sub-issues to ensure single-session continuity.*\n";
+            let consolidatedContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT (AUTO-GENERATED)\n";
+            consolidatedContent += "> **System Note:** The following content is merged from sub-issues to ensure a SINGLE session context.\n\n";
 
-            // 2. Loop through found IDs and fetch their bodies
+            // 2. Loop through sub-issues, update them, and grab content
             for (const match of matches) {
-              const linkedId = match[1];
+              const linkedId = parseInt(match[1]);
               
-              // Skip if it links to itself
-              if (linkedId == issueNumber) continue;
+              if (linkedId === issueNumber) continue;
 
               try {
+                // A. Fetch Sub-Issue Data
                 const linkedIssue = await github.rest.issues.get({
                   owner,
                   repo,
                   issue_number: linkedId,
                 });
 
-                consolidatedContent += `\n## 📄 Content from Sub-Issue #${linkedId} (${linkedIssue.data.title})\n`;
-                consolidatedContent += `> **Status:** ${linkedIssue.data.state}\n\n`;
+                // B. Append Content to Main Batch Issue (for Jules to read)
+                consolidatedContent += `## 📄 Sub-Issue #${linkedId}: ${linkedIssue.data.title}\n`;
                 consolidatedContent += `${linkedIssue.data.body}\n`;
                 consolidatedContent += `\n---\n`;
-                
+
+                // C. Update Sub-Issue Status (Comment)
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: linkedId,
+                  body: `⚙️ **Status Update:** This issue is currently being processed in Batch Issue #${issueNumber}. Please follow that issue for updates.`
+                });
+
+                // D. SAFEGUARD: Remove 'Jules' label from sub-issue if present
+                const labels = linkedIssue.data.labels.map(l => l.name);
+                if (labels.includes('Jules')) {
+                   await github.rest.issues.removeLabel({
+                     owner,
+                     repo,
+                     issue_number: linkedId,
+                     name: 'Jules'
+                   });
+                }
+
               } catch (error) {
-                console.log(`Could not fetch issue #${linkedId}: ${error.message}`);
+                console.log(`Error processing #${linkedId}: ${error.message}`);
               }
             }
 
-            // 3. Append the consolidated text to the current Batch Issue
+            // 3. Add Memory Instructions
+            consolidatedContent += `
+            # 💾 MEMORY & FINALIZATION INSTRUCTIONS
+            1. **Execute All Tasks:** Resolve the sub-issues listed above in this single session.
+            2. **Update Memory:** Upon completion, analyze the patterns used in this fix.
+            3. **Documentation:** If new architectural rules were established, update 'AGENTS.md' so you remember them next time.
+            `;
+
+            // 4. Update the Batch Issue Body with all the text
             await github.rest.issues.update({
               owner,
               repo,
               issue_number: issueNumber,
               body: issueBody + consolidatedContent
             });
+            
+            // Set output flag indicating success
+            core.setOutput('context_added', 'true');
+            core.setOutput('issue_number', issueNumber); # Pass the issue number to the next step
 
-            // 4. Trigger Jules explicitly now that context is loaded
-            await github.rest.issues.createComment({
+      - name: Trigger Jules (After Context is Ready)
+        # This step only runs if the previous step successfully added context
+        if: steps.context_loading.outputs.context_added == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = ${{ steps.context_loading.outputs.issue_number }};
+
+            // Remove the temporary 'Hydrate Context' label
+            await github.rest.issues.removeLabel({
               owner,
               repo,
               issue_number: issueNumber,
-              body: "Jules! The context from all sub-issues has been loaded above. Please proceed with the batch updates in this single session."
+              name: 'Hydrate Context'
+            });
+
+            // Add the 'Jules' label to start the agent
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              labels: ['Jules']
             });
