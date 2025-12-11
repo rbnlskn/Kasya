@@ -1,0 +1,72 @@
+name: Hydrate Batch Issue Context
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  consolidate_context:
+    if: github.event.label.name == 'hydrate-context'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Consolidate Linked Issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+            const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // 1. Regex to find linked issues (format: #123 or https://github.com/.../issues/123)
+            // Looks for patterns like "- [ ] #123" or just "#123"
+            const issueRegex = /#(\d+)/g;
+            const matches = [...issueBody.matchAll(issueRegex)];
+            
+            if (matches.length === 0) {
+              console.log("No linked issues found.");
+              return;
+            }
+
+            let consolidatedContent = "\n\n---\n# 🤖 CONSOLIDATED CONTEXT FOR JULES \n*Auto-generated context from linked sub-issues to ensure single-session continuity.*\n";
+
+            // 2. Loop through found IDs and fetch their bodies
+            for (const match of matches) {
+              const linkedId = match[1];
+              
+              // Skip if it links to itself
+              if (linkedId == issueNumber) continue;
+
+              try {
+                const linkedIssue = await github.rest.issues.get({
+                  owner,
+                  repo,
+                  issue_number: linkedId,
+                });
+
+                consolidatedContent += `\n## 📄 Content from Sub-Issue #${linkedId} (${linkedIssue.data.title})\n`;
+                consolidatedContent += `> **Status:** ${linkedIssue.data.state}\n\n`;
+                consolidatedContent += `${linkedIssue.data.body}\n`;
+                consolidatedContent += `\n---\n`;
+                
+              } catch (error) {
+                console.log(`Could not fetch issue #${linkedId}: ${error.message}`);
+              }
+            }
+
+            // 3. Append the consolidated text to the current Batch Issue
+            await github.rest.issues.update({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: issueBody + consolidatedContent
+            });
+
+            // 4. Trigger Jules explicitly now that context is loaded
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body: "@Jules The context from all sub-issues has been loaded above. Please proceed with the batch updates in this single session."
+            });
