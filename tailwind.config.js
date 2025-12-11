@@ -14,10 +14,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: 'var(--color-primary)',
-          hover: 'var(--color-primary-hover)',
-        },
+        primary: 'var(--color-primary)',
+        'primary-hover': 'var(--color-primary-hover)',
         'app-bg': 'var(--color-bg)',
         surface: 'var(--color-surface)',
         'text-primary': 'var(--color-text-primary)',

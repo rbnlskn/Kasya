@@ -256,7 +256,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                             <span className="text-xs font-bold text-text-secondary dark:text-text-secondary uppercase tracking-wider mb-3 block">{log.date}</span>
                             <ul className="space-y-2">
                                 {log.changes.map((c, i) => (
-                                    <li key={i} className="text-sm font-medium text-text-secondary dark:text-text-secondary leading-relaxed">• {c}</li>
+                                    <li key={i} className="text-sm font-medium text-text-secondary dark:text-text-secondary leading-relaxed flex items-start">
+                                      <span className="mr-2 mt-1">•</span>
+                                      <span>{c}</span>
+                                    </li>
                                 ))}
                             </ul>
                         </div>
