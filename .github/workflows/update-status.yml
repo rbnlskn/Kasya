@@ -4,33 +4,74 @@ on:
     types: [created]
 
 jobs:
-  set-in-progress:
+  update-status:
     # Only run if the comment comes from the Jules Bot
     if: contains(github.event.comment.user.login, 'jules')
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - name: Switch Label to In Progress
+      - name: Update Label based on Context
         uses: actions/github-script@v7
         with:
           script: |
-            // 1. Remove 'Ready'
-            try {
-              await github.rest.issues.removeLabel({
+            const body = context.payload.comment.body.toLowerCase();
+            
+            // Define the labels
+            const readyLabel = 'Ready';
+            const progressLabel = 'In Progress';
+            const reviewLabel = 'For Review';
+
+            // 1. CHECK: Did Jules open a PR?
+            // He usually says "created a pull request" or links to a PR.
+            if (body.includes('pull request') || body.includes('/pull/')) {
+              
+              // Remove 'In Progress' or 'Ready'
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: progressLabel
+                });
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: readyLabel
+                });
+              } catch (e) {} // Ignore missing labels
+
+              // Add 'For Review'
+              await github.rest.issues.addLabels({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                name: 'Ready'
+                labels: [reviewLabel]
               });
-            } catch (e) {
-              // Ignore if label is already gone
-            }
 
-            // 2. Add 'In Progress'
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['In Progress']
-            });
+            } 
+            // 2. CHECK: Is he just starting/chatting?
+            else {
+              // If it's already "For Review", don't move it back to "In Progress"
+              // Only move it if we are coming from "Ready"
+              
+              // Add 'In Progress'
+              // (GitHub is smart enough not to add duplicates if it's already there)
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [progressLabel]
+              });
+
+              // Remove 'Ready'
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  name: readyLabel
+                });
+              } catch (e) {}
+            }
