@@ -2,7 +2,7 @@
 name: 🎨 Redesign
 about: Update the look of an existing screen
 title: "[REDESIGN] "
-labels: 
+labels: redesign
 assignees: ''
 ---
 
