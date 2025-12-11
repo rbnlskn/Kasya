@@ -110,3 +110,9 @@ export interface AppState {
 }
 
 export type ThemeMode = 'SYSTEM' | 'LIGHT' | 'DARK';
+
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  changes: string[];
+}

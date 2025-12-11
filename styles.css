@@ -59,7 +59,7 @@ body {
 }
 
 .dark .glass {
-    background: rgba(24, 24, 27, 0.85); /* zinc-900 with opacity */
+    background: rgba(var(--color-surface), 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);

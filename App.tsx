@@ -789,7 +789,6 @@ const App: React.FC = () => {
           initialLoan={editingLoan}
           currencySymbol={currentCurrency.symbol}
           wallets={data.wallets}
-          onPay={handlePayLoan}
           isExiting={isModalExiting}
         />
       )}
