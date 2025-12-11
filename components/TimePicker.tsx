@@ -58,6 +58,10 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange }) => {
   let displayHour = currentHour % 12;
   if (displayHour === 0) displayHour = 12;
 
+  const rotationAngle = mode === 'HOUR'
+    ? (displayHour * 30) - 90
+    : (currentMinute * 6) - 90;
+
   return (
     <div className="flex flex-col items-center">
       <div className="flex items-center mb-6">
@@ -95,6 +99,18 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange }) => {
       </div>
 
       <div className="relative w-64 h-64 rounded-full bg-gray-100 flex items-center justify-center">
+        {/* Selector Arm */}
+        <div
+          className="absolute w-1/2 h-1 bg-primary/40 rounded-full transition-transform duration-300 ease-in-out"
+          style={{
+              transform: `rotate(${rotationAngle}deg)`,
+              transformOrigin: 'left center'
+          }}
+        ></div>
+
+        {/* Central Point */}
+        <div className="absolute w-3 h-3 bg-primary rounded-full z-10"></div>
+
         {getClockNumbers().map((num, i) => {
           const angle = (i * 30) - 90; // 360/12 = 30 degrees per number, offset by -90
           const x = 100 * Math.cos(angle * Math.PI / 180);
@@ -105,7 +121,7 @@ const TimePicker: React.FC<TimePickerProps> = ({ value, onChange }) => {
               key={num}
               type="button"
               onClick={() => mode === 'HOUR' ? handleHourClick(num) : handleMinuteClick(num)}
-              className={`absolute w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors text-sm ${
+              className={`absolute w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors text-sm z-20 ${
                 isSelected ? 'bg-primary text-white' : 'text-gray-700 hover:bg-primary/5'
               }`}
               style={{

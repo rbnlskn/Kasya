@@ -82,42 +82,42 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl shadow-inner border border-amber-200">
+            <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl shadow-inner border border-amber-200">
               {icon}
             </div>
             <div className="flex-1">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full text-lg font-bold border-b-2 border-border focus:border-amber-500 outline-none py-1 bg-transparent text-text-primary" placeholder="Electricity, Netflix..." required autoFocus={false} />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g., Netflix, Rent" required />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Amount</label>
             <div className="relative">
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
-              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="w-full pl-6 py-2 text-2xl font-black border-b-2 border-border focus:border-amber-500 outline-none bg-transparent text-text-primary" placeholder="0.00" required inputMode="decimal" step="0.01" />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
+              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 pl-8 pr-3 text-2xl font-black text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="0.00" required inputMode="decimal" step="0.01" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-2">Icon</label>
-            <div className="flex flex-wrap gap-3 p-2 bg-slate-100 dark:bg-slate-800 rounded-xl">
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Icon</label>
+            <div className="grid grid-cols-6 gap-2">
               {ICONS.map(i => (
-                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-surface shadow-md scale-110' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{i}</button>
+                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-full h-10 rounded-lg flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-amber-400 text-white scale-110 shadow-md' : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{i}</button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-2">Due Day</label>
-            <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
+            <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1.5">Due Day</label>
+            <div className="bg-slate-100 dark:bg-slate-800 p-2 sm:p-3 rounded-xl">
                 <DayPicker selectedDate={selectedDate} onChange={setSelectedDate} />
             </div>
           </div>
 
-          <button type="submit" className="w-full bg-amber-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-200 hover:bg-amber-600 transition-transform active:scale-95">{initialBill ? 'Save Changes' : 'Add Bill'}</button>
+          <button type="submit" className="w-full bg-amber-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all active:scale-[0.98] mt-2">{initialBill ? 'Save Changes' : 'Add Bill'}</button>
         </form>
       </div>
     </div>

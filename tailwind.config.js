@@ -1,6 +1,15 @@
 
 import { COLORS } from './theme.js';
 
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}), ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -14,19 +23,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--color-primary)',
-        'primary-hover': 'var(--color-primary-hover)',
-        'app-bg': 'var(--color-bg)',
-        surface: 'var(--color-surface)',
-        'text-primary': 'var(--color-text-primary)',
-        'text-secondary': 'var(--color-text-secondary)',
-        border: 'var(--color-border)',
-        income: 'var(--color-income)',
-        'income-bg': 'var(--color-income-bg)',
-        expense: 'var(--color-expense)',
-        'expense-bg': 'var(--color-expense-bg)',
-        transfer: 'var(--color-transfer)',
-        warning: 'var(--color-warning)',
+        primary: withOpacity('--color-primary'),
+        'primary-hover': withOpacity('--color-primary-hover'),
+        'app-bg': withOpacity('--color-bg'),
+        surface: withOpacity('--color-surface'),
+        'text-primary': withOpacity('--color-text-primary'),
+        'text-secondary': withOpacity('--color-text-secondary'),
+        border: withOpacity('--color-border'),
+        income: withOpacity('--color-income'),
+        'income-bg': withOpacity('--color-income-bg'),
+        expense: withOpacity('--color-expense'),
+        'expense-bg': withOpacity('--color-expense-bg'),
+        transfer: withOpacity('--color-transfer'),
+        warning: withOpacity('--color-warning'),
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],

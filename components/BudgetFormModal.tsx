@@ -71,8 +71,8 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             {(['DAILY', 'WEEKLY', 'MONTHLY'] as BudgetPeriod[]).map(p => (
                 <button key={p} type="button" onClick={() => setPeriod(p)} className={`flex-1 py-2 text-sm font-bold rounded-lg capitalize ${period === p ? 'bg-surface shadow-sm text-text-primary' : 'text-text-secondary'}`}>{p.toLowerCase()}</button>
             ))}
@@ -80,14 +80,14 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
 
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Category <span className="text-red-500">*</span></label>
-            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 flex justify-between items-center cursor-pointer h-[54px]">
+            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2 pl-2 pr-4 flex justify-between items-center cursor-pointer h-12">
                 <div className="flex items-center text-text-primary">
                     {selectedCategoryObj ? (
                         <>
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
-                            <span className="font-medium">{selectedCategoryObj.name}</span>
+                            <span className="font-medium text-sm">{selectedCategoryObj.name}</span>
                         </>
-                    ) : 'Select Category'}
+                    ) : <span className="pl-2 text-sm text-text-secondary">Select Category</span>}
                 </div>
                 <ChevronDown className="w-4 h-4 text-text-secondary" />
             </div>
@@ -95,18 +95,18 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Name <span className="text-red-500">*</span></label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 text-text-primary" required placeholder="e.g. Food Budget" />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2.5 px-4 text-sm text-text-primary font-medium" required placeholder="e.g. Food Budget" />
           </div>
 
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Limit <span className="text-red-500">*</span></label>
             <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
-                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 pl-8 pr-4 text-lg font-bold text-text-primary" required placeholder="0.00" inputMode="decimal" />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
+                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-xl py-2 pl-8 pr-4 text-xl font-bold text-text-primary" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
-          <button type="submit" disabled={!name || !amount || !categoryId} className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialBudget ? 'Save' : 'Create'}</button>
+          <button type="submit" disabled={!name || !amount || !categoryId} className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialBudget ? 'Save' : 'Create'}</button>
         </form>
       </div>
     </div>

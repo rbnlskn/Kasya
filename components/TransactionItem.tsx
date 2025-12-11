@@ -95,11 +95,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="text-right flex-shrink-0 pl-2">
           <div className="flex flex-col items-end">
              {isTransfer ? (
-                 <div className="flex items-center">
-                    <span className="font-bold text-sm text-gray-800">
-                        {currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                 </div>
+                <div className="font-bold text-sm text-gray-800">
+                    <span>{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    {fee > 0 && <span className="text-red-500 text-xs ml-1">& -{currencySymbol}{fee}</span>}
+                </div>
              ) : (
                  <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-gray-800'}`}>
                     {isPositive ? '+' : '-'}{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -107,11 +106,6 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
              )}
              <p className="text-gray-300 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
           </div>
-          {isTransfer && fee > 0 && (
-                <div className="flex items-center text-[10px] text-red-400 font-medium mt-0.5">
-                    <CornerRightDown className="w-3 h-3 mr-0.5" /> fee: {currencySymbol}{fee}
-                </div>
-           )}
         </div>
       </div>
     </div>
