@@ -7,7 +7,7 @@
 - **Environment:** Node.js, TypeScript.
 
 ## 2. Work Process (CRITICAL)
-- **Wake Up:** When you see the `jules` label, you are active.
+- **Wake Up:** When you see the `Jules` label, you are active.
 - **Status Updates:** When you start working, post a comment immediately.
 - **Automatic Review:** When you have finished a task, **ALWAYS** open a Pull Request (PR).
 - **Verification:** Do not merge the PR yourself. I (the user) will review the code.
