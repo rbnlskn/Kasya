@@ -1,5 +1,5 @@
 
-import { COLORS } from './theme.js';
+import { COLORS } from './src/theme.js';
 
 function withOpacity(variableName) {
   return ({ opacityValue }) => {
@@ -15,10 +15,7 @@ export default {
   darkMode: 'class',
   content: [
     "./index.html",
-    "./*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./services/**/*.{js,ts,jsx,tsx}",
-    "./data/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

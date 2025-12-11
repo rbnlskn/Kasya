@@ -23,7 +23,7 @@ export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
 
 const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol }) => {
   return (
-    <div 
+    <div
       onClick={() => onClick && onClick(wallet)}
       className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${wallet.color} ${wallet.textColor} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
       style={{
