@@ -1,5 +1,0 @@
-{
-  "name": "Moneyfest",
-  "description": "A clean, local-first budget tracking application inspired by Moneyfest. Features wallet management, budget tracking, and transaction logging with a focus on privacy and speed.",
-  "requestFramePermissions": []
-}

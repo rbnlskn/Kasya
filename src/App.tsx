@@ -26,7 +26,7 @@ import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
-import { COLORS } from './theme.js';
+import { COLORS } from './styles/theme.js';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
@@ -616,7 +616,6 @@ const App: React.FC = () => {
             <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
               <SettingsView 
                   data={data}
-                  currentTheme={data.theme || 'SYSTEM'}
                   onBack={() => handleTabChange('HOME')}
                   onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')}
                   onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')}

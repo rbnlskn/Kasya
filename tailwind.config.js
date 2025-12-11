@@ -1,5 +1,5 @@
 
-import { COLORS } from './src/theme.js';
+import { COLORS } from './src/styles/theme.js';
 
 /** @type {import('tailwindcss').Config} */
 export default {
