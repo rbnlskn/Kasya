@@ -82,33 +82,13 @@ const App: React.FC = () => {
     initApp();
   }, []);
 
-  const useThemeEffect = (theme: 'DARK' | 'LIGHT' | 'SYSTEM' | undefined, isLoading: boolean) => {
-    useEffect(() => {
-        if (isLoading) return;
-
-        const applyTheme = () => {
-            const root = window.document.documentElement;
-            const isDark = theme === 'DARK' || (theme === 'SYSTEM' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-            root.classList.toggle('dark', isDark);
-
-            if (Capacitor.isNativePlatform()) {
-                StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
-                StatusBar.setBackgroundColor({ color: isDark ? '#020617' : '#f8fafc' });
-            }
-        };
-
-        applyTheme();
-        saveData(data);
-
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', applyTheme);
-        return () => mediaQuery.removeEventListener('change', applyTheme);
-
-    }, [theme, isLoading, data]);
-  };
-
-  useThemeEffect(data.theme, isLoading);
+  useEffect(() => {
+    if (isLoading) return;
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: Style.Light });
+      StatusBar.setBackgroundColor({ color: '#f8fafc' });
+    }
+  }, [isLoading]);
 
   // --- NAVIGATION LOGIC ---
 
@@ -525,7 +505,7 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 dark:bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
+              <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
                   <div className="flex justify-between items-center">
                      <Logo className="h-8" />
                   </div>
@@ -643,7 +623,6 @@ const App: React.FC = () => {
                   onImport={(newData) => setData(newData)}
                   onReset={async () => { await clearData(); window.location.reload(); }}
                   onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))}
-                  onThemeChange={(t) => setData(prev => ({ ...prev, theme: t }))}
               />
             </div>
         )}

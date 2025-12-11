@@ -26,34 +26,25 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
     <div
       onClick={() => onClick && onClick(wallet)}
       className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${wallet.color} ${wallet.textColor} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
-      style={{
-        '--wallet-color': wallet.color,
-      } as React.CSSProperties}
     >
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
 
       <div className="flex flex-col h-full relative z-10">
-        <div className="flex-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider opacity-70">Total Balance</span>
-          <p className="text-2xl font-bold tracking-tight leading-tight">
-            {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </p>
-          <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
+        <div className="flex justify-between items-start">
+            <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">Total Balance</span>
+                <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
+            </div>
+            <div className="p-1 bg-white/20 rounded-full">
+              {getWalletIcon(wallet.type, "w-4 h-4 opacity-90")}
+            </div>
         </div>
 
-        <div className="absolute bottom-3 right-3">
-          <div
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-md border border-white/20"
-            style={{
-              transform: 'perspective(200px) rotateX(50deg) rotateZ(-30deg)',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2)'
-            }}
-          >
-            <div style={{ transform: 'rotate(30deg) rotateX(-50deg) scale(0.9)' }}>
-              {getWalletIcon(wallet.type, "w-5 h-5 opacity-90")}
-            </div>
-          </div>
+        <div className="flex-1 flex items-end">
+            <p className="text-2xl font-bold tracking-tight leading-tight">
+                {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
         </div>
       </div>
     </div>

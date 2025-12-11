@@ -82,12 +82,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           <h2 className="text-xl font-bold text-text-primary">{headerText}</h2>
           <div className="flex items-center space-x-2">
             {initialBill && <button type="button" onClick={handleDelete} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>}
-            <button type="button" onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            <button type="button" onClick={onClose} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex bg-slate-100 p-1 rounded-xl">
             <button type="button" onClick={() => setType('BILL')} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'BILL' ? 'bg-surface shadow text-amber-500' : 'text-text-secondary'}`}>
                 <FileText className="w-4 h-4"/> Bill
             </button>
@@ -98,30 +98,30 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
           <div>
             <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Name</label>
-            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g., Netflix, Rent" required />
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 px-3 text-base font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="e.g., Netflix, Rent" required />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Amount</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
-              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 pl-8 pr-3 text-2xl font-black text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="0.00" required inputMode="decimal" step="0.01" />
+              <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 pl-8 pr-3 text-2xl font-black text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="0.00" required inputMode="decimal" step="0.01" />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Due Day</label>
-            <input type="number" value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="Day of the month (e.g., 15)" required min="1" max="31"/>
+            <input type="number" value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500" placeholder="Day of the month (e.g., 15)" required min="1" max="31"/>
           </div>
 
           <div className="flex space-x-3">
             <div className="flex-1">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500"/>
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500"/>
             </div>
             <div className="flex-1">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Frequency</label>
-              <select value={frequency} onChange={e => setFrequency(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 dark:bg-slate-800 rounded-lg py-2.5 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500">
+              <select value={frequency} onChange={e => setFrequency(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 rounded-lg py-2.5 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500">
                 <option value="WEEKLY">Weekly</option>
                 <option value="MONTHLY">Monthly</option>
                 <option value="YEARLY">Yearly</option>

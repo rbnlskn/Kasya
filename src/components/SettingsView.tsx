@@ -15,16 +15,13 @@ interface SettingsViewProps {
   onImport: (newData: AppState) => void;
   onReset: () => void;
   onCurrencyChange: (currency: string) => void;
-  onThemeChange: (theme: ThemeMode) => void;
-  currentTheme: ThemeMode;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCategories, onViewTransactions, onImport, onReset, onCurrencyChange, onThemeChange, currentTheme }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCategories, onViewTransactions, onImport, onReset, onCurrencyChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const getFormattedDate = () => {
       const now = new Date();
@@ -109,33 +106,32 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
   const currentCurrency = CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
 
   const SettingItem = ({ icon, label, subLabel, onClick, isDanger }: { icon: React.ReactNode, label: string, subLabel?: string, onClick: () => void, isDanger?: boolean }) => (
-      <button type="button" onClick={onClick} className={`w-full flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-white/5 transition-colors border-b border-border dark:border-border last:border-0 group`}>
+      <button type="button" onClick={onClick} className={`w-full flex items-center justify-between p-4 hover:bg-surface transition-colors border-b border-border last:border-0 group`}>
           <div className="flex items-center space-x-4">
-              <div className={`p-2.5 rounded-xl transition-colors ${isDanger ? 'bg-expense-bg dark:bg-expense-bg/20 text-expense group-hover:bg-expense-bg/80' : 'bg-surface dark:bg-white/5 text-text-secondary dark:text-text-secondary group-hover:bg-gray-200 dark:group-hover:bg-white/10'}`}>
+              <div className={`p-2.5 rounded-xl transition-colors ${isDanger ? 'bg-expense-bg text-expense group-hover:bg-expense-bg/80' : 'bg-surface text-text-secondary group-hover:bg-gray-200'}`}>
                   {icon}
               </div>
               <div className="text-left">
-                  <span className={`font-bold block ${isDanger ? 'text-expense' : 'text-text-primary dark:text-text-primary'}`}>{label}</span>
+                  <span className={`font-bold block ${isDanger ? 'text-expense' : 'text-text-primary'}`}>{label}</span>
               </div>
           </div>
           <div className="flex items-center space-x-3">
-              {subLabel && <span className="text-sm font-medium text-text-secondary dark:text-text-secondary">{subLabel}</span>}
-              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+              {subLabel && <span className="text-sm font-medium text-text-secondary">{subLabel}</span>}
+              <ChevronRight className="w-5 h-5 text-gray-300" />
           </div>
       </button>
   );
 
   return (
     <>
-      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 dark:bg-app-bg/80 backdrop-blur-md">
-          <h1 className="text-2xl font-black text-text-primary dark:text-text-primary tracking-tight">Settings</h1>
+      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">Settings</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-2 space-y-8 pb-32">
         <section>
-          <h3 className="text-xs font-extrabold text-text-secondary dark:text-text-secondary uppercase tracking-widest mb-4 px-2">General</h3>
-          <div className="bg-surface dark:bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border dark:border-border">
-            <SettingItem icon={<Moon className="w-5 h-5" />} label="Theme" subLabel={currentTheme} onClick={() => setShowThemeModal(true)} />
+          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-widest mb-4 px-2">General</h3>
+          <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
             <SettingItem icon={<Grid className="w-5 h-5" />} label="Categories" onClick={onManageCategories} />
             <SettingItem icon={<DollarSign className="w-5 h-5" />} label="Currency" subLabel={`${currentCurrency.code} (${currentCurrency.symbol})`} onClick={() => setShowCurrencyModal(true)} />
             <SettingItem icon={<Info className="w-5 h-5" />} label="About & Version" subLabel={`v${APP_VERSION}`} onClick={() => setShowChangelog(true)} />
@@ -143,8 +139,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         </section>
 
         <section>
-          <h3 className="text-xs font-extrabold text-text-secondary dark:text-text-secondary uppercase tracking-widest mb-4 px-2">Data Management</h3>
-          <div className="bg-surface dark:bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border dark:border-border">
+          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-widest mb-4 px-2">Data Management</h3>
+          <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
             <SettingItem icon={<Download className="w-5 h-5" />} label="Backup Data" onClick={() => setShowBackupSheet(true)} />
             <SettingItem icon={<Upload className="w-5 h-5" />} label="Import Backup" onClick={handleImportClick} />
             <SettingItem icon={<Trash2 className="w-5 h-5" />} label="Reset App" isDanger onClick={handleFullReset} />
@@ -152,8 +148,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         </section>
 
         <section className="text-center pt-4">
-             <p className="text-[10px] font-bold text-text-secondary dark:text-text-secondary uppercase tracking-widest">Kasya {APP_VERSION}</p>
-             <p className="text-[10px] text-text-secondary dark:text-text-secondary mt-1">Local First • Privacy Focused</p>
+             <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Kasya {APP_VERSION}</p>
+             <p className="text-[10px] text-text-secondary mt-1">Local First • Privacy Focused</p>
         </section>
       </div>
 
@@ -162,10 +158,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
       {/* Backup Sheet */}
       {showBackupSheet && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBackupSheet(false)}>
-            <div className="bg-surface dark:bg-surface w-full rounded-t-[2rem] p-6 animate-in slide-in-from-bottom duration-300 space-y-3 pb-safe" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-full rounded-t-[2rem] p-6 animate-in slide-in-from-bottom duration-300 space-y-3 pb-safe" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6 px-2">
-                    <h3 className="font-bold text-xl text-text-primary dark:text-text-primary">Backup Options</h3>
-                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-text-primary dark:text-text-primary"><X className="w-5 h-5" /></button>
+                    <h3 className="font-bold text-xl text-text-primary">Backup Options</h3>
+                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 
                 {[
@@ -174,11 +170,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                     { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Google Sheets", action: () => handleExport('CSV', 'SHARE') },
                     { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for data migration", action: () => handleExport('TEMPLATE', 'SHARE') }
                 ].map((opt, i) => (
-                    <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-app-bg dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-transparent hover:border-border dark:hover:border-border group">
-                        <div className="mr-4 p-2 bg-surface dark:bg-white/10 rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>
+                    <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-app-bg hover:bg-gray-100 transition-colors border border-transparent hover:border-border group">
+                        <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>
                         <div className="text-left">
-                            <div className="font-bold text-text-primary dark:text-text-primary">{opt.title}</div>
-                            <div className="text-xs text-text-secondary dark:text-text-secondary font-medium">{opt.desc}</div>
+                            <div className="font-bold text-text-primary">{opt.title}</div>
+                            <div className="text-xs text-text-secondary font-medium">{opt.desc}</div>
                         </div>
                     </button>
                 ))}
@@ -186,44 +182,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
           </div>
       )}
 
-      {/* Theme Modal */}
-      {showThemeModal && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowThemeModal(false)}>
-            <div className="bg-surface dark:bg-surface w-full rounded-t-[2rem] p-6 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6 px-2">
-                    <h3 className="font-bold text-xl text-text-primary dark:text-text-primary">App Theme</h3>
-                    <button onClick={() => setShowThemeModal(false)} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-text-primary dark:text-text-primary"><X className="w-5 h-5" /></button>
-                </div>
-                <div className="space-y-2">
-                    {[
-                      { id: 'SYSTEM', label: 'System Default', icon: <Smartphone className="w-5 h-5" /> },
-                      { id: 'LIGHT', label: 'Light Mode', icon: <Sun className="w-5 h-5" /> },
-                      { id: 'DARK', label: 'Dark Mode', icon: <Moon className="w-5 h-5" /> }
-                    ].map((theme) => (
-                        <button key={theme.id} onClick={() => { onThemeChange(theme.id as ThemeMode); setShowThemeModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${currentTheme === theme.id ? 'bg-primary/10 border border-primary text-primary' : 'bg-app-bg dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-transparent'}`}>
-                            <div className="flex items-center space-x-4">
-                                {theme.icon}
-                                <span className="font-bold">{theme.label}</span>
-                            </div>
-                            {currentTheme === theme.id && <Check className="w-6 h-6 text-primary" />}
-                        </button>
-                    ))}
-                </div>
-            </div>
-        </div>
-      )}
-
       {/* Currency Modal */}
       {showCurrencyModal && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCurrencyModal(false)}>
-            <div className="bg-surface dark:bg-surface w-full rounded-t-[2rem] max-h-[80vh] overflow-y-auto p-6 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-full rounded-t-[2rem] max-h-[80vh] overflow-y-auto p-6 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6 px-2">
-                    <h3 className="font-bold text-xl text-text-primary dark:text-text-primary">Select Currency</h3>
-                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-text-primary dark:text-text-primary"><X className="w-5 h-5" /></button>
+                    <h3 className="font-bold text-xl text-text-primary">Select Currency</h3>
+                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="space-y-2">
                     {CURRENCIES.map(c => (
-                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary text-primary' : 'bg-app-bg dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-transparent'}`}>
+                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary text-primary' : 'bg-app-bg hover:bg-gray-100 border border-transparent'}`}>
                             <div className="flex items-center space-x-4">
                                 <span className="text-2xl w-10 text-center font-black opacity-80">{c.symbol}</span>
                                 <div className="text-left">
@@ -242,21 +211,21 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
       {/* Changelog Modal */}
       {showChangelog && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowChangelog(false)}>
-            <div className="bg-surface dark:bg-surface w-full rounded-t-[2rem] max-h-[85vh] overflow-y-auto p-8 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-full rounded-t-[2rem] max-h-[85vh] overflow-y-auto p-8 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-8">
-                    <h3 className="font-bold text-2xl text-text-primary dark:text-text-primary">What's New</h3>
-                    <button onClick={() => setShowChangelog(false)} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 text-text-primary dark:text-text-primary"><X className="w-5 h-5" /></button>
+                    <h3 className="font-bold text-2xl text-text-primary">What's New</h3>
+                    <button onClick={() => setShowChangelog(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="space-y-8 relative">
-                    <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border dark:bg-border"></div>
+                    <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border"></div>
                     {CHANGELOG.map((log, idx) => (
                         <div key={idx} className="relative pl-8">
-                            <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-4 border-surface dark:border-surface bg-primary shadow-sm z-10"></div>
-                            <h4 className="font-black text-lg text-text-primary dark:text-text-primary">v{log.version}</h4>
-                            <span className="text-xs font-bold text-text-secondary dark:text-text-secondary uppercase tracking-wider mb-3 block">{log.date}</span>
+                            <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-4 border-surface bg-primary shadow-sm z-10"></div>
+                            <h4 className="font-black text-lg text-text-primary">v{log.version}</h4>
+                            <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3 block">{log.date}</span>
                             <ul className="space-y-2">
                                 {log.changes.map((c, i) => (
-                                    <li key={i} className="text-sm font-medium text-text-secondary dark:text-text-secondary leading-relaxed flex items-start">
+                                    <li key={i} className="text-sm font-medium text-text-secondary leading-relaxed flex items-start">
                                       <span className="mr-2 mt-1">•</span>
                                       <span>{c}</span>
                                     </li>

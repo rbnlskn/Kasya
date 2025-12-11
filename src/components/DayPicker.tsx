@@ -60,14 +60,14 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-text-primary dark:text-text-primary">
+        <h2 className="text-xl font-bold text-text-primary">
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
         <div className="flex space-x-2">
-          <button onClick={handlePrevMonth} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-text-primary dark:text-text-primary">
+          <button onClick={handlePrevMonth} className="p-2 bg-app-bg rounded-full hover:bg-gray-100 text-text-primary">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={handleNextMonth} className="p-2 bg-app-bg dark:bg-white/5 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 text-text-primary dark:text-text-primary">
+          <button onClick={handleNextMonth} className="p-2 bg-app-bg rounded-full hover:bg-gray-100 text-text-primary">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -75,7 +75,7 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
 
       <div className="grid grid-cols-7 mb-2 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-xs font-bold text-text-secondary dark:text-text-secondary opacity-50">{d}</div>
+          <div key={i} className="text-xs font-bold text-text-secondary opacity-50">{d}</div>
         ))}
       </div>
 
@@ -93,7 +93,7 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
                 ? 'bg-primary text-white shadow-lg shadow-primary/30'
                 : isToday(day)
                   ? 'bg-primary/10 text-primary border border-primary/20'
-                  : 'text-text-primary dark:text-text-primary hover:bg-app-bg dark:hover:bg-white/5'}
+                  : 'text-text-primary hover:bg-app-bg'}
             `}
           >
             {day}
