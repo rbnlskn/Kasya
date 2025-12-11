@@ -1,0 +1,210 @@
+
+import React, { useState, useEffect } from 'react';
+import { X, Trash2, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { Loan, LoanType, RecurrenceFrequency, Wallet } from '../types';
+import DayPicker from './DayPicker';
+
+interface LoanFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (loan: Omit<Loan, 'id'>, id?: string, initialTransactionWalletId?: string) => void;
+  onDelete: (id: string) => void;
+  initialLoan?: Loan;
+  currencySymbol: string;
+  wallets: Wallet[];
+  onPay?: (loan: Loan) => void;
+  isExiting?: boolean;
+}
+
+const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialLoan, currencySymbol, wallets, onPay, isExiting }) => {
+  const [name, setName] = useState('');
+  const [totalAmount, setTotalAmount] = useState('');
+  const [paidAmount, setPaidAmount] = useState('0');
+  const [interest, setInterest] = useState('');
+  const [fee, setFee] = useState('');
+  const [type, setType] = useState<LoanType>('PAYABLE');
+  const [icon, setIcon] = useState('💰');
+  const [recurrence, setRecurrence] = useState<RecurrenceFrequency>('MONTHLY');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // For new loans, option to create transaction immediately
+  const [createTransaction, setCreateTransaction] = useState(false);
+  const [selectedWalletId, setSelectedWalletId] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      if (initialLoan) {
+        setName(initialLoan.name);
+        setTotalAmount(initialLoan.totalAmount.toString());
+        setPaidAmount(initialLoan.paidAmount.toString());
+        setInterest(initialLoan.interest?.toString() || '');
+        setFee(initialLoan.fee?.toString() || '');
+        setType(initialLoan.type);
+        setIcon(initialLoan.icon);
+        setRecurrence(initialLoan.recurrence);
+        const now = new Date();
+        const day = initialLoan.dueDay === 0 ? now.getDate() : initialLoan.dueDay;
+        setSelectedDate(new Date(now.getFullYear(), now.getMonth(), day));
+        setCreateTransaction(false);
+      } else {
+        setName('');
+        setTotalAmount('');
+        setPaidAmount('0');
+        setInterest('');
+        setFee('');
+        setType('PAYABLE');
+        setIcon('💰');
+        setRecurrence('MONTHLY');
+        setSelectedDate(new Date());
+        setCreateTransaction(true);
+        if (wallets.length > 0) setSelectedWalletId(wallets[0].id);
+      }
+    }
+  }, [isOpen, initialLoan, wallets]);
+
+  if (!isOpen && !isExiting) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !totalAmount) return;
+
+    onSave({
+      name,
+      totalAmount: parseFloat(totalAmount),
+      paidAmount: parseFloat(paidAmount),
+      interest: parseFloat(interest) || 0,
+      fee: parseFloat(fee) || 0,
+      type,
+      status: parseFloat(paidAmount) >= parseFloat(totalAmount) ? 'PAID' : 'UNPAID',
+      dueDay: selectedDate.getDate(),
+      recurrence,
+      icon,
+      startDate: new Date().toISOString()
+    }, initialLoan?.id, createTransaction ? selectedWalletId : undefined);
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (initialLoan && window.confirm('Delete this loan?')) {
+      onDelete(initialLoan.id);
+      onClose();
+    }
+  };
+
+  const ICONS = ['💰', '🏠', '🚗', '🎓', '🏥', '✈️', '💻', '📱', '👔', '💍'];
+
+  return (
+    <>
+    <div className="fixed inset-0 z-[70] flex items-end justify-center pointer-events-none pb-safe">
+      <div className="absolute inset-0 bg-black/50 pointer-events-auto transition-opacity" onClick={onClose}></div>
+      <div className={`bg-white w-[95%] max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold">{initialLoan ? 'Edit Loan' : 'New Loan/Debt'}</h2>
+          <div className="flex items-center space-x-2">
+            {initialLoan && <button type="button" onClick={handleDelete} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>}
+            <button type="button" onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X className="w-5 h-5 text-gray-600" /></button>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Type Toggle */}
+          <div className="flex bg-gray-100 p-1 rounded-xl">
+            <button type="button" onClick={() => setType('PAYABLE')} className={`flex-1 py-3 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'PAYABLE' ? 'bg-white shadow text-red-500' : 'text-gray-500'}`}>
+                <ArrowDownLeft className="w-4 h-4"/> I Owe (Payable)
+            </button>
+            <button type="button" onClick={() => setType('RECEIVABLE')} className={`flex-1 py-3 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === 'RECEIVABLE' ? 'bg-white shadow text-green-500' : 'text-gray-500'}`}>
+                <ArrowUpRight className="w-4 h-4"/> They Owe (Receivable)
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-100 flex items-center justify-center text-3xl shadow-inner border border-indigo-200">
+              {icon}
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Name</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full text-lg font-bold border-b-2 border-gray-200 focus:border-indigo-500 outline-none py-1 bg-transparent" placeholder="Bank Loan, Friend..." required autoFocus={false} />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Principal Amount</label>
+            <div className="relative">
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-lg">{currencySymbol}</span>
+              <input type="number" value={totalAmount} onChange={e => setTotalAmount(e.target.value)} className="w-full pl-6 py-2 text-2xl font-black border-b-2 border-gray-200 focus:border-indigo-500 outline-none bg-transparent" placeholder="0.00" required inputMode="decimal" step="0.01" />
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Interest</label>
+                <div className="relative">
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">{currencySymbol}</span>
+                    <input type="number" value={interest} onChange={e => setInterest(e.target.value)} className="w-full pl-4 py-2 font-bold border-b-2 border-gray-200 focus:border-indigo-500 outline-none bg-transparent" placeholder="0.00" inputMode="decimal" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Fee</label>
+                <div className="relative">
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">{currencySymbol}</span>
+                    <input type="number" value={fee} onChange={e => setFee(e.target.value)} className="w-full pl-4 py-2 font-bold border-b-2 border-gray-200 focus:border-indigo-500 outline-none bg-transparent" placeholder="0.00" inputMode="decimal" />
+                </div>
+              </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Icon</label>
+            <div className="flex flex-wrap gap-3 p-2 bg-gray-50 rounded-xl">
+              {ICONS.map(i => (
+                <button key={i} type="button" onClick={() => setIcon(i)} className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition-all ${icon === i ? 'bg-white shadow-md scale-110' : 'hover:bg-gray-200'}`}>{i}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Due Date Picker (Using DayPicker for recurring day) */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Due Day (Monthly)</label>
+             <div className="bg-slate-50 p-4 rounded-2xl">
+                <DayPicker selectedDate={selectedDate} onChange={setSelectedDate} />
+             </div>
+          </div>
+
+          {/* New Loan Options */}
+          {!initialLoan && (
+              <div className="bg-blue-50 p-4 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                      <label className="text-sm font-bold text-blue-800">Record transaction now?</label>
+                      <input type="checkbox" checked={createTransaction} onChange={(e) => setCreateTransaction(e.target.checked)} className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500" />
+                  </div>
+                  {createTransaction && (
+                      <div className="mt-2">
+                          <label className="text-xs font-bold text-blue-600 uppercase mb-1 block">Wallet</label>
+                          <select
+                            value={selectedWalletId}
+                            onChange={(e) => setSelectedWalletId(e.target.value)}
+                            className="w-full p-2 rounded-lg border border-blue-200 text-sm font-medium focus:outline-none focus:border-blue-500"
+                          >
+                              {wallets.map(w => (
+                                  <option key={w.id} value={w.id}>{w.name} ({currencySymbol}{w.balance})</option>
+                              ))}
+                          </select>
+                          <p className="text-[10px] text-blue-600 mt-1 leading-tight">
+                              {type === 'PAYABLE'
+                                ? `This will add +${currencySymbol}${parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')} to the selected wallet (Principal - Fee).`
+                                : `This will deduct -${currencySymbol}${parseFloat(totalAmount||'0') - parseFloat(interest||'0') - parseFloat(fee||'0')} from the selected wallet.`
+                              }
+                          </p>
+                      </div>
+                  )}
+              </div>
+          )}
+
+          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-transform active:scale-95">{initialLoan ? 'Save Changes' : 'Create Loan'}</button>
+        </form>
+      </div>
+    </div>
+    </>
+  );
+};
+
+export default LoanFormModal;
