@@ -2,7 +2,8 @@ name: Kasya Workflow Automation
 
 on:
   issues:
-    types: [labeled]
+    # UPDATED: Listen for 'opened' too, in case you add labels during creation
+    types: [labeled, opened]
   issue_comment:
     types: [created]
   issue_reaction:
@@ -17,7 +18,10 @@ permissions:
 
 jobs:
   activate_batch:
-    if: github.event.label.name == 'ready'
+    # UPDATED CONDITION: Checks if label was just added OR if it exists on a new issue
+    if: >-
+      (github.event.action == 'labeled' && github.event.label.name == 'ready') ||
+      (github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'ready'))
     runs-on: ubuntu-latest
     steps:
       - name: Build Context and Trigger Planning
@@ -30,13 +34,16 @@ jobs:
             const repo = context.repo.repo;
             const actor = context.actor;
 
+            // 1. CLEANUP LABELS
             const labelsToRemove = ['backlog', 'ready'];
             for (const name of labelsToRemove) {
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
             }
             
+            // Assign to User
             await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [actor] });
 
+            // 2. CONTEXT BUILDING
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
             const body = issue.data.body || "";
             const issueRegex = /#(\d+)/g;
@@ -59,9 +66,11 @@ jobs:
               }
             }
 
+            // Update Body
             await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
             
+            // 3. TRIGGER PLANNING PHASE
             await github.rest.issues.addLabels({ 
               owner, repo, issue_number: issueNumber, 
               labels: ['jules', 'planning'] 
