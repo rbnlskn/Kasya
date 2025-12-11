@@ -17,7 +17,8 @@ export const WALLET_TEMPLATES: WalletTemplate[] = [
     { name: 'GoTyme', bg: 'bg-[#2D2D3A]', text: 'text-[#00E5FF]', type: 'Digital Bank' },
     { name: 'CIMB', bg: 'bg-[#E50019]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
     { name: 'MariBank', bg: 'bg-[#FF5300]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
-
+    { name: 'Maya Business', bg: 'bg-[#5D2E8E]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
+    
     // Traditional Banks
     { name: 'BPI', bg: 'bg-[#B11116]', text: 'text-[#FFFFFF]', type: 'Bank' },
     { name: 'UnionBank', bg: 'bg-[#FF8000]', text: 'text-[#FFFFFF]', type: 'Bank' },
