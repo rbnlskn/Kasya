@@ -2,8 +2,8 @@ name: Kasya Workflow Automation
 
 on:
   issues:
-    # Trigger on open (with labels) OR when a label is added later
-    types: [opened, labeled]
+    # CRITICAL: We must listen to 'labeled' to catch the 'ready' label being added
+    types: [labeled, opened]
   issue_comment:
     types: [created]
   issue_reaction:
@@ -18,12 +18,15 @@ permissions:
 
 jobs:
   # ------------------------------------------------------------------
-  # JOB 1: ACTIVATION (Triggered by 'ready' label)
+  # JOB 1: ACTIVATION (The Fix is in the 'if')
   # ------------------------------------------------------------------
   activate_batch:
-    # FIXED LOGIC: Simply checks "Does this issue have the 'ready' label?"
-    # This works for both new issues and existing ones.
-    if: contains(github.event.issue.labels.*.name, 'ready')
+    # LOGIC EXPLANATION:
+    # 1. OR: The event is 'labeled' AND the label added was 'ready' (Best Case)
+    # 2. OR: The event is 'opened' AND the issue has the 'ready' label (Backup Case)
+    if: >-
+      (github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ready') ||
+      (github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'ready'))
     runs-on: ubuntu-latest
     steps:
       - name: Build Context and Trigger Planning
@@ -38,7 +41,7 @@ jobs:
 
             console.log(`🚀 Activation Triggered for Issue #${issueNumber}`);
 
-            // 1. CLEANUP LABELS (Prevents loops)
+            // 1. CLEANUP LABELS
             const labelsToRemove = ['backlog', 'ready'];
             for (const name of labelsToRemove) {
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
@@ -63,7 +66,6 @@ jobs:
                 if (subId === issueNumber) continue;
                 try {
                   const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subId });
-                  // Clean sub-issue status
                   try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'backlog' }); } catch(e){}
                   await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['in progress'] });
                   contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n${subIssue.data.body}\n\n---\n`;
@@ -71,12 +73,10 @@ jobs:
               }
             }
 
-            // Update Body
             await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
             
             // 3. TRIGGER PLANNING PHASE
-            // Add 'planning' and 'jules'
             await github.rest.issues.addLabels({ 
               owner, repo, issue_number: issueNumber, 
               labels: ['jules', 'planning'] 
@@ -103,12 +103,7 @@ jobs:
             
             if (labels.includes('planning')) {
               await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
-              
-              await github.rest.issues.addLabels({ 
-                owner, repo, issue_number: issueNumber, 
-                labels: ['in progress', 'jules'] 
-              });
-              
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in progress', 'jules'] });
               await github.rest.issues.createComment({
                 owner, repo, issue_number: issueNumber,
                 body: "👍 **Plan Approved.** Jules is starting execution now."
@@ -140,7 +135,7 @@ jobs:
   # JOB 4: COMPLETION (Merge PR)
   # ------------------------------------------------------------------
   close_on_merge:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Close Batch and Sub-Issues
