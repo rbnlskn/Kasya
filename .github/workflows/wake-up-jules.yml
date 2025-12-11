@@ -15,25 +15,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // 1. Add 'Jules' label (Capitalized as requested)
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              labels: ['Jules']
-            });
-
-            // 2. Assign YOU
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              assignees: [context.actor]
-            });
-
-            // 3. CLEANUP: Remove 'Backlog' AND 'Ready' immediately
-            // This ensures the issue doesn't have conflicting status labels
-            const labelsToRemove = ['Backlog', 'Ready'];
+            // STEP 1: Remove 'Ready' (and 'Backlog') FIRST
+            const labelsToRemove = ['Ready', 'Backlog'];
             for (const label of labelsToRemove) {
               try {
                 await github.rest.issues.removeLabel({
@@ -46,3 +29,19 @@ jobs:
                 // Ignore if label wasn't there
               }
             }
+
+            // STEP 2: Assign YOU to the issue
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [context.actor]
+            });
+
+            // STEP 3: Add 'Jules' tag LAST (starts the agent)
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['Jules']
+            });
