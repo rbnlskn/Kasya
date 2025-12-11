@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { X, Check, Trash2, ChevronDown, CreditCard, Calendar, Wallet as WalletIcon } from 'lucide-react';
 import { Wallet, WalletType } from '../types';
@@ -154,12 +153,12 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     <>
     <div className="fixed inset-0 z-[70] flex items-end justify-center pointer-events-none pb-safe">
       <div className="absolute inset-0 bg-black/50 pointer-events-auto transition-opacity" onClick={onClose}></div>
-      <div className={`bg-white w-[95%] max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{initialWallet ? 'Edit' : 'Add'} Wallet</h2>
+          <h2 className="text-xl font-bold text-text-primary">{initialWallet ? 'Edit' : 'Add'} Wallet</h2>
           <div className="flex items-center space-x-2">
             {initialWallet && <button type="button" onClick={handleDelete} className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>}
-            <button type="button" onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X className="w-5 h-5 text-gray-600" /></button>
+            <button type="button" onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
         
@@ -195,7 +194,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
           
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-2 block">Templates</label>
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-2 block">Templates</label>
             <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
                 {WALLET_TEMPLATES.map((c, idx) => (
                     <button
@@ -212,38 +211,38 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-             <div onClick={() => { setActiveColorTab('BG'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100">
-                 <div className="w-8 h-8 rounded-lg border border-gray-200 shadow-sm" style={{ backgroundColor: customBg }}></div>
-                 <span className="text-sm font-medium text-gray-700">Wallet Color</span>
+             <div onClick={() => { setActiveColorTab('BG'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                 <div className="w-8 h-8 rounded-lg border border-border shadow-sm" style={{ backgroundColor: customBg }}></div>
+                 <span className="text-sm font-medium text-text-primary">Wallet Color</span>
              </div>
-             <div onClick={() => { setActiveColorTab('TEXT'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100">
-                 <div className="w-8 h-8 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
-                 <span className="text-sm font-medium text-gray-700">Text Color</span>
+             <div onClick={() => { setActiveColorTab('TEXT'); setIsColorPickerOpen(true); }} className="flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-800 rounded-xl border border-border cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                 <div className="w-8 h-8 rounded-lg border border-border shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
+                 <span className="text-sm font-medium text-text-primary">Text Color</span>
              </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Type</label>
-            <div onClick={() => setIsSelectingType(true)} className="w-full bg-gray-50 border rounded-xl py-3 px-4 flex justify-between items-center cursor-pointer h-[54px]">
-              <span className={`font-medium text-sm ${type ? 'text-gray-800' : 'text-gray-400'}`}>{type || 'Select a type'}</span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Type</label>
+            <div onClick={() => setIsSelectingType(true)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 flex justify-between items-center cursor-pointer h-[54px]">
+              <span className={`font-medium text-sm ${type ? 'text-text-primary' : 'text-text-secondary'}`}>{type || 'Select a type'}</span>
+              <ChevronDown className="w-4 h-4 text-text-secondary" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-gray-50 border rounded-xl py-3 px-4" required />
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Name</label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 px-4 text-text-primary" required />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-1 block">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">{currencySymbol}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
               <input 
                 type="number" 
                 value={balance} 
                 onChange={e => setBalance(e.target.value)}
-                className="w-full bg-gray-50 border rounded-xl py-3 pl-10 pr-4 text-lg font-bold" 
+                className="w-full bg-slate-100 dark:bg-slate-800 border rounded-xl py-3 pl-10 pr-4 text-lg font-bold text-text-primary"
                 required 
                 inputMode="decimal"
                 step="0.01"
@@ -254,23 +253,23 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           {initialWallet && (
               <div className="flex items-center space-x-2 text-sm">
                  <input type="checkbox" id="isAdj" checked={isAdjustment} onChange={(e) => setIsAdjustment(e.target.checked)} className="w-4 h-4 rounded text-primary" />
-                 <label htmlFor="isAdj" className="text-gray-600">
+                 <label htmlFor="isAdj" className="text-text-secondary">
                      Record balance change as a transaction?
                  </label>
               </div>
           )}
 
           {isCreditCard && (
-              <div className="flex items-center space-x-4 bg-gray-50 p-3 rounded-xl">
+              <div className="flex items-center space-x-4 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl">
                   <div className="flex items-center space-x-2 flex-1">
-                      <Calendar className="w-4 h-4 text-gray-400"/>
-                      <label className="text-sm font-medium">Statement Day</label>
+                      <Calendar className="w-4 h-4 text-text-secondary"/>
+                      <label className="text-sm font-medium text-text-primary">Statement Day</label>
                   </div>
-                  <button type="button" onClick={() => setIsDayPickerOpen(true)} className="px-4 py-2 bg-white border rounded-lg font-bold text-sm">{statementDay}</button>
+                  <button type="button" onClick={() => setIsDayPickerOpen(true)} className="px-4 py-2 bg-surface border rounded-lg font-bold text-sm text-text-primary">{statementDay}</button>
               </div>
           )}
 
-          <button type="submit" className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg mt-4">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
+          <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
         </form>
       </div>
     </div>
@@ -278,19 +277,19 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     {/* TYPE SELECTOR */}
     {isSelectingType && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsSelectingType(false)}>
-            <div className="bg-white w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg">Select Wallet Type</h3>
-                    <button onClick={() => setIsSelectingType(false)} className="p-2 bg-gray-100 rounded-full"><X className="w-4 h-4" /></button>
+                    <h3 className="font-bold text-lg text-text-primary">Select Wallet Type</h3>
+                    <button onClick={() => setIsSelectingType(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="space-y-2">
                     {Object.values(WalletType).map(t => (
-                        <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${type === t ? 'bg-primary/5 border border-primary/20' : 'hover:bg-gray-50'}`}>
+                        <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${type === t ? 'bg-primary/5 border border-primary/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
                             <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center">
-                                    {getWalletIcon(t, "w-5 h-5 text-gray-500")}
+                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                    {getWalletIcon(t, "w-5 h-5 text-text-secondary")}
                                 </div>
-                                <span className="font-medium">{t}</span>
+                                <span className="font-medium text-text-primary">{t}</span>
                             </div>
                             {type === t && <Check className="w-5 h-5 text-primary" />}
                         </button>
@@ -303,30 +302,30 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     {/* COLOR PICKER */}
     {isColorPickerOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsColorPickerOpen(false)}>
-            <div className="bg-white w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg">Select Color</h3>
-                    <button onClick={() => setIsColorPickerOpen(false)} className="p-2 bg-gray-100 rounded-full"><X className="w-4 h-4" /></button>
+                    <h3 className="font-bold text-lg text-text-primary">Select Color</h3>
+                    <button onClick={() => setIsColorPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl mb-4">
-                    <button onClick={() => setActiveColorTab('BG')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'BG' ? 'bg-white shadow' : ''}`}>Background</button>
-                    <button onClick={() => setActiveColorTab('TEXT')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'TEXT' ? 'bg-white shadow' : ''}`}>Text</button>
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+                    <button onClick={() => setActiveColorTab('BG')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'BG' ? 'bg-surface shadow' : 'text-text-secondary'}`}>Background</button>
+                    <button onClick={() => setActiveColorTab('TEXT')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'TEXT' ? 'bg-surface shadow' : 'text-text-secondary'}`}>Text</button>
                 </div>
                 <div className="flex flex-wrap gap-4 justify-center">
                     {CUSTOM_PALETTE.map(c => (
-                        <button key={c} onClick={() => { if(activeColorTab==='BG') handleSetBg(c); else setCustomText(c); }} className="w-10 h-10 rounded-full shadow-sm border border-gray-200" style={{backgroundColor: c}} />
+                        <button key={c} onClick={() => { if(activeColorTab==='BG') handleSetBg(c); else setCustomText(c); }} className="w-10 h-10 rounded-full shadow-sm border border-border" style={{backgroundColor: c}} />
                     ))}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                    <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Custom Hex</label>
+                <div className="mt-6 pt-4 border-t border-border">
+                    <label className="text-xs font-bold text-text-secondary uppercase mb-2 block">Custom Hex</label>
                     <div className="flex items-center space-x-2">
-                        <div className="w-10 h-10 rounded-lg border border-gray-200" style={{backgroundColor: activeColorTab === 'BG' ? customBg : customText}}></div>
+                        <div className="w-10 h-10 rounded-lg border border-border" style={{backgroundColor: activeColorTab === 'BG' ? customBg : customText}}></div>
                         <input
                             type="text"
                             value={activeColorTab === 'BG' ? customBg : customText}
                             onChange={(e) => { if(activeColorTab==='BG') handleSetBg(e.target.value); else setCustomText(e.target.value); }}
-                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 font-mono text-sm uppercase"
+                            className="flex-1 bg-slate-100 dark:bg-slate-800 border border-border rounded-lg px-3 py-2 font-mono text-sm uppercase text-text-primary"
                             placeholder="#000000"
                         />
                     </div>
@@ -338,10 +337,10 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     {/* DAY PICKER */}
     {isDayPickerOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsDayPickerOpen(false)}>
-            <div className="bg-white w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-lg">Select Statement Day</h3>
-                    <button onClick={() => setIsDayPickerOpen(false)} className="p-2 bg-gray-100 rounded-full"><X className="w-4 h-4" /></button>
+                    <h3 className="font-bold text-lg text-text-primary">Select Statement Day</h3>
+                    <button onClick={() => setIsDayPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
                 </div>
                 <DayPicker selectedDate={new Date(new Date().getFullYear(), new Date().getMonth(), statementDay === 0 ? 1 : statementDay)} onChange={(d) => {setStatementDay(d.getDate()); setIsDayPickerOpen(false);}} />
             </div>

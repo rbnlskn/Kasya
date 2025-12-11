@@ -74,16 +74,16 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
     <>
     <div className="fixed inset-0 z-[70] flex items-end justify-center pointer-events-none">
       <div className="absolute inset-0 bg-black/50 transition-opacity pointer-events-auto" onClick={onClose}></div>
-      <div className={`bg-white w-full rounded-t-3xl max-h-[85vh] flex flex-col relative z-10 pointer-events-auto ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+      <div className={`bg-surface w-full rounded-t-3xl max-h-[85vh] flex flex-col relative z-10 pointer-events-auto ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
         
-        <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-gray-100">
-            <h2 className="text-xl font-bold text-gray-800">Edit Categories</h2>
-            <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X className="w-5 h-5 text-gray-600" /></button>
+        <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-border">
+            <h2 className="text-xl font-bold text-text-primary">Edit Categories</h2>
+            <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"><X className="w-5 h-5 text-text-secondary" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 pb-12">
             <div className="mb-4 text-center">
-                <p className="text-xs font-medium text-gray-400">Tap to Edit • Hold & Drag to Reorder</p>
+                <p className="text-xs font-medium text-text-secondary">Tap to Edit • Hold & Drag to Reorder</p>
             </div>
             
             <div className="grid grid-cols-4 gap-4">
@@ -95,7 +95,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                         onDragOver={(e) => onDragOver(e, index)}
                         onDragEnd={onDragEnd}
                         onClick={() => setEditingCategory(cat)}
-                        className={`flex flex-col items-center justify-center p-2 bg-white rounded-2xl active:scale-95 transition-transform ${draggedItemIndex === index ? 'opacity-50' : ''} cursor-pointer group`}
+                        className={`flex flex-col items-center justify-center p-2 bg-surface rounded-2xl active:scale-95 transition-transform ${draggedItemIndex === index ? 'opacity-50' : ''} cursor-pointer group`}
                     >
                         {/* SQUIRCLE ICON: rounded-lg to match Settings */}
                         <div 
@@ -105,13 +105,13 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                             {cat.icon}
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"><GripVertical className="w-3 h-3 text-gray-500"/></div>
                         </div>
-                        <span className="text-[10px] font-bold text-gray-700 text-center leading-tight w-full truncate px-1">{cat.name}</span>
+                        <span className="text-[10px] font-bold text-text-primary text-center leading-tight w-full truncate px-1">{cat.name}</span>
                     </div>
                 ))}
                 
                 <button 
                     onClick={() => setEditingCategory({ id: `cat_${Date.now()}`, name: '', icon: '😊', color: CATEGORY_COLORS[0] })} 
-                    className="flex flex-col items-center justify-center p-2 border-2 border-dashed border-gray-300 rounded-2xl text-gray-400 hover:border-primary/60 hover:text-primary/60 transition-colors active:scale-95 h-[88px]"
+                    className="flex flex-col items-center justify-center p-2 border-2 border-dashed border-border rounded-2xl text-text-secondary hover:border-primary/60 hover:text-primary/60 transition-colors active:scale-95 h-[88px]"
                 >
                    <Plus className="w-6 h-6 mb-1" />
                    <span className="text-[10px] font-bold">Add</span>
@@ -124,10 +124,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
     {/* EDIT MODAL */}
     {editingCategory && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50" onClick={() => setEditingCategory(null)}>
-            <div className="bg-white w-[95%] max-w-md p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
-                     <h2 className="font-bold text-lg text-gray-800">Edit Category</h2>
-                     <button onClick={() => setEditingCategory(null)} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><X className="w-4 h-4 text-gray-600"/></button>
+                     <h2 className="font-bold text-lg text-text-primary">Edit Category</h2>
+                     <button onClick={() => setEditingCategory(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"><X className="w-4 h-4 text-text-secondary"/></button>
                 </div>
                 
                 <form onSubmit={handleSave} className="space-y-6">
@@ -144,12 +144,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                   </div>
                   
                   <div>
-                    <label className="text-xs font-bold uppercase mb-1 block text-gray-400 tracking-wider">Name</label>
-                    <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 font-bold text-gray-800 focus:ring-2 focus:ring-primary outline-none" required placeholder="Category Name" />
+                    <label className="text-xs font-bold uppercase mb-1 block text-text-secondary tracking-wider">Name</label>
+                    <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })} className="w-full bg-slate-100 dark:bg-slate-800 border border-border rounded-xl py-3 px-4 font-bold text-text-primary focus:ring-2 focus:ring-primary outline-none" required placeholder="Category Name" />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold uppercase mb-2 block text-gray-400 tracking-wider">Color</label>
+                    <label className="text-xs font-bold uppercase mb-2 block text-text-secondary tracking-wider">Color</label>
                     <div className="flex flex-wrap gap-3">
                       {CATEGORY_COLORS.map(c => (
                           <button 
@@ -163,7 +163,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3 pt-2 border-t border-gray-100 mt-4">
+                  <div className="flex items-center space-x-3 pt-2 border-t border-border mt-4">
                     <button type="button" onClick={handleDelete} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>
                     <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-hover">Save</button>
                   </div>
@@ -175,14 +175,14 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
     {/* EMOJI PICKER SHEET */}
     {emojiPickerOpen && (
         <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50" onClick={() => setEmojiPickerOpen(false)}>
-            <div className="bg-white w-[95%] max-w-md rounded-3xl max-h-[60vh] overflow-y-auto p-4 animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-surface w-[95%] max-w-md rounded-3xl max-h-[60vh] overflow-y-auto p-4 animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4 px-2">
-                    <h3 className="font-bold text-lg">Select Emoji</h3>
-                    <button onClick={() => setEmojiPickerOpen(false)} className="p-2 bg-gray-100 rounded-full"><X className="w-4 h-4" /></button>
+                    <h3 className="font-bold text-lg text-text-primary">Select Emoji</h3>
+                    <button onClick={() => setEmojiPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
                 </div>
                 <div className="grid grid-cols-8 gap-2">
                     {EMOJI_LIST.map(emoji => (
-                        <button key={emoji} onClick={() => { if (editingCategory) setEditingCategory({ ...editingCategory, icon: emoji }); setEmojiPickerOpen(false); }} className="text-2xl h-10 w-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+                        <button key={emoji} onClick={() => { if (editingCategory) setEditingCategory({ ...editingCategory, icon: emoji }); setEmojiPickerOpen(false); }} className="text-2xl h-10 w-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
                             {emoji}
                         </button>
                     ))}
