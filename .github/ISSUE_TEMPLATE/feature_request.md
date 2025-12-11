@@ -2,7 +2,7 @@
 name: 🚀 New Feature
 about: Suggest a new capability for the app
 title: "[FEAT] "
-labels: enhancement
+labels: 
 assignees: ''
 ---
 
