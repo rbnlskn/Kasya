@@ -1,9 +1,14 @@
 name: Kasya Workflow Automation
 
 on:
-  # 1. Allow manual triggering to test if the file is valid
+  # 1. Manual Trigger with Input (Forcing it to run on specific issue)
   workflow_dispatch:
-  # 2. Listen for Issue events
+    inputs:
+      debug_issue_number:
+        description: 'Issue Number to Test (e.g., 40)'
+        required: true
+        default: '40'
+  # 2. Automatic Triggers
   issues:
     types: [opened, labeled]
   issue_comment:
@@ -19,139 +24,91 @@ permissions:
   contents: write
 
 jobs:
-  debug_and_activate:
+  # ------------------------------------------------------------------
+  # THE MANAGER JOB (Runs on EVERY event, filters inside steps)
+  # ------------------------------------------------------------------
+  kasya_manager:
     runs-on: ubuntu-latest
     steps:
-      # STEP 1: DEBUGGING LOG (This runs every time, so you KNOW it triggered)
-      - name: 🔍 Debug Trigger
+      # STEP 1: Debug Log (This will ALWAYS run, proving the file works)
+      - name: 🔍 Diagnostic Log
         run: |
-          echo "Event Name: ${{ github.event_name }}"
+          echo "Event: ${{ github.event_name }}"
           echo "Action: ${{ github.event.action }}"
-          echo "Labels on Issue: ${{ join(github.event.issue.labels.*.name, ', ') }}"
+          echo "Actor: ${{ github.actor }}"
 
-      # STEP 2: ACTIVATION (Only runs if 'ready' is present)
-      - name: Build Context and Trigger Planning
-        # The logic is moved here so we can see the job start before it decides to skip
-        if: >-
-          contains(github.event.issue.labels.*.name, 'ready') || 
-          github.event_name == 'workflow_dispatch'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.JULES_PAT }} 
-          script: |
-            const issueNumber = context.issue.number;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            
-            console.log(`🚀 Starting processing for Issue #${issueNumber}`);
-            
-            // 1. CLEANUP: Remove 'backlog' and 'ready'
-            const labelsToRemove = ['backlog', 'ready'];
-            for (const name of labelsToRemove) {
-              try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
-            }
-            
-            // Assign to User
-            await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [context.actor] });
-
-            // 2. CONTEXT BUILDING
-            const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-            const body = issue.data.body || "";
-            const matches = [...body.matchAll(/#(\d+)/g)];
-            
-            let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT\n";
-            contextContent += "> **System Note:** Merged content from sub-issues.\n\n";
-
-            if (matches.length > 0) {
-              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['context'] });
-              for (const match of matches) {
-                const subId = parseInt(match[1]);
-                if (subId === issueNumber) continue;
-                try {
-                  const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subId });
-                  try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'backlog' }); } catch(e){}
-                  await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['in progress'] });
-                  contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n${subIssue.data.body}\n\n---\n`;
-                } catch (e) {}
-              }
-            }
-
-            await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
-            try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
-            
-            // 3. TRIGGER PLANNING
-            await github.rest.issues.addLabels({ 
-              owner, repo, issue_number: issueNumber, 
-              labels: ['jules', 'planning'] 
-            });
-
-  approve_plan:
-    if: github.event_name == 'issue_reaction' && github.event.reaction.content == '+1'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Switch Planning to In Progress
+      # STEP 2: Logic Router (Decides what to do based on the event)
+      - name: 🧠 Router & Execution
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.JULES_PAT }}
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const issueNumber = context.issue.number;
-            const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
-            
-            if (issue.data.labels.some(l => l.name === 'planning')) {
-              await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
-              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in progress', 'jules'] });
-              await github.rest.issues.createComment({
-                owner, repo, issue_number: issueNumber,
-                body: "👍 **Plan Approved.** Jules is starting execution now."
-              });
-            }
+            // ---------------- INITIALIZATION ----------------
+            const event = context.eventName;
+            const payload = context.payload;
+            let issueNumber = null;
+            let triggerType = null;
 
-  update_status_review:
-    if: github.event_name == 'issue_comment' && contains(github.event.comment.user.login, 'jules')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Move to Review
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const body = context.payload.comment.body.toLowerCase();
-            const issueNumber = context.issue.number;
-            if (body.includes('pull request') || body.includes('/pull/')) {
-              try { await github.rest.issues.removeLabel({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, name: 'in progress' }); } catch(e){}
-              await github.rest.issues.addLabels({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber, labels: ['in review'] });
-            }
-
-  close_on_merge:
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Close Batch and Sub-Issues
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const pr = context.payload.pull_request;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const matches = [...(pr.body || "").matchAll(/#(\d+)/g)];
-            if (matches.length === 0) return;
-
-            for (const match of matches) {
-              const batchId = parseInt(match[1]);
-              try { await github.rest.issues.removeLabel({ owner, repo, issue_number: batchId, name: 'in review' }); } catch(e){}
-              await github.rest.issues.addLabels({ owner, repo, issue_number: batchId, labels: ['completed'] });
-              await github.rest.issues.update({ owner, repo, issue_number: batchId, state: 'closed' });
-
-              const batchIssue = await github.rest.issues.get({ owner, repo, issue_number: batchId });
-              const subMatches = [...(batchIssue.data.body || "").matchAll(/#(\d+)/g)];
-              for (const sub of subMatches) {
-                   const subId = parseInt(sub[1]);
-                   if (subId === batchId) continue;
-                   try {
-                     try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'in progress' }); } catch(e){}
-                     await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['completed'] });
-                     await github.rest.issues.update({ owner, repo, issue_number: subId, state: 'closed' });
-                   } catch(err) {}
+            // DETERMINE CONTEXT BASED ON EVENT
+            if (event === 'workflow_dispatch') {
+              issueNumber = parseInt('${{ inputs.debug_issue_number }}');
+              console.log(`🔧 MANUAL DEBUG MODE: Targeting Issue #${issueNumber}`);
+              triggerType = 'ACTIVATE'; // Manual runs force activation
+            } 
+            else if (event === 'issues') {
+              issueNumber = context.issue.number;
+              const labels = payload.issue.labels || [];
+              const hasReady = labels.some(l => l.name === 'ready');
+              
+              if (hasReady) {
+                 console.log(`✅ Issue #${issueNumber} has 'ready' label. Activating.`);
+                 triggerType = 'ACTIVATE';
+              } else {
+                 console.log(`ℹ️ Issue #${issueNumber} does NOT have 'ready' label. Ignoring.`);
+                 return; // EXIT SCRIPT
               }
             }
+            else if (event === 'issue_reaction' && payload.reaction.content === '+1') {
+               issueNumber = context.issue.number;
+               triggerType = 'APPROVE_PLAN';
+            }
+            else if (event === 'issue_comment') {
+               issueNumber = context.issue.number;
+               if (payload.comment.user.login.toLowerCase().includes('jules')) {
+                 triggerType = 'UPDATE_STATUS';
+               }
+            }
+            else if (event === 'pull_request' && payload.pull_request.merged === true) {
+               triggerType = 'CLOSE_MERGE';
+            }
+
+            if (!triggerType) {
+              console.log("⛔ No matching logic for this event. Stopping.");
+              return;
+            }
+
+            // ---------------- LOGIC HANDLERS ----------------
+            
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // HANDLER 1: ACTIVATION (Ready -> Jules)
+            if (triggerType === 'ACTIVATE') {
+              // Cleanup Labels
+              const labelsToRemove = ['backlog', 'ready'];
+              for (const name of labelsToRemove) {
+                try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
+              }
+              
+              // Assign User
+              await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [context.actor] });
+
+              // Build Context
+              const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+              const body = issue.data.body || "";
+              const matches = [...body.matchAll(/#(\d+)/g)];
+              
+              let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT\n> **System Note:** Merged content from sub-issues.\n\n";
+
+              if (matches.length > 0) {
+                await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels
