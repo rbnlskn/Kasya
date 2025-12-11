@@ -5,6 +5,8 @@ on:
     types: [labeled]
   issue_comment:
     types: [created]
+  issue_reaction:
+    types: [created]
   pull_request:
     types: [closed]
 
@@ -15,98 +17,107 @@ permissions:
 
 jobs:
   # ------------------------------------------------------------------
-  # JOB 1: ACTIVATION & CONTEXT (Triggered by 'ready' label)
+  # JOB 1: ACTIVATION (Triggered by 'ready' label)
   # ------------------------------------------------------------------
   activate_batch:
     if: github.event.label.name == 'ready'
     runs-on: ubuntu-latest
     steps:
-      - name: Build Context and Trigger Jules
+      - name: Build Context and Trigger Planning
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.JULES_PAT }} # Required to trigger other workflows/agents
+          github-token: ${{ secrets.JULES_PAT }} 
           script: |
             const issueNumber = context.issue.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const actor = context.actor;
 
-            // 1. CLEANUP BATCH ISSUE
-            // Remove 'backlog' and 'ready'
+            // 1. CLEANUP LABELS
             const labelsToRemove = ['backlog', 'ready'];
             for (const name of labelsToRemove) {
-              try {
-                await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name });
-              } catch (e) {} 
+              try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name }); } catch (e) {} 
             }
             
             // Assign to User
             await github.rest.issues.addAssignees({ owner, repo, issue_number: issueNumber, assignees: [actor] });
 
-            // 2. IDENTIFY SUB-ISSUES
+            // 2. CONTEXT BUILDING
             const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
             const body = issue.data.body || "";
             const issueRegex = /#(\d+)/g;
             const matches = [...body.matchAll(issueRegex)];
             
-            let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT (AUTO-GENERATED)\n";
-            contextContent += "> **System Note:** The following content is merged from sub-issues to ensure a SINGLE session context.\n\n";
+            let contextContent = "\n\n---\n# 🧠 CONSOLIDATED CONTEXT\n";
+            contextContent += "> **System Note:** Merged content from sub-issues.\n\n";
 
-            // 3. PROCESS SUB-ISSUES
             if (matches.length > 0) {
-              // Apply 'context' label to batch issue temporarily to indicate processing
               await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['context'] });
-
               for (const match of matches) {
                 const subId = parseInt(match[1]);
                 if (subId === issueNumber) continue;
-
                 try {
-                  // Get Sub-issue
                   const subIssue = await github.rest.issues.get({ owner, repo, issue_number: subId });
-                  
-                  // Update Sub-issue Status (Remove 'backlog', add 'in progress')
                   try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'backlog' }); } catch(e){}
                   await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['in progress'] });
-
-                  // Add content to Context
-                  contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n`;
-                  contextContent += `${subIssue.data.body}\n\n---\n`;
-
-                  // Notify Sub-issue
-                  await github.rest.issues.createComment({
-                    owner, repo, issue_number: subId,
-                    body: `⚙️ **Status Update:** Processing in Batch Issue #${issueNumber}.`
-                  });
-                  
-                } catch (e) {
-                  console.log(`Error processing #${subId}: ${e.message}`);
-                }
+                  contextContent += `## 📄 Sub-Issue #${subId}: ${subIssue.data.title}\n${subIssue.data.body}\n\n---\n`;
+                } catch (e) {}
               }
             }
 
-            // 4. APPEND CONTEXT AND TRIGGER JULES
-            // Add Memory Instructions
-            contextContent += `
-            # 💾 MEMORY & FINALIZATION INSTRUCTIONS
-            1. **Execute All Tasks:** Resolve the sub-issues listed above.
-            2. **Update Memory:** Analyze patterns used in this fix.
-            3. **Documentation:** Update 'AGENTS.md' if new rules are established.
-            `;
-
-            // Update Batch Body
+            // Update Body
             await github.rest.issues.update({ owner, repo, issue_number: issueNumber, body: body + contextContent });
-
-            // Remove 'context' label, Add 'jules' and 'in progress'
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'context' }); } catch(e){}
             
+            // 3. TRIGGER PLANNING PHASE
+            // Add 'planning' and 'jules' (so he wakes up to write the plan)
             await github.rest.issues.addLabels({ 
               owner, repo, issue_number: issueNumber, 
-              labels: ['jules', 'in progress'] 
+              labels: ['jules', 'planning'] 
             });
 
   # ------------------------------------------------------------------
-  # JOB 2: STATUS UPDATE (Triggered by Jules Comment)
+  # JOB 2: PROMOTE TO EXECUTION (Triggered by 👍 Reaction)
+  # ------------------------------------------------------------------
+  approve_plan:
+    if: github.event_name == 'issue_reaction' && github.event.reaction.content == '+1'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Switch Planning to In Progress
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issueNumber = context.issue.number;
+            
+            // Get current labels
+            const issue = await github.rest.issues.get({ owner, repo, issue_number: issueNumber });
+            const labels = issue.data.labels.map(l => l.name);
+            
+            // Only act if we are in 'planning' mode
+            if (labels.includes('planning')) {
+              console.log("Plan approved. Switching to execution mode.");
+              
+              // 1. Remove 'planning'
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'planning' });
+              
+              // 2. Add 'in progress' and wake 'jules' up again
+              await github.rest.issues.addLabels({ 
+                owner, repo, issue_number: issueNumber, 
+                labels: ['in progress', 'jules'] 
+              });
+              
+              // 3. Acknowledge
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: "👍 **Plan Approved.** Jules is starting execution now."
+              });
+            }
+
+  # ------------------------------------------------------------------
+  # JOB 3: STATUS UPDATE (Jules comments 'PR Created')
   # ------------------------------------------------------------------
   update_status_review:
     if: github.event_name == 'issue_comment' && contains(github.event.comment.user.login, 'jules')
@@ -121,17 +132,13 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            // If Jules mentions a PR is ready
             if (body.includes('pull request') || body.includes('/pull/')) {
-              // Remove 'in progress'
               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: 'in progress' }); } catch(e){}
-              
-              // Add 'in review'
               await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ['in review'] });
             }
 
   # ------------------------------------------------------------------
-  # JOB 3: COMPLETION (Triggered by PR Merge)
+  # JOB 4: COMPLETION (Merge PR)
   # ------------------------------------------------------------------
   close_on_merge:
     if: github.event.pull_request.merged == true
@@ -146,7 +153,6 @@ jobs:
             const repo = context.repo.repo;
             const body = pr.body || "";
 
-            // Find linked issues in PR body (e.g., "Closes #12")
             const issueRegex = /#(\d+)/g;
             const matches = [...body.matchAll(issueRegex)];
             
@@ -155,40 +161,21 @@ jobs:
             for (const match of matches) {
               const batchId = parseInt(match[1]);
               
-              // 1. Close the Batch Issue
-              try {
-                // Update Batch labels
-                try { await github.rest.issues.removeLabel({ owner, repo, issue_number: batchId, name: 'in review' }); } catch(e){}
-                await github.rest.issues.addLabels({ owner, repo, issue_number: batchId, labels: ['completed'] });
-                
-                // Close Batch
-                await github.rest.issues.update({ owner, repo, issue_number: batchId, state: 'closed' });
-                console.log(`Closed Batch #${batchId}`);
+              // Close Batch
+              try { await github.rest.issues.removeLabel({ owner, repo, issue_number: batchId, name: 'in review' }); } catch(e){}
+              await github.rest.issues.addLabels({ owner, repo, issue_number: batchId, labels: ['completed'] });
+              await github.rest.issues.update({ owner, repo, issue_number: batchId, state: 'closed' });
 
-                // 2. Find and Close Sub-Issues *inside* the Batch Issue
-                // We need to fetch the batch issue body to see what sub-issues were linked
-                const batchIssue = await github.rest.issues.get({ owner, repo, issue_number: batchId });
-                const batchBody = batchIssue.data.body || "";
-                const subMatches = [...batchBody.matchAll(issueRegex)];
-
-                for (const sub of subMatches) {
+              // Close Sub-issues
+              const batchIssue = await github.rest.issues.get({ owner, repo, issue_number: batchId });
+              const subMatches = [...(batchIssue.data.body || "").matchAll(issueRegex)];
+              for (const sub of subMatches) {
                    const subId = parseInt(sub[1]);
                    if (subId === batchId) continue;
-
                    try {
-                     // Update Sub-issue labels
                      try { await github.rest.issues.removeLabel({ owner, repo, issue_number: subId, name: 'in progress' }); } catch(e){}
                      await github.rest.issues.addLabels({ owner, repo, issue_number: subId, labels: ['completed'] });
-                     
-                     // Close Sub-issue
                      await github.rest.issues.update({ owner, repo, issue_number: subId, state: 'closed' });
-                     console.log(`Closed Sub-issue #${subId}`);
-                   } catch(err) {
-                     console.log(`Failed to close sub-issue #${subId}`);
-                   }
-                }
-
-              } catch (e) {
-                console.log(`Error closing batch #${batchId}: ${e.message}`);
+                   } catch(err) {}
               }
             }
