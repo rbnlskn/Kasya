@@ -4,18 +4,27 @@ on:
     types: [opened]
 
 jobs:
-  auto-label:
+  auto-assign-and-label:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - name: Apply Jules Label
+      - name: Label and Assign
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.addLabels({
+            // 1. Add the 'jules' label to wake up the agent
+            await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               labels: ['jules']
-            })
+            });
+
+            // 2. Assign the issue to the person who created it (You)
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [context.actor]
+            });
