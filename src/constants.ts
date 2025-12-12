@@ -1,12 +1,8 @@
 
 
-import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan, ChangelogEntry } from './types';
+import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme.js';
-
-export const APP_VERSION = '1.0.0';
-
-export const CHANGELOG: ChangelogEntry[] = [];
 
 export const CURRENCY_SYMBOL = '₱';
 

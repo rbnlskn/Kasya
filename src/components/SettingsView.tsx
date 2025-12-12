@@ -1,10 +1,10 @@
 
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
+import { App } from '@capacitor/app';
 import { AppState, ThemeMode } from '../types';
 import { CURRENCIES } from '../data/currencies';
-import { APP_VERSION, CHANGELOG } from '../constants';
 import { exportFile, saveToDocuments } from '../services/exportService';
 
 interface SettingsViewProps {
@@ -20,8 +20,12 @@ interface SettingsViewProps {
 const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCategories, onViewTransactions, onImport, onReset, onCurrencyChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  const [showChangelog, setShowChangelog] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
+  const [appVersion, setAppVersion] = useState('');
+
+  useEffect(() => {
+    App.getInfo().then(info => setAppVersion(info.version));
+  }, []);
 
   const getFormattedDate = () => {
       const now = new Date();
@@ -134,7 +138,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
           <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
             <SettingItem icon={<Grid className="w-5 h-5" />} label="Categories" onClick={onManageCategories} />
             <SettingItem icon={<DollarSign className="w-5 h-5" />} label="Currency" subLabel={`${currentCurrency.code} (${currentCurrency.symbol})`} onClick={() => setShowCurrencyModal(true)} />
-            <SettingItem icon={<Info className="w-5 h-5" />} label="About & Version" subLabel={`v${APP_VERSION}`} onClick={() => setShowChangelog(true)} />
+            <SettingItem icon={<Info className="w-5 h-5" />} label="Version" subLabel={`v${appVersion}`} onClick={() => {}} />
           </div>
         </section>
 
@@ -148,7 +152,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         </section>
 
         <section className="text-center pt-4">
-             <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Kasya {APP_VERSION}</p>
+             <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Kasya {appVersion}</p>
              <p className="text-[10px] text-text-secondary mt-1">Local First • Privacy Focused</p>
         </section>
       </div>
@@ -208,35 +212,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         </div>
       )}
 
-      {/* Changelog Modal */}
-      {showChangelog && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowChangelog(false)}>
-            <div className="bg-surface w-full rounded-t-[2rem] max-h-[85vh] overflow-y-auto p-8 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-8">
-                    <h3 className="font-bold text-2xl text-text-primary">What's New</h3>
-                    <button onClick={() => setShowChangelog(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
-                </div>
-                <div className="space-y-8 relative">
-                    <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border"></div>
-                    {CHANGELOG.map((log, idx) => (
-                        <div key={idx} className="relative pl-8">
-                            <div className="absolute left-0 top-1.5 w-4 h-4 rounded-full border-4 border-surface bg-primary shadow-sm z-10"></div>
-                            <h4 className="font-black text-lg text-text-primary">v{log.version}</h4>
-                            <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-3 block">{log.date}</span>
-                            <ul className="space-y-2">
-                                {log.changes.map((c, i) => (
-                                    <li key={i} className="text-sm font-medium text-text-secondary leading-relaxed flex items-start">
-                                      <span className="mr-2 mt-1">•</span>
-                                      <span>{c}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-      )}
     </>
   );
 };
