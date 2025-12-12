@@ -29,11 +29,14 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
     >
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
+      <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-white/5 rounded-full pointer-events-none"></div>
 
       <div className="flex flex-col h-full relative z-10">
         <div className="flex justify-between items-start">
             <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">Total Balance</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">
+                  {wallet.type === WalletType.CREDIT_CARD ? 'Available Limit' : 'Balance'}
+                </span>
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
             <div className="p-1 bg-white/20 rounded-full">

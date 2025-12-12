@@ -511,9 +511,9 @@ const App: React.FC = () => {
                   </div>
               </div>
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
-                 <div className="grid grid-cols-1 gap-8 content-start">
+                 <div className="grid grid-cols-1 gap-6 content-start">
                      <section className="w-full">
-                         <div className="flex justify-between items-end mb-4 px-1">
+                         <div className="flex justify-between items-end mb-3 px-1">
                             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Wallets</h2>
                             <button onClick={() => handleOpenOverlay('ALL_WALLETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
@@ -537,9 +537,10 @@ const App: React.FC = () => {
                             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Budgets</h2>
                             <button onClick={() => handleOpenOverlay('ALL_BUDGETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
-                         <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
-                            <button onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} className="flex-shrink-0 w-24 h-28 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors group bg-white active:scale-95">
+                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
+                            <button onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} className="flex-shrink-0 w-16 h-28 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
                                 <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
+                                <span className="text-[10px] font-bold">Add</span>
                             </button>
                             {data.budgets.map((b) => (
                                 <BudgetRing 
@@ -555,11 +556,11 @@ const App: React.FC = () => {
                      </section>
 
                      <section className="w-full">
-                         <div className="flex justify-between items-center mb-4 px-1">
+                         <div className="flex justify-between items-center mb-3 px-1">
                             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Recents</h2>
                             <button onClick={() => handleOpenOverlay('ALL_TRANSACTIONS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
-                         <div className="grid gap-1">
+                         <div className="grid gap-0">
                              {data.transactions.length === 0 ? (
                                  <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
                              ) : (
