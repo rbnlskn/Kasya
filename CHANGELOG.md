@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/rbnlskn/Kasya/compare/v1.1.0...v1.2.0) (2025-12-12)
+
+
+### Features
+
+* Batch Update UI Fixes ([#50](https://github.com/rbnlskn/Kasya/issues/50)) ([84fa00a](https://github.com/rbnlskn/Kasya/commit/84fa00a7f139c1142803c818d1f258fb51b1a008)), closes [#39](https://github.com/rbnlskn/Kasya/issues/39) [#35](https://github.com/rbnlskn/Kasya/issues/35) [#33](https://github.com/rbnlskn/Kasya/issues/33) [#37](https://github.com/rbnlskn/Kasya/issues/37) [#38](https://github.com/rbnlskn/Kasya/issues/38) [#34](https://github.com/rbnlskn/Kasya/issues/34)
+
 ## 1.1.0 (2025-12-12)
 
 
