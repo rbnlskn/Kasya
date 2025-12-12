@@ -49,7 +49,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         setInterest('');
         setFee('');
         setType('PAYABLE');
-        setStartDate(new Date().toISOString().split('T')[0]);
+        setStartDate(new Date());
         setPaymentType('MONTHLY');
         setDueDay('');
         setDuration('');
