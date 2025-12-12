@@ -473,9 +473,6 @@ const App: React.FC = () => {
                 onDelete={handleDeleteBudget}
                 currencySymbol={currentCurrency.symbol}
                 onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))}
-                onBack={() => {}}
-                onView={(b) => { setSelectedBudgetId(b.id); }}
-                isExiting={false}
               />
             </Route>
             <Route path="/budgets/:id">
@@ -488,7 +485,7 @@ const App: React.FC = () => {
                     }}
                     categories={data.categories}
                     wallets={data.wallets}
-                    onEdit={(id) => { setSelectedBudgetId(id); openModal('BUDGET_FORM'); }}
+                    onEdit={() => { openModal('BUDGET_FORM'); }}
                     onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
                     getSpending={(id: string) => spendingMap[id] || 0}
