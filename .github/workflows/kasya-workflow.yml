@@ -96,45 +96,9 @@ jobs:
             });
             console.log("Appended Consolidated Context");
 
-            // 6. Add 'planning' and 'jules' labels
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['planning', 'jules'] });
-            console.log("Added 'planning' and 'jules' labels");
-
-  plan-approval:
-    name: Approve Plan
-    if: github.event_name == 'issue_comment'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Approval
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.JULES_PAT }}
-          script: |
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const commentBody = context.payload.comment.body.toLowerCase();
-
-            // Fetch issue to check labels
-            const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number });
-            const hasPlanning = issue.labels.some(l => l.name === 'planning');
-
-            if (!hasPlanning) {
-              console.log("Issue does not have 'planning' label. Skipping.");
-              return;
-            }
-
-            // Check for approval
-            const isApproved = commentBody.includes('approved') ||
-                               commentBody.includes('proceed') ||
-                               commentBody.includes('👍');
-
-            if (isApproved) {
-              console.log("Plan approved. Transitioning to 'in progress'.");
-              try {
-                 await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'planning' });
-              } catch(e) {}
-              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in progress'] });
-            }
+            // 6. Add 'in progress' and 'jules' labels
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in progress', 'jules'] });
+            console.log("Added 'in progress' and 'jules' labels");
 
   review-transition:
     name: Transition to Review
