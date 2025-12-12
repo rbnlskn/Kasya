@@ -1,6 +1,5 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import React, { useRef, useState, useEffect } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';

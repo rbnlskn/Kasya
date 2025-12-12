@@ -250,38 +250,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
           </section>
         </div>
-                </div>
-            )) : (
-                <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
-                    No credit cards linked.
-                </div>
-            )}
-        </div>
-      </section>
-
-      {/* Subscriptions & Bills */}
-      <section>
-        <SectionHeader title="Bills & Subscriptions" icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
-        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {upcomingBills.length > 0 ? upcomingBills.map(b => renderBillItem(b)) : (
-                <div className="text-center text-sm text-gray-400 py-6">All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!</div>
-            )}
-        </div>
-      </section>
-
-      {/* Loans */}
-      <section>
-        <SectionHeader title="Loans & Debts" icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {validLoans.filter(l => l.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
-             {validLoans.filter(l => l.status !== 'PAID').length === 0 && (
-                <div className="text-center text-sm text-gray-400 py-6">No active loans.</div>
-            )}
-        </div>
-      </section>
-    </div>
-
-    {/* OVERLAYS */}
+      </IonContent>
     {overlay === 'ALL_BILLS' && (
         <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
             <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
@@ -361,7 +330,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
         </div>
     )}
-    </>
+    </IonPage>
   );
 };
 

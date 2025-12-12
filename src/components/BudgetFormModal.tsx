@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons } from '@ionic/react';
 import { X, ChevronDown, Trash2, Check } from 'lucide-react';
 import { Budget, Category, BudgetPeriod } from '../types';

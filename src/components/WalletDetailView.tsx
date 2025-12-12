@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton, IonIcon } from '@ionic/react';
 import { pencilOutline } from 'ionicons/icons';
@@ -108,42 +107,41 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getT
             <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
         </div>
 
-        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
-          <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
-          <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
-          <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
-          <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
-        </div>
-
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
-              <Calendar className="w-3 h-3 mr-1" />
-              <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-gray-800">
-                <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
-              </select>
+        <div className="ion-padding">
+            <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
+              <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
+              <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
+              <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
+              <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
             </div>
-            <span className="text-sm font-bold text-gray-800">{dateLabel}</span>
-          </div>
-          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
-        </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
-        {Object.keys(groupedTransactions).length === 0 ? (
-            <div className="text-center py-12 text-gray-400">No transactions found for this period.</div>
-          ) : (
-            Object.entries(groupedTransactions).map(([date, txs]) => (
-              <div key={date}>
-                <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
-                <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+
+            <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+              <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-gray-800">
+                    <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
+                  </select>
                 </div>
+                <span className="text-sm font-bold text-gray-800">{dateLabel}</span>
               </div>
-            ))
-        )}
-      </div>
+              <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+            </div>
+
+            {Object.keys(groupedTransactions).length === 0 ? (
+                <div className="text-center py-12 text-gray-400">No transactions found for this period.</div>
+              ) : (
+                Object.entries(groupedTransactions).map(([date, txs]) => (
+                  <div key={date}>
+                    <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
+                    <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
+                         {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                    </div>
+                  </div>
+                ))
+            )}
+        </div>
     </IonContent>
     </IonPage>
   );

@@ -359,7 +359,7 @@ const App: React.FC = () => {
       setSelectedBillId(bill.id);
       setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: billCategory.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
-      handleOpenModal('TX_FORM');
+      openModal('TX_FORM');
   };
 
   const handlePayLoan = (loan: Loan) => {
@@ -369,7 +369,7 @@ const App: React.FC = () => {
       const loanCategory = data.categories.find(c => c.name.toLowerCase().includes('loan')) || data.categories[0];
       setPresetTransaction({ amount: remaining, type: isPayable ? TransactionType.EXPENSE : TransactionType.INCOME, description: loan.name, categoryId: loanCategory.id, date: new Date().toISOString() });
       setTransactionModalTitle(isPayable ? "Record Payment" : "Record Collection");
-      handleOpenModal('TX_FORM');
+      openModal('TX_FORM');
   };
 
   const handlePayCC = (wallet: Wallet) => {
@@ -378,7 +378,7 @@ const App: React.FC = () => {
       if (debt <= 0) return; 
       setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `Payment`, transferToWalletId: wallet.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
-      handleOpenModal('TX_FORM');
+      openModal('TX_FORM');
   };
 
   const editingTransaction = useMemo(() => presetTransaction ? presetTransaction as Transaction : data.transactions.find(t => t.id === selectedTxId), [data.transactions, selectedTxId, presetTransaction]);
@@ -473,12 +473,15 @@ const App: React.FC = () => {
                 onDelete={handleDeleteBudget}
                 currencySymbol={currentCurrency.symbol}
                 onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))}
+                onBack={() => {}}
+                onView={(b) => { setSelectedBudgetId(b.id); }}
+                isExiting={false}
               />
             </Route>
             <Route path="/budgets/:id">
                 <BudgetDetailView
-                    getBudgetById={(id) => data.budgets.find(b => b.id === id)}
-                    getTransactionsByBudgetId={(id) => {
+                    getBudgetById={(id: string) => data.budgets.find(b => b.id === id)}
+                    getTransactionsByBudgetId={(id: string) => {
                         const budget = data.budgets.find(b => b.id === id);
                         if (!budget) return [];
                         return sortTransactions(data.transactions.filter(t => t.categoryId === budget.categoryId));
@@ -488,7 +491,7 @@ const App: React.FC = () => {
                     onEdit={(id) => { setSelectedBudgetId(id); openModal('BUDGET_FORM'); }}
                     onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
-                    getSpending={(id) => spendingMap[id] || 0}
+                    getSpending={(id: string) => spendingMap[id] || 0}
                 />
             </Route>
              <Route path="/transactions" exact>
@@ -578,7 +581,6 @@ const App: React.FC = () => {
       />
 
       <CategoryManager
-          isOpen={modal === 'CATEGORY_MANAGER'}
           categories={data.categories}
           onSave={(cat) => {
               if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) }));

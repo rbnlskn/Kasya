@@ -50,7 +50,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
             <div className="p-1 bg-white/20 rounded-full">
-              {getWalletIcon(wallet.type, "w-4 h-4 opacity-90")}
+              {getWalletIcon(wallet.type as WalletType, "w-4 h-4 opacity-90")}
             </div>
         </div>
 
@@ -60,7 +60,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             </p>
         </div>
       </div>
-    </div>
+    </Tag>
   );
 };
 

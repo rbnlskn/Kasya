@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import React, { useState } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton, IonIcon } from '@ionic/react';
 import { add } from 'ionicons/icons';
 import { ChevronLeft, Plus, Edit2 } from 'lucide-react';
-import { Wallet } from '../types';
+import { Wallet, WalletType } from '../types';
 import { getWalletIcon } from './WalletCard';
 
 interface WalletListViewProps {
@@ -71,27 +70,26 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onAdd, onEdit,
             <p className="text-xs text-center text-text-secondary dark:text-text-secondary font-medium mb-4">Tap to View • Hold & Drag to Reorder</p>
 
             {localWallets.map((w, index) => (
-              <div
-                 key={w.id}
-                 draggable={!!onReorder}
-                 onDragStart={(e) => onDragStart(e, index)}
-                 onDragOver={(e) => onDragOver(e, index)}
-                 onDrop={onDrop}
-                 onDragEnd={onDrop}
-                 className={`p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border mb-3 ${draggedIndex === index ? 'opacity-50' : ''}`}
-                 routerLink={`/wallets/${w.id}`}
-              >
-                {/* Decorative Circle */}
-                <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-primary opacity-5 z-0 pointer-events-none"></div>
+              <a href={`/wallets/${w.id}`} key={w.id}>
+                <div
+                   draggable={!!onReorder}
+                   onDragStart={(e) => onDragStart(e, index)}
+                   onDragOver={(e) => onDragOver(e, index)}
+                   onDrop={onDrop}
+                   onDragEnd={onDrop}
+                   className={`p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border mb-3 ${draggedIndex === index ? 'opacity-50' : ''}`}
+                >
+                  {/* Decorative Circle */}
+                  <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-primary opacity-5 z-0 pointer-events-none"></div>
 
-            <div className="flex items-center flex-1 mr-4 relative z-10">
-                 {/* Icon Container */}
-                 <div className={`w-12 h-12 rounded-xl ${w.color} flex items-center justify-center text-white mr-3 shadow-sm`}>
-                     <div className={w.textColor}>
-                         {getWalletIcon(w.type, "w-6 h-6")}
-                     </div>
-                 </div>
-                 <div className="flex flex-col">
+              <div className="flex items-center flex-1 mr-4 relative z-10">
+                   {/* Icon Container */}
+                   <div className={`w-12 h-12 rounded-xl ${w.color} flex items-center justify-center text-white mr-3 shadow-sm`}>
+                       <div className={w.textColor}>
+                           {getWalletIcon(w.type as WalletType, "w-6 h-6")}
+                       </div>
+                   </div>
+                   <div className="flex flex-col">
                      <h3 className="font-bold text-text-primary dark:text-text-primary text-sm truncate">{w.name}</h3>
                      <p className="text-[10px] text-text-secondary dark:text-text-secondary uppercase font-bold tracking-wide">{w.type}</p>
                  </div>
@@ -99,11 +97,13 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onAdd, onEdit,
             <div className="text-right flex-shrink-0 relative z-10 flex flex-col items-end">
               <span className="block font-bold text-text-primary dark:text-text-primary">{currencySymbol}{w.balance.toLocaleString()}</span>
             </div>
-          </div>
+            </div>
+            </a>
         ))}
         {localWallets.length === 0 && <div className="text-center text-gray-400 mt-10"><p>No wallets found.</p></div>}
       </div>
-    </div>
+    </IonContent>
+    </IonPage>
   );
 };
 export default WalletListView;

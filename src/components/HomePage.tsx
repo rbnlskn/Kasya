@@ -44,7 +44,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <section className="w-full">
             <div className="flex justify-between items-end mb-3 px-1">
               <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Wallets</h2>
-              <button routerLink="/wallets" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
+              <a href="/wallets" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</a>
             </div>
             <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
               <button onClick={() => { onSetSelectedWalletId(null); onOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-32 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
@@ -64,7 +64,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <section className="w-full">
             <div className="flex justify-between items-end mb-4 px-1">
               <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Budgets</h2>
-              <button routerLink="/budgets" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
+              <a href="/budgets" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</a>
             </div>
             <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-4 -mx-6 px-6">
               <button onClick={() => { onSetSelectedBudgetId(null); onOpenModal('BUDGET_FORM'); }} className="flex-shrink-0 w-16 h-28 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
@@ -72,14 +72,14 @@ const HomePage: React.FC<HomePageProps> = ({
                 <span className="text-[10px] font-bold">Add</span>
               </button>
               {data.budgets.map((b) => (
-                <BudgetRing
-                  key={b.id}
-                  budget={b}
-                  category={data.categories.find(c => c.id === b.categoryId)}
-                  spent={spendingMap[b.id] || 0}
-                  currencySymbol={currentCurrency.symbol}
-                  routerLink={`/budgets/${b.id}`}
-                />
+                <a href={`/budgets/${b.id}`} key={b.id}>
+                  <BudgetRing
+                    budget={b}
+                    category={data.categories.find(c => c.id === b.categoryId)}
+                    spent={spendingMap[b.id] || 0}
+                    currencySymbol={currentCurrency.symbol}
+                  />
+                </a>
               ))}
             </div>
           </section>
@@ -87,7 +87,7 @@ const HomePage: React.FC<HomePageProps> = ({
           <section className="w-full">
             <div className="flex justify-between items-center mb-3 px-1">
               <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Recents</h2>
-              <button routerLink="/transactions" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
+              <a href="/transactions" className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</a>
             </div>
             <div className="grid gap-0">
               {data.transactions.length === 0 ? (

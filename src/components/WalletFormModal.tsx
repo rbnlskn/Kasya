@@ -61,7 +61,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     if (isOpen) {
       if (initialWallet) {
         setName(initialWallet.name);
-        setType(initialWallet.type);
+        setType(initialWallet.type as WalletType);
         setBalance(initialWallet.balance.toFixed(2));
         setStatementDay(initialWallet.statementDay || 1);
         
@@ -138,7 +138,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       const bgHex = t.bg.match(/bg-\[(#[0-9A-Fa-f]{6})\]/)?.[1] || '#000000';
       setCustomBg(bgHex);
       setCustomText(isColorLight(bgHex) ? '#1f2937' : '#FFFFFF');
-      setType(t.type || WalletType.E_WALLET);
+      setType(t.type as WalletType || WalletType.E_WALLET);
       setName(t.name === 'Cash' ? 'Cash' : t.name);
   };
 
