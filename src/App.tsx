@@ -578,16 +578,18 @@ const App: React.FC = () => {
         wallets={data.wallets}
       />
 
-      <CategoryManager
-          categories={data.categories}
-          onSave={(cat) => {
-              if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) }));
-              else setData(prev => ({ ...prev, categories: [...prev.categories, cat] }));
-          }}
-          onDelete={(id) => setData(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }))}
-          onReorder={(newCats) => setData(prev => ({ ...prev, categories: newCats }))}
-          onClose={closeModal}
-      />
+      <IonModal isOpen={modal === 'CATEGORY_MANAGER'} onDidDismiss={closeModal}>
+        <CategoryManager
+            categories={data.categories}
+            onSave={(cat) => {
+                if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) }));
+                else setData(prev => ({ ...prev, categories: [...prev.categories, cat] }));
+            }}
+            onDelete={(id) => setData(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }))}
+            onReorder={(newCats) => setData(prev => ({ ...prev, categories: newCats }))}
+            onClose={closeModal}
+        />
+      </IonModal>
     </IonApp>
   );
 };
