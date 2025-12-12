@@ -60,27 +60,27 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
 
   return (
     <>
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
-      <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose}></div>
-      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl m-2 relative z-10 mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`} onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4 pb-safe">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={onClose}></div>
+      <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 mx-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-text-primary">{initialBudget ? 'Edit' : 'New'} Budget</h2>
+          <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialBudget ? 'Edit Budget' : 'New Budget'}</h2>
           <div className="flex items-center space-x-2">
-            {initialBudget && onDelete && <button onClick={handleDelete} className="p-2 bg-red-50 text-red-500 rounded-full"><Trash2 className="w-5 h-5" /></button>}
-            <button onClick={onClose} className="p-2 bg-slate-100 rounded-full"><X className="w-5 h-5 text-text-secondary" /></button>
+            {initialBudget && onDelete && <button onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
+            <button onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="flex bg-slate-100 p-1 rounded-xl">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex bg-slate-100 p-1 rounded-2xl">
             {(['DAILY', 'WEEKLY', 'MONTHLY'] as BudgetPeriod[]).map(p => (
-                <button key={p} type="button" onClick={() => setPeriod(p)} className={`flex-1 py-2 text-sm font-bold rounded-lg capitalize ${period === p ? 'bg-surface shadow-sm text-text-primary' : 'text-text-secondary'}`}>{p.toLowerCase()}</button>
+                <button key={p} type="button" onClick={() => setPeriod(p)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all capitalize ${period === p ? 'bg-surface shadow-sm text-text-primary scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>{p.toLowerCase()}</button>
             ))}
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Category <span className="text-red-500">*</span></label>
-            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 rounded-xl py-2 pl-2 pr-4 flex justify-between items-center cursor-pointer h-12">
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category <span className="text-red-500">*</span></label>
+            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
                 <div className="flex items-center text-text-primary">
                     {selectedCategoryObj ? (
                         <>
@@ -94,19 +94,19 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           </div>
           
           <div>
-            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Name <span className="text-red-500">*</span></label>
-            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 rounded-xl py-2.5 px-4 text-sm text-text-primary font-medium" required placeholder="e.g. Food Budget" />
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name <span className="text-red-500">*</span></label>
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="e.g. Food Budget" />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-text-secondary uppercase mb-1 block">Limit <span className="text-red-500">*</span></label>
-            <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-lg">{currencySymbol}</span>
-                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 rounded-xl py-2 pl-8 pr-4 text-xl font-bold text-text-primary" required placeholder="0.00" inputMode="decimal" />
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
+            <div className="relative group">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
-          <button type="submit" disabled={!name || !amount || !categoryId} className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save' : 'Create'}</button>
+          <button type="submit" disabled={!name || !amount || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
         </form>
       </div>
     </div>
