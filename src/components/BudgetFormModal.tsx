@@ -62,7 +62,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
     <>
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
       <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={onClose}></div>
-      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl m-2 relative z-10 mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+      <div className={`bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl m-2 relative z-10 mx-auto mb-4 ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-text-primary">{initialBudget ? 'Edit' : 'New'} Budget</h2>
           <div className="flex items-center space-x-2">

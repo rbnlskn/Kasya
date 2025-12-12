@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, FileText, Repeat } from 'lucide-react';
+import { X, Trash2, FileText, Repeat, Calendar } from 'lucide-react';
 import { Bill, RecurrenceFrequency } from '../types';
+import DayPicker from './DayPicker';
 
 interface BillFormModalProps {
   isOpen: boolean;
@@ -18,8 +19,9 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDay, setDueDay] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(new Date());
   const [frequency, setFrequency] = useState<RecurrenceFrequency>('MONTHLY');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [icon, setIcon] = useState('⚡');
 
   useEffect(() => {
@@ -29,14 +31,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setName(initialBill.name);
         setAmount(initialBill.amount.toString());
         setDueDay(initialBill.dueDay.toString());
-        setStartDate(initialBill.startDate ? new Date(initialBill.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+        setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setFrequency(initialBill.recurrence);
       } else {
         setType('BILL');
         setName('');
         setAmount('');
         setDueDay('');
-        setStartDate(new Date().toISOString().split('T')[0]);
+        setStartDate(new Date());
         setFrequency('MONTHLY');
       }
     }
@@ -116,8 +118,11 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
           <div className="flex space-x-3">
             <div className="flex-1">
-              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500"/>
+                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
+                <button type="button" onClick={() => setShowDatePicker(true)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-amber-500 flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-text-secondary"/>
+                    {startDate.toLocaleDateString()}
+                </button>
             </div>
             <div className="flex-1">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Frequency</label>
@@ -133,6 +138,21 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         </form>
       </div>
     </div>
+
+    {showDatePicker && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDatePicker(false)}>
+            <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <DayPicker
+                    selectedDate={startDate}
+                    onChange={(d) => {
+                        setStartDate(d);
+                        setShowDatePicker(false);
+                    }}
+                    onClose={() => setShowDatePicker(false)}
+                />
+            </div>
+        </div>
+    )}
     </>
   );
 };

@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { X, Trash2, ArrowDownLeft, ArrowUpRight, Calendar } from 'lucide-react';
 import { Loan, LoanType, RecurrenceFrequency, Wallet } from '../types';
+import DayPicker from './DayPicker';
 
 interface LoanFormModalProps {
   isOpen: boolean;
@@ -20,8 +21,9 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
   const [interest, setInterest] = useState('');
   const [fee, setFee] = useState('');
   const [type, setType] = useState<LoanType>('PAYABLE');
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(new Date());
   const [paymentType, setPaymentType] = useState<RecurrenceFrequency>('MONTHLY');
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [dueDay, setDueDay] = useState('');
   const [duration, setDuration] = useState('');
   
@@ -36,7 +38,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         setInterest(initialLoan.interest?.toString() || '');
         setFee(initialLoan.fee?.toString() || '');
         setType(initialLoan.type);
-        setStartDate(initialLoan.startDate ? new Date(initialLoan.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+        setStartDate(initialLoan.startDate ? new Date(initialLoan.startDate) : new Date());
         setPaymentType(initialLoan.recurrence);
         setDueDay(initialLoan.dueDay?.toString() || '');
         setDuration(''); // Duration not stored in Loan object
@@ -145,8 +147,11 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
 
           <div className="flex space-x-3">
             <div className="flex-1">
-              <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500"/>
+                <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Start Date</label>
+                <button type="button" onClick={() => setShowDatePicker(true)} className="w-full bg-slate-100 rounded-lg py-2 px-3 font-bold text-text-primary outline-none focus:ring-2 focus:ring-indigo-500 flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-text-secondary"/>
+                    {startDate.toLocaleDateString()}
+                </button>
             </div>
             <div className="flex-1">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wide mb-1">Payment Type</label>
@@ -199,6 +204,21 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         </form>
       </div>
     </div>
+
+    {showDatePicker && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDatePicker(false)}>
+            <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <DayPicker
+                    selectedDate={startDate}
+                    onChange={(d) => {
+                        setStartDate(d);
+                        setShowDatePicker(false);
+                    }}
+                    onClose={() => setShowDatePicker(false)}
+                />
+            </div>
+        </div>
+    )}
     </>
   );
 };
