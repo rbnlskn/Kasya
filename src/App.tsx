@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, IonPage, setupIonicReact } from '@ionic/react';
+import { IonApp, IonRouterOutlet, IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, IonPage, setupIonicReact, IonModal } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { home as homeIcon, barChart as analyticsIcon, wallet as commitmentsIcon, settings as settingsIcon } from 'ionicons/icons';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
