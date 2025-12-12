@@ -165,8 +165,8 @@ const TimePickerV2: React.FC<TimePickerV2Props> = ({ value, onChange, onClose })
 
         {/* Clock Hand */}
         <div
-           className="absolute top-1/2 left-1/2 h-[40%] w-[2px] bg-primary origin-bottom z-10 pointer-events-none"
-           style={{ transform: `translateX(-50%) rotate(${getHandRotation()}deg) translateY(-100%)` }}
+           className="absolute bottom-1/2 left-1/2 h-[40%] w-[2px] bg-primary origin-bottom z-10 pointer-events-none"
+           style={{ transform: `translateX(-50%) rotate(${getHandRotation()}deg)` }}
         >
            {/* Hand Tip */}
            <div className="absolute top-0 left-1/2 w-8 h-8 bg-primary rounded-full transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center text-white font-bold text-sm shadow-md">
