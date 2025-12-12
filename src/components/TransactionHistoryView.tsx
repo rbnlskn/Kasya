@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { useHistory } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowDownUp, ArrowDown, ArrowUp, Calendar } from 'lucide-react';
 import { Transaction, Category, Wallet } from '../types';
 import TransactionItem from './TransactionItem';
-import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle } from '@ionic/react';
 
 interface TransactionHistoryViewProps {
   transactions: Transaction[];
@@ -16,6 +16,7 @@ type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
 const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transactions, categories, wallets, onTransactionClick, currencySymbol }) => {
+  const history = useHistory();
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,59 +74,59 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
   const walletMap = useMemo(() => wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [wallets]);
 
   return (
-    <IonPage>
-      <IonHeader className="ion-no-border">
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="/home" />
-          </IonButtons>
-          <IonTitle>Transactions</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent fullscreen>
-        <div className="ion-padding">
-            <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
-              <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
+    <div className="bg-background dark:bg-background min-h-screen">
+      <div className="flex items-center justify-between p-4 bg-background dark:bg-background">
+        <button onClick={() => history.goBack()} className="p-2 rounded-full bg-surface dark:bg-surface">
+          <ChevronLeft size={24} className="text-text-primary dark:text-text-primary" />
+        </button>
+        <h1 className="text-xl font-bold text-text-primary dark:text-text-primary">Transactions</h1>
+        <div className="w-8"></div>
+      </div>
+
+      <div className="px-4">
+        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
+          <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
           <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
           <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
           <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
         </div>
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full"><ChevronLeft className="w-5 h-5" /></button>
+        <div className="flex items-center justify-between bg-surface dark:bg-surface border border-border dark:border-border p-2 rounded-xl shadow-sm w-full mb-2">
+          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
             <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
               <Calendar className="w-3 h-3 mr-1" />
-              <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer">
+              <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-text-primary dark:text-text-primary">
                 <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
               </select>
             </div>
-            <span className="text-sm font-bold text-gray-800">{dateLabel}</span>
+            <span className="text-sm font-bold text-text-primary dark:text-text-primary">{dateLabel}</span>
           </div>
-          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full"><ChevronRight className="w-5 h-5" /></button>
+          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronRight className="w-5 h-5" /></button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
+
+      <div className="px-4 pb-24">
         {Object.keys(groupedTransactions).length === 0 ? (
-          <div className="text-center text-gray-400 mt-10">No transactions found.</div>
+          <div className="text-center text-text-secondary dark:text-text-secondary mt-10">No transactions found.</div>
         ) : (
           Object.entries(groupedTransactions).map(([date, txs]) => (
             <div key={date} className="mb-4">
-              <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-2 px-2">{date}</h3>
-              <div className="bg-white rounded-2xl shadow-sm p-2">
+              <h3 className="text-text-secondary dark:text-text-secondary font-bold text-xs uppercase tracking-wider mb-2 px-2">{date}</h3>
+              <div className="bg-surface dark:bg-surface border border-border dark:border-border rounded-2xl shadow-sm p-2">
                 {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
               </div>
             </div>
           ))
         )}
-        </div>
-      </IonContent>
-    </IonPage>
+      </div>
+    </div>
   );
 };
 
 const FilterPill: React.FC<{ label: string, active: boolean, onClick: () => void, icon?: React.ReactNode }> = ({ label, active, onClick, icon }) => (
-  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-white text-gray-500 border'}`}>
+  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-surface dark:bg-surface text-text-secondary dark:text-text-secondary border border-border dark:border-border'}`}>
     {icon}{label}
   </button>
 );
+
 export default TransactionHistoryView;

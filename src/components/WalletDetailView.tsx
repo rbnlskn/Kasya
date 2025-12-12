@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton, IonIcon } from '@ionic/react';
-import { pencilOutline } from 'ionicons/icons';
+import { useParams, useHistory } from 'react-router-dom';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
 import { Wallet, Transaction, Category } from '../types';
 import TransactionItem from './TransactionItem';
@@ -22,6 +20,7 @@ type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
 const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getTransactionsByWalletId, categories, allWallets, onEdit, onTransactionClick, currencySymbol }) => {
   const { id } = useParams<{ id: string }>();
+  const history = useHistory();
   const wallet = getWalletById(id);
   const transactions = getTransactionsByWalletId(id);
 
@@ -42,7 +41,6 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getT
   const { filteredTransactions, dateLabel } = useMemo(() => {
     let filtered = filter === 'ALL' ? transactions : transactions.filter(t => t.type === filter);
     
-    // Sort logic handled in parent, but safe to ensure descending
     filtered.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     if (rangeType === 'ALL_TIME') return { filteredTransactions: filtered, dateLabel: 'All Time' };
@@ -85,29 +83,31 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getT
 
   const walletMap = useMemo(() => allWallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [allWallets]);
 
-  if (!wallet) return <IonPage><IonContent>Wallet not found</IonContent></IonPage>;
+  if (!wallet) {
+    return (
+      <div className="bg-background dark:bg-background min-h-screen flex items-center justify-center">
+        <p className="text-text-secondary">Wallet not found</p>
+      </div>
+    );
+  }
 
   return (
-     <IonPage>
-      <IonHeader className="ion-no-border">
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton defaultHref="/wallets" />
-          </IonButtons>
-          <IonTitle>{wallet.name}</IonTitle>
-          <IonButtons slot="end">
-            <IonButton onClick={() => onEdit(wallet.id)}>
-              <IonIcon icon={pencilOutline} />
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent fullscreen>
-        <div className="flex justify-center my-4">
-            <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
+     <div className="bg-background dark:bg-background min-h-screen">
+        <div className="flex items-center justify-between p-4 bg-background dark:bg-background">
+            <button onClick={() => history.goBack()} className="p-2 rounded-full bg-surface dark:bg-surface">
+                <ChevronLeft size={24} className="text-text-primary dark:text-text-primary" />
+            </button>
+            <h1 className="text-xl font-bold text-text-primary dark:text-text-primary">{wallet.name}</h1>
+            <button onClick={() => onEdit(wallet.id)} className="p-2 rounded-full bg-surface dark:bg-surface">
+                <Edit2 size={20} className="text-text-primary dark:text-text-primary" />
+            </button>
         </div>
 
-        <div className="ion-padding">
+        <div className="px-4">
+            <div className="flex justify-center my-4">
+                <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
+            </div>
+
             <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
               <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
               <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
@@ -115,40 +115,39 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getT
               <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
             </div>
 
-            <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-              <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+            <div className="flex items-center justify-between bg-surface dark:bg-surface border border-border dark:border-border p-2 rounded-xl shadow-sm w-full mb-2">
+              <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronLeft className="w-5 h-5" /></button>
               <div className="flex flex-col items-center">
                 <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
                   <Calendar className="w-3 h-3 mr-1" />
-                  <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-gray-800">
+                  <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-text-primary dark:text-text-primary">
                     <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
                   </select>
                 </div>
-                <span className="text-sm font-bold text-gray-800">{dateLabel}</span>
+                <span className="text-sm font-bold text-text-primary dark:text-text-primary">{dateLabel}</span>
               </div>
-              <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+              <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronRight className="w-5 h-5" /></button>
             </div>
 
             {Object.keys(groupedTransactions).length === 0 ? (
-                <div className="text-center py-12 text-gray-400">No transactions found for this period.</div>
+                <div className="text-center py-12 text-text-secondary dark:text-text-secondary">No transactions found for this period.</div>
               ) : (
-                Object.entries(groupedTransactions).map(([date, txs]) => (
+                Object.entries(groupedTransactions).map(([date, txs]) by => (
                   <div key={date}>
-                    <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
-                    <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
+                    <h4 className="text-text-secondary dark:text-text-secondary font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
+                    <div className="bg-surface dark:bg-surface border border-border dark:border-border rounded-2xl shadow-sm p-2 mb-2">
                          {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
                     </div>
                   </div>
                 ))
             )}
         </div>
-    </IonContent>
-    </IonPage>
+    </div>
   );
 };
 
 const FilterPill: React.FC<{ label: string, active: boolean, onClick: () => void, icon?: React.ReactNode }> = ({ label, active, onClick, icon }) => (
-  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-white text-gray-500 border'}`}>
+  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-surface dark:bg-surface text-text-secondary dark:text-text-secondary border border-border dark:border-border'}`}>
     {icon}{label}
   </button>
 );
