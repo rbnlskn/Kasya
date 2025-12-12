@@ -148,7 +148,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const isCreditCard = type === WalletType.CREDIT_CARD;
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose} cssClass="wallet-modal-class">
+    <IonModal isOpen={isOpen} onDidDismiss={onClose} className="wallet-modal-class">
       <IonHeader>
         <IonToolbar>
           <IonTitle>{initialWallet ? 'Edit Wallet' : 'New Wallet'}</IonTitle>
