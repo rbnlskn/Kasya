@@ -1,26 +1,29 @@
-
 import React, { useState, useMemo } from 'react';
+import { useParams, useHistory } from 'react-router-dom';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
 import { Wallet, Transaction, Category } from '../types';
 import TransactionItem from './TransactionItem';
 import WalletCard from './WalletCard';
 
 interface WalletDetailViewProps {
-  wallet: Wallet;
-  transactions: Transaction[];
+  getWalletById: (id: string) => Wallet | undefined;
+  getTransactionsByWalletId: (id: string) => Transaction[];
   categories: Category[];
   allWallets: Wallet[];
-  onBack: () => void;
-  onEdit: () => void;
+  onEdit: (id: string) => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
-  isExiting: boolean;
 }
 
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting }) => {
+const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getTransactionsByWalletId, categories, allWallets, onEdit, onTransactionClick, currencySymbol }) => {
+  const { id } = useParams<{ id: string }>();
+  const history = useHistory();
+  const wallet = getWalletById(id);
+  const transactions = getTransactionsByWalletId(id);
+
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -38,7 +41,6 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
   const { filteredTransactions, dateLabel } = useMemo(() => {
     let filtered = filter === 'ALL' ? transactions : transactions.filter(t => t.type === filter);
     
-    // Sort logic handled in parent, but safe to ensure descending
     filtered.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     if (rangeType === 'ALL_TIME') return { filteredTransactions: filtered, dateLabel: 'All Time' };
@@ -81,63 +83,71 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
 
   const walletMap = useMemo(() => allWallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [allWallets]);
 
+  if (!wallet) {
+    return (
+      <div className="bg-background dark:bg-background min-h-screen flex items-center justify-center">
+        <p className="text-text-secondary">Wallet not found</p>
+      </div>
+    );
+  }
+
   return (
-    <div className={`fixed inset-0 bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
-      <div className="bg-app-bg z-10 px-6 pt-8 pb-2">
-        <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-2">
-                <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronLeft className="w-6 h-6" /></button>
-                <span className="font-bold text-lg text-gray-800">{wallet.name}</span>
-            </div>
-            <button onClick={onEdit} className="text-sm font-bold text-primary">Edit</button>
-        </div>
-        
-        <div className="flex justify-center mb-4">
-            <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
+     <div className="bg-background dark:bg-background min-h-screen">
+        <div className="flex items-center justify-between p-4 bg-background dark:bg-background">
+            <button onClick={() => history.goBack()} className="p-2 rounded-full bg-surface dark:bg-surface">
+                <ChevronLeft size={24} className="text-text-primary dark:text-text-primary" />
+            </button>
+            <h1 className="text-xl font-bold text-text-primary dark:text-text-primary">{wallet.name}</h1>
+            <button onClick={() => onEdit(wallet.id)} className="p-2 rounded-full bg-surface dark:bg-surface">
+                <Edit2 size={20} className="text-text-primary dark:text-text-primary" />
+            </button>
         </div>
 
-        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
-          <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
-          <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
-          <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
-          <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
-        </div>
-
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
-              <Calendar className="w-3 h-3 mr-1" />
-              <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-gray-800">
-                <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
-              </select>
+        <div className="px-4">
+            <div className="flex justify-center my-4">
+                <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
             </div>
-            <span className="text-sm font-bold text-gray-800">{dateLabel}</span>
-          </div>
-          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
-        </div>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
-        {Object.keys(groupedTransactions).length === 0 ? (
-            <div className="text-center py-12 text-gray-400">No transactions found for this period.</div>
-          ) : (
-            Object.entries(groupedTransactions).map(([date, txs]) => (
-              <div key={date}>
-                <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
-                <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+
+            <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
+              <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
+              <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
+              <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
+              <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
+            </div>
+
+            <div className="flex items-center justify-between bg-surface dark:bg-surface border border-border dark:border-border p-2 rounded-xl shadow-sm w-full mb-2">
+              <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronLeft className="w-5 h-5" /></button>
+              <div className="flex flex-col items-center">
+                <div className="flex items-center text-xs font-bold uppercase tracking-wider mb-0.5">
+                  <Calendar className="w-3 h-3 mr-1" />
+                  <select value={rangeType} onChange={(e) => setRangeType(e.target.value as DateRangeType)} className="bg-transparent outline-none cursor-pointer text-text-primary dark:text-text-primary">
+                    <option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option><option value="ALL_TIME">All Time</option>
+                  </select>
                 </div>
+                <span className="text-sm font-bold text-text-primary dark:text-text-primary">{dateLabel}</span>
               </div>
-            ))
-        )}
-      </div>
+              <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-background dark:hover:bg-background"><ChevronRight className="w-5 h-5" /></button>
+            </div>
+
+            {Object.keys(groupedTransactions).length === 0 ? (
+                <div className="text-center py-12 text-text-secondary dark:text-text-secondary">No transactions found for this period.</div>
+              ) : (
+                Object.entries(groupedTransactions).map(([date, txs]) => (
+                  <div key={date}>
+                    <h4 className="text-text-secondary dark:text-text-secondary font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
+                    <div className="bg-surface dark:bg-surface border border-border dark:border-border rounded-2xl shadow-sm p-2 mb-2">
+                         {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                    </div>
+                  </div>
+                ))
+            )}
+        </div>
     </div>
   );
 };
 
 const FilterPill: React.FC<{ label: string, active: boolean, onClick: () => void, icon?: React.ReactNode }> = ({ label, active, onClick, icon }) => (
-  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-white text-gray-500 border'}`}>
+  <button onClick={onClick} className={`flex items-center px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${active ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-surface dark:bg-surface text-text-secondary dark:text-text-secondary border border-border dark:border-border'}`}>
     {icon}{label}
   </button>
 );
