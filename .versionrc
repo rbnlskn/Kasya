@@ -8,8 +8,5 @@
     {"type": "refactor", "hidden": true},
     {"type": "perf", "hidden": true},
     {"type": "test", "hidden": true}
-  ],
-  "scripts": {
-    "postbump": "node scripts/sync-version.cjs && git add android/app/build.gradle"
-  }
+  ]
 }
