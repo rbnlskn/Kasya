@@ -473,22 +473,23 @@ const App: React.FC = () => {
                 onDelete={handleDeleteBudget}
                 currencySymbol={currentCurrency.symbol}
                 onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))}
+                onBack={() => {}}
+                onView={(b) => { setSelectedBudgetId(b.id); }}
+                isExiting={false}
               />
             </Route>
             <Route path="/budgets/:id">
                 <BudgetDetailView
-                    getBudgetById={(id: string) => data.budgets.find(b => b.id === id)}
-                    getTransactionsByBudgetId={(id: string) => {
-                        const budget = data.budgets.find(b => b.id === id);
-                        if (!budget) return [];
-                        return sortTransactions(data.transactions.filter(t => t.categoryId === budget.categoryId));
-                    }}
+                    budget={editingBudget!}
+                    transactions={sortTransactions(data.transactions.filter(t => t.categoryId === editingBudget?.categoryId))}
                     categories={data.categories}
                     wallets={data.wallets}
+                    onBack={() => {}}
                     onEdit={() => { openModal('BUDGET_FORM'); }}
                     onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
-                    getSpending={(id: string) => spendingMap[id] || 0}
+                    isExiting={false}
+                    spending={spendingMap[editingBudget?.id || ''] || 0}
                 />
             </Route>
              <Route path="/transactions" exact>
