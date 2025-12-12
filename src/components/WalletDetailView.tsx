@@ -132,7 +132,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getT
             {Object.keys(groupedTransactions).length === 0 ? (
                 <div className="text-center py-12 text-text-secondary dark:text-text-secondary">No transactions found for this period.</div>
               ) : (
-                Object.entries(groupedTransactions).map(([date, txs]) by => (
+                Object.entries(groupedTransactions).map(([date, txs]) => (
                   <div key={date}>
                     <h4 className="text-text-secondary dark:text-text-secondary font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
                     <div className="bg-surface dark:bg-surface border border-border dark:border-border rounded-2xl shadow-sm p-2 mb-2">

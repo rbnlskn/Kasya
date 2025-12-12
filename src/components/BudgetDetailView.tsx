@@ -52,7 +52,7 @@ const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transaction
       label = `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     } else if (rangeType === 'MONTHLY') {
       start = new Date(start.getFullYear(), start.getMonth(), 1);
-      end = new new Date(start.getFullYear(), start.getMonth() + 1, 0); end.setHours(23,59,59,999);
+      end = new Date(start.getFullYear(), start.getMonth() + 1, 0); end.setHours(23,59,59,999);
       label = start.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     }
     
