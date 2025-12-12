@@ -1,26 +1,31 @@
-
 import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
+import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton, IonIcon } from '@ionic/react';
+import { pencilOutline } from 'ionicons/icons';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
 import { Wallet, Transaction, Category } from '../types';
 import TransactionItem from './TransactionItem';
 import WalletCard from './WalletCard';
 
 interface WalletDetailViewProps {
-  wallet: Wallet;
-  transactions: Transaction[];
+  getWalletById: (id: string) => Wallet | undefined;
+  getTransactionsByWalletId: (id: string) => Transaction[];
   categories: Category[];
   allWallets: Wallet[];
-  onBack: () => void;
-  onEdit: () => void;
+  onEdit: (id: string) => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
-  isExiting: boolean;
 }
 
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting }) => {
+const WalletDetailView: React.FC<WalletDetailViewProps> = ({ getWalletById, getTransactionsByWalletId, categories, allWallets, onEdit, onTransactionClick, currencySymbol }) => {
+  const { id } = useParams<{ id: string }>();
+  const wallet = getWalletById(id);
+  const transactions = getTransactionsByWalletId(id);
+
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -81,18 +86,25 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
 
   const walletMap = useMemo(() => allWallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [allWallets]);
 
+  if (!wallet) return <IonPage><IonContent>Wallet not found</IonContent></IonPage>;
+
   return (
-    <div className={`fixed inset-0 bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
-      <div className="bg-app-bg z-10 px-6 pt-8 pb-2">
-        <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center space-x-2">
-                <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronLeft className="w-6 h-6" /></button>
-                <span className="font-bold text-lg text-gray-800">{wallet.name}</span>
-            </div>
-            <button onClick={onEdit} className="text-sm font-bold text-primary">Edit</button>
-        </div>
-        
-        <div className="flex justify-center mb-4">
+     <IonPage>
+      <IonHeader className="ion-no-border">
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/wallets" />
+          </IonButtons>
+          <IonTitle>{wallet.name}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => onEdit(wallet.id)}>
+              <IonIcon icon={pencilOutline} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen>
+        <div className="flex justify-center my-4">
             <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
         </div>
 
@@ -132,7 +144,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
             ))
         )}
       </div>
-    </div>
+    </IonContent>
+    </IonPage>
   );
 };
 

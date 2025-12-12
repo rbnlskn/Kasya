@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 import { Calendar, CreditCard, PiggyBank, Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
@@ -17,10 +17,9 @@ interface CommitmentsViewProps {
   onEditLoan: (loan: Loan) => void;
   onPayLoan: (loan: Loan) => void;
   onPayCC: (wallet: Wallet) => void;
-  onWalletClick?: (wallet: Wallet) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_LOANS'>('NONE');
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
@@ -191,36 +190,66 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   );
 
   return (
-    <>
-    <div className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
-        <div className="flex justify-between items-center mb-4">
-             <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
-        </div>
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+    <IonPage>
+      <IonHeader className="ion-no-border">
+        <IonToolbar>
+           <IonTitle>Commitments</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen>
+         <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2 sticky top-0 z-10">
             <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
             <div className="flex flex-col items-center">
                 <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
             </div>
             <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
         </div>
-    </div>
 
-    <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
-
-      {/* Credit Cards */}
-      <section>
-        <SectionHeader title="Credit Cards" icon={<CreditCard className="w-4 h-4" />} />
-        <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
-            {creditCards.length > 0 ? creditCards.map(cc => (
-                <div key={cc.id} className="relative flex-shrink-0">
-                    <WalletCard 
-                        wallet={cc}
-                        currencySymbol={currencySymbol}
-                        onClick={(w) => onWalletClick && onWalletClick(w)}
-                    />
-                    <div className="absolute top-3 right-3 bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm z-20 pointer-events-none font-bold">
-                        {getCCDueText(cc.statementDay)}
+        <div className="ion-padding pt-2">
+          {/* Credit Cards */}
+          <section>
+            <SectionHeader title="Credit Cards" icon={<CreditCard className="w-4 h-4" />} />
+            <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+                {creditCards.length > 0 ? creditCards.map(cc => (
+                    <div key={cc.id} className="relative flex-shrink-0">
+                        <WalletCard
+                            wallet={cc}
+                            currencySymbol={currencySymbol}
+                            routerLink={`/wallets/${cc.id}`}
+                        />
+                        <div className="absolute top-3 right-3 bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm z-20 pointer-events-none font-bold">
+                            {getCCDueText(cc.statementDay)}
+                        </div>
                     </div>
+                )) : (
+                    <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                        No credit cards linked.
+                    </div>
+                )}
+            </div>
+          </section>
+
+          {/* Subscriptions & Bills */}
+          <section>
+            <SectionHeader title="Bills & Subscriptions" icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
+            <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
+                {upcomingBills.length > 0 ? upcomingBills.map(b => renderBillItem(b)) : (
+                    <div className="text-center text-sm text-gray-400 py-6">All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!</div>
+                )}
+            </div>
+          </section>
+
+          {/* Loans */}
+          <section>
+            <SectionHeader title="Loans & Debts" icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
+            <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
+                {validLoans.filter(l => l.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
+                 {validLoans.filter(l => l.status !== 'PAID').length === 0 && (
+                    <div className="text-center text-sm text-gray-400 py-6">No active loans.</div>
+                )}
+            </div>
+          </section>
+        </div>
                 </div>
             )) : (
                 <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">

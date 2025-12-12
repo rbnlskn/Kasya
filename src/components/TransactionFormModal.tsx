@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Calendar, ChevronDown, Check, ArrowRightLeft } from 'lucide-react';
 import { Category, Wallet, TransactionType, Transaction } from '../types';
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
+import { IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonDatetime } from '@ionic/react';
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -16,10 +16,9 @@ interface TransactionFormModalProps {
   initialTransaction?: Transaction;
   currencySymbol: string;
   title?: string;
-  isExiting?: boolean;
 }
 
-const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title, isExiting }) => {
+const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title }) => {
   const [amount, setAmount] = useState('');
   const [fee, setFee] = useState('');
   const [description, setDescription] = useState('');
@@ -54,8 +53,6 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       setSelectorView('NONE');
     }
   }, [isOpen, initialTransaction]);
-
-  if (!isOpen && !isExiting) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,22 +98,26 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const formattedDate = dateVal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   return (
-    <>
-    <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4 pb-safe">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity pointer-events-auto" onClick={onClose}></div>
-      
-      <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">{title || (initialTransaction ? 'Edit Transaction' : 'New Transaction')}</h2>
-          <div className="flex items-center space-x-2">
-            {initialTransaction && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
-            <button onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
-          </div>
-        </div>
-
+    <IonModal isOpen={isOpen} onDidDismiss={onClose}>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{title || (initialTransaction ? 'Edit Transaction' : 'New Transaction')}</IonTitle>
+          <IonButtons slot="end">
+            {initialTransaction && (
+              <IonButton onClick={handleDelete} color="danger">
+                <Trash2 className="w-5 h-5" />
+              </IonButton>
+            )}
+            <IonButton onClick={onClose}>
+              <X className="w-5 h-5" />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent className="ion-padding">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex bg-slate-100 p-1 rounded-2xl">
-            <button type="button" onClick={() => setType(TransactionType.EXPENSE)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${type === TransactionType.EXPENSE ? 'bg-surface shadow-sm text-red-500 scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>Expense</button>
+            <button type="button" onClick={() => setType(TransactionType.EXPENSE)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${type === TransactionType.EXPENSE ? 'bg-white shadow-sm text-red-500 scale-[1.02]' : 'text-gray-500 hover:text-gray-700'}`}>Expense</button>
             <button type="button" onClick={() => setType(TransactionType.INCOME)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${type === TransactionType.INCOME ? 'bg-surface shadow-sm text-emerald-500 scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>Income</button>
             <button type="button" onClick={() => setType(TransactionType.TRANSFER)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl transition-all ${type === TransactionType.TRANSFER ? 'bg-surface shadow-sm text-blue-500 scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>Transfer</button>
           </div>
@@ -257,87 +258,80 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             Save Transaction
           </button>
         </form>
-      </div>
-    </div>
+      </IonContent>
 
-    {/* OVERLAY SELECTORS */}
-    {selectorView !== 'NONE' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectorView('NONE')}>
-             
-             {selectorView !== 'TIME_PICKER' && (
-                 <div className="bg-surface w-[90%] max-w-md rounded-3xl p-4 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-4 p-2">
-                        <h3 className="font-bold text-lg text-text-primary">
-                            {selectorView === 'CATEGORY' && 'Select Category'}
-                            {selectorView === 'WALLET_FROM' && 'Select Wallet'}
-                            {selectorView === 'WALLET_TO' && 'Select Destination'}
-                        </h3>
-                        <button onClick={() => setSelectorView('NONE')} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"><X className="w-5 h-5 text-text-secondary" /></button>
+      {/* Datetime Modal */}
+      <IonModal isOpen={selectorView === 'DATE_PICKER'} onDidDismiss={() => setSelectorView('NONE')}>
+        <IonDatetime
+          presentation="date"
+          value={dateVal.toISOString()}
+          onIonChange={(e) => {
+            const newDate = new Date(e.detail.value as string);
+            setDateVal(newDate);
+            setSelectorView('NONE');
+          }}
+        />
+      </IonModal>
+
+      {/* Re-implementing Overlay Selectors as IonModals */}
+      <IonModal isOpen={selectorView === 'CATEGORY' || selectorView === 'WALLET_FROM' || selectorView === 'WALLET_TO'} onDidDismiss={() => setSelectorView('NONE')}>
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>
+                {selectorView === 'CATEGORY' && 'Select Category'}
+                {selectorView === 'WALLET_FROM' && 'Select Wallet'}
+                {selectorView === 'WALLET_TO' && 'Select Destination'}
+            </IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={() => setSelectorView('NONE')}><X className="w-5 h-5" /></IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent className="ion-padding">
+          {selectorView === 'CATEGORY' && (
+            <div className="grid grid-cols-4 gap-2">
+              {categories.map(c => (
+                <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-1.5 shadow-sm`} style={{backgroundColor: c.color}}>{c.icon}</div>
+                  <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {(selectorView === 'WALLET_FROM' || selectorView === 'WALLET_TO') && (
+            <div className="space-y-2">
+              {wallets.map(w => (
+                <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-lg ${w.color} flex items-center justify-center ${w.textColor} shadow-sm`}>
+                      {getWalletIcon(w.type, "w-5 h-5")}
                     </div>
+                    <div className="text-left">
+                      <div className="font-bold text-sm text-text-primary">{w.name}</div>
+                      <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
+                    </div>
+                  </div>
+                  {(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </IonContent>
+      </IonModal>
 
-                    {selectorView === 'CATEGORY' && (
-                        <div className="grid grid-cols-4 gap-2">
-                            {categories.map(c => (
-                                <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-1.5 shadow-sm`} style={{backgroundColor: c.color}}>{c.icon}</div>
-                                    <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+      <IonModal isOpen={selectorView === 'TIME_PICKER'} onDidDismiss={() => setSelectorView('NONE')} className="time-picker-modal">
+         <IonDatetime
+              presentation="time"
+              value={dateVal.toISOString()}
+              onIonChange={(e) => {
+                const newDate = new Date(e.detail.value as string);
+                setDateVal(newDate);
+                setSelectorView('NONE');
+              }}
+          />
+      </IonModal>
 
-                    {(selectorView === 'WALLET_FROM' || selectorView === 'WALLET_TO') && (
-                        <div className="space-y-2">
-                            {wallets.map(w => (
-                                <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
-                                    <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 rounded-lg ${w.color} flex items-center justify-center ${w.textColor} shadow-sm`}>
-                                            {getWalletIcon(w.type, "w-5 h-5")}
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-bold text-sm text-text-primary">{w.name}</div>
-                                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
-                                        </div>
-                                    </div>
-                                    {(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                 </div>
-             )}
-
-             {selectorView === 'TIME_PICKER' && (
-                 <div className="bg-surface w-[90%] max-w-sm rounded-3xl p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                      <div className="mb-5 text-center">
-                         <p className="text-xs font-extrabold text-text-secondary uppercase tracking-widest">Select time</p>
-                      </div>
-                      <TimePickerV2 value={dateVal} onChange={setDateVal} />
-                      <div className="flex justify-center mt-6">
-                         <button onClick={() => setSelectorView('NONE')} className="bg-primary text-white font-bold text-base px-10 py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30">Done</button>
-                     </div>
-                 </div>
-             )}
-
-             {selectorView === 'DATE_PICKER' && (
-                 <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <DayPicker
-                        selectedDate={dateVal}
-                        onChange={(d) => {
-                            // Preserve time
-                            const newDate = new Date(d);
-                            newDate.setHours(dateVal.getHours());
-                            newDate.setMinutes(dateVal.getMinutes());
-                            setDateVal(newDate);
-                            setSelectorView('NONE');
-                        }}
-                        onClose={() => setSelectorView('NONE')}
-                    />
-                 </div>
-             )}
-        </div>
-    )}
-    </>
+    </IonModal>
   );
 };
 export default TransactionFormModal;

@@ -1,21 +1,20 @@
-
 import React, { useState } from 'react';
+import React, { useState } from 'react';
+import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton, IonIcon } from '@ionic/react';
+import { add } from 'ionicons/icons';
 import { ChevronLeft, Plus, Edit2 } from 'lucide-react';
 import { Wallet } from '../types';
 import { getWalletIcon } from './WalletCard';
 
 interface WalletListViewProps {
   wallets: Wallet[];
-  onBack: () => void;
   onAdd: () => void;
   onEdit: (wallet: Wallet) => void;
-  onView: (wallet: Wallet) => void;
   currencySymbol: string;
-  isExiting: boolean;
   onReorder?: (wallets: Wallet[]) => void;
 }
 
-const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd, onEdit, onView, currencySymbol, isExiting, onReorder }) => {
+const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onAdd, onEdit, currencySymbol, onReorder }) => {
   const [localWallets, setLocalWallets] = useState(wallets);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
@@ -48,41 +47,42 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
   };
 
   return (
-    <div className={`fixed inset-0 bg-app-bg dark:bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
-      <div className="bg-app-bg dark:bg-app-bg z-10 px-6 pt-8 pb-4 border-b border-border dark:border-border">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-2xl hover:bg-surface dark:hover:bg-surface text-text-primary dark:text-text-primary">
-              <ChevronLeft />
-            </button>
-            <h1 className="text-xl font-bold text-text-primary dark:text-text-primary">My Wallets</h1>
-          </div>
-          <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95"><Plus className="w-6 h-6"/></button>
-        </div>
-        <div className="bg-surface dark:bg-surface border border-border dark:border-border text-text-primary dark:text-text-primary p-6 rounded-3xl shadow-lg mb-1 relative overflow-hidden">
-          <div className="relative z-10"><p className="text-sm text-text-secondary dark:text-text-secondary">Total Balance</p><h2 className="text-3xl font-bold">{currencySymbol}{totalBalance.toLocaleString()}</h2></div>
-          <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-1/4 translate-x-1/4"><div className="w-32 h-32 bg-primary rounded-full"></div></div>
-        </div>
-      </div>
-      
-      <div className="px-6 py-2">
-         <p className="text-xs text-center text-text-secondary dark:text-text-secondary font-medium">Tap to View • Hold & Drag to Reorder</p>
-      </div>
+    <IonPage>
+      <IonHeader className="ion-no-border">
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/home" />
+          </IonButtons>
+          <IonTitle>My Wallets</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={onAdd}>
+              <IonIcon icon={add} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen>
+        <div className="ion-padding">
+            <div className="bg-surface dark:bg-surface border border-border dark:border-border text-text-primary dark:text-text-primary p-6 rounded-3xl shadow-lg mb-4 relative overflow-hidden">
+              <div className="relative z-10"><p className="text-sm text-text-secondary dark:text-text-secondary">Total Balance</p><h2 className="text-3xl font-bold">{currencySymbol}{totalBalance.toLocaleString()}</h2></div>
+              <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-1/4 translate-x-1/4"><div className="w-32 h-32 bg-primary rounded-full"></div></div>
+            </div>
 
-      <div className="flex-1 overflow-y-auto p-6 pt-2 pb-24 space-y-3">
-        {localWallets.map((w, index) => (
-          <div 
-             key={w.id} 
-             draggable={!!onReorder}
-             onDragStart={(e) => onDragStart(e, index)}
-             onDragOver={(e) => onDragOver(e, index)}
-             onDrop={onDrop}
-             onDragEnd={onDrop}
-             className={`p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border ${draggedIndex === index ? 'opacity-50' : ''}`}
-             onClick={() => onView(w)}
-          >
-            {/* Decorative Circle */}
-            <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-primary opacity-5 z-0 pointer-events-none"></div>
+            <p className="text-xs text-center text-text-secondary dark:text-text-secondary font-medium mb-4">Tap to View • Hold & Drag to Reorder</p>
+
+            {localWallets.map((w, index) => (
+              <div
+                 key={w.id}
+                 draggable={!!onReorder}
+                 onDragStart={(e) => onDragStart(e, index)}
+                 onDragOver={(e) => onDragOver(e, index)}
+                 onDrop={onDrop}
+                 onDragEnd={onDrop}
+                 className={`p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border mb-3 ${draggedIndex === index ? 'opacity-50' : ''}`}
+                 routerLink={`/wallets/${w.id}`}
+              >
+                {/* Decorative Circle */}
+                <div className="absolute -right-4 -bottom-4 w-16 h-16 rounded-full bg-primary opacity-5 z-0 pointer-events-none"></div>
 
             <div className="flex items-center flex-1 mr-4 relative z-10">
                  {/* Icon Container */}

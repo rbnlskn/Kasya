@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, FileText, Repeat, Calendar } from 'lucide-react';
 import { Bill, RecurrenceFrequency } from '../types';

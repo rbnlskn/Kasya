@@ -1,23 +1,21 @@
-
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowDownUp, ArrowDown, ArrowUp, Calendar } from 'lucide-react';
 import { Transaction, Category, Wallet } from '../types';
 import TransactionItem from './TransactionItem';
+import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle } from '@ionic/react';
 
 interface TransactionHistoryViewProps {
   transactions: Transaction[];
   categories: Category[];
   wallets: Wallet[];
-  onBack: () => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
-  isExiting: boolean;
 }
 
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transactions, categories, wallets, onBack, onTransactionClick, currencySymbol, isExiting }) => {
+const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transactions, categories, wallets, onTransactionClick, currencySymbol }) => {
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -75,15 +73,19 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
   const walletMap = useMemo(() => wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [wallets]);
 
   return (
-    <div className={`fixed inset-0 bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
-      {/* Solid header */}
-      <div className="bg-app-bg z-10 px-6 pt-8 pb-2 border-b">
-        <div className="flex items-center mb-4">
-          <button onClick={onBack} className="p-2 -ml-2 mr-2 rounded-full"><ChevronLeft /></button>
-          <h1 className="text-xl font-bold">Transactions</h1>
-        </div>
-        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
-          <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
+    <IonPage>
+      <IonHeader className="ion-no-border">
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/home" />
+          </IonButtons>
+          <IonTitle>Transactions</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent fullscreen>
+        <div className="ion-padding">
+            <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
+              <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
           <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
           <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />
           <FilterPill label="Transfers" active={filter === 'TRANSFER'} onClick={() => setFilter('TRANSFER')} icon={<ArrowDownUp className="w-3 h-3 mr-1"/>} />
@@ -115,8 +117,9 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
             </div>
           ))
         )}
-      </div>
-    </div>
+        </div>
+      </IonContent>
+    </IonPage>
   );
 };
 

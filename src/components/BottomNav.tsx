@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Home, Plus, Settings, Sparkle, BarChart3 } from 'lucide-react';
 

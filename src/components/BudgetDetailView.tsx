@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
 import { Budget, Transaction, Category, Wallet } from '../types';

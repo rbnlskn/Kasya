@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ChevronLeft, Plus } from 'lucide-react';
 import { Budget, Category } from '../types';

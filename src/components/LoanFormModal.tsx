@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, ArrowDownLeft, ArrowUpRight, Calendar } from 'lucide-react';
 import { Loan, LoanType, RecurrenceFrequency, Wallet } from '../types';
