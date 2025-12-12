@@ -1,31 +1,20 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Redirect, Route } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, IonPage, setupIonicReact, IonModal } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
-import { home as homeIcon, barChart as analyticsIcon, wallet as commitmentsIcon, settings as settingsIcon } from 'ionicons/icons';
+import { IonApp, setupIonicReact, IonModal } from '@ionic/react';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
-import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan } from './types';
-import BudgetRing from './components/BudgetRing';
-import TransactionItem from './components/TransactionItem';
-import WalletCard from './components/WalletCard';
+import { AppState, Transaction, TransactionType, Wallet, Budget, Bill, Loan } from './types';
 import TransactionFormModal from './components/TransactionFormModal';
 import WalletFormModal from './components/WalletFormModal';
-import WalletDetailView from './components/WalletDetailView';
 import CategoryManager from './components/CategoryManager';
-import TransactionHistoryView from './components/TransactionHistoryView';
-import WalletListView from './components/WalletListView';
-import BudgetManager from './components/BudgetManager';
 import BudgetFormModal from './components/BudgetFormModal';
 import SettingsView from './components/SettingsView';
 import CommitmentsView from './components/CommitmentsView';
 import BillFormModal from './components/BillFormModal';
 import LoanFormModal from './components/LoanFormModal';
-import BudgetDetailView from './components/BudgetDetailView';
-import Logo from './components/Logo';
 import HomePage from './components/HomePage';
 import AnalyticsPage from './components/AnalyticsPage';
-import { Plus, BarChart3, Loader2 } from 'lucide-react';
+import BottomNav from './components/BottomNav';
+import { Loader2 } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -73,6 +62,12 @@ const App: React.FC = () => {
     };
     initApp();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      saveData(data);
+    }
+  }, [data, isLoading]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -387,6 +382,8 @@ const App: React.FC = () => {
   const editingBill = useMemo(() => data.bills.find(b => b.id === selectedBillId), [data.bills, selectedBillId]);
   const editingLoan = useMemo(() => data.loans.find(l => l.id === selectedLoanId), [data.loans, selectedLoanId]);
 
+  const [activeTab, setActiveTab] = useState<'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS'>('HOME');
+
   if (isLoading) {
     return (
       <div className="h-screen w-full bg-slate-50 flex items-center justify-center flex-col">
@@ -395,138 +392,62 @@ const App: React.FC = () => {
     );
   }
 
-  return (
-    <IonApp>
-      <IonReactRouter>
-        <IonTabs>
-          <IonRouterOutlet>
-            <Route exact path="/home">
-              <HomePage
+  const renderContent = () => {
+    switch (activeTab) {
+        case 'HOME':
+            return <HomePage
                 data={data}
-                spendingMap={spendingMap}
-                currentCurrency={currentCurrency}
-                recentTransactionsWithHeaders={recentTransactionsWithHeaders}
-                onOpenModal={openModal}
-                onSetSelectedWalletId={setSelectedWalletId}
-                onSetSelectedBudgetId={setSelectedBudgetId}
-                onSetSelectedTxId={setSelectedTxId}
-              />
-            </Route>
-            <Route exact path="/analytics">
-              <AnalyticsPage />
-            </Route>
-            <Route path="/commitments">
-              <CommitmentsView
-                wallets={data.wallets} 
-                currencySymbol={currentCurrency.symbol} 
-                bills={data.bills}
-                loans={data.loans}
-                categories={data.categories}
-                onAddBill={() => { setSelectedBillId(null); openModal('BILL_FORM'); }}
-                onEditBill={(b) => { setSelectedBillId(b.id); openModal('BILL_FORM'); }}
-                onPayBill={handlePayBill}
-                onAddLoan={() => { setSelectedLoanId(null); openModal('LOAN_FORM'); }}
-                onEditLoan={(l) => { setSelectedLoanId(l.id); openModal('LOAN_FORM'); }}
-                onPayLoan={handlePayLoan}
-                onPayCC={handlePayCC}
-              />
-            </Route>
-            <Route path="/settings">
-              <SettingsView 
-                data={data}
-                onManageCategories={() => openModal('CATEGORY_MANAGER')}
-                onImport={(newData) => setData(newData)}
-                onReset={async () => { await clearData(); window.location.reload(); }}
-                onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))}
-              />
-            </Route>
-            <Route exact path="/">
-              <Redirect to="/home" />
-            </Route>
-            <Route path="/wallets" exact>
-              <WalletListView
-                wallets={data.wallets}
-                onAdd={() => { setSelectedWalletId(null); openModal('WALLET_FORM'); }}
-                onEdit={(w) => { setSelectedWalletId(w.id); openModal('WALLET_FORM'); }}
-                currencySymbol={currentCurrency.symbol}
-                onReorder={(newWallets) => setData(prev => ({ ...prev, wallets: newWallets }))}
-              />
-            </Route>
-             <Route path="/wallets/:id">
-                <WalletDetailView
-                    getWalletById={(id) => data.wallets.find(w => w.id === id)}
-                    getTransactionsByWalletId={(id) => sortTransactions(data.transactions.filter(t => t.walletId === id || t.transferToWalletId === id))}
-                    categories={data.categories}
-                    allWallets={data.wallets}
-                    onEdit={(id) => { setSelectedWalletId(id); openModal('WALLET_FORM'); }}
-                    onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
-                    currencySymbol={currentCurrency.symbol}
-                />
-            </Route>
-            <Route path="/budgets" exact>
-              <BudgetManager
-                budgets={data.budgets}
-                categories={data.categories}
-                spendingMap={spendingMap}
-                onAdd={() => { setSelectedBudgetId(null); openModal('BUDGET_FORM'); }}
-                onEdit={(b) => { setSelectedBudgetId(b.id); openModal('BUDGET_FORM'); }}
-                onDelete={handleDeleteBudget}
-                currencySymbol={currentCurrency.symbol}
-                onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))}
-                onBack={() => {}}
-                onView={(b) => { setSelectedBudgetId(b.id); }}
-                isExiting={false}
-              />
-            </Route>
-            <Route path="/budgets/:id">
-                <BudgetDetailView
-                    budget={editingBudget!}
-                    transactions={sortTransactions(data.transactions.filter(t => t.categoryId === editingBudget?.categoryId))}
-                    categories={data.categories}
+                    spendingMap={spendingMap}
+                    currentCurrency={currentCurrency}
+                    recentTransactionsWithHeaders={recentTransactionsWithHeaders}
+                    onOpenModal={openModal}
+                    onSetSelectedWalletId={setSelectedWalletId}
+                    onSetSelectedBudgetId={setSelectedBudgetId}
+                    onSetSelectedTxId={setSelectedTxId}
+                />;
+            case 'ANALYTICS':
+                return <AnalyticsPage />;
+            case 'COMMITMENTS':
+                return <CommitmentsView
                     wallets={data.wallets}
-                    onBack={() => {}}
-                    onEdit={() => { openModal('BUDGET_FORM'); }}
-                    onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
-                    isExiting={false}
-                    spending={spendingMap[editingBudget?.id || ''] || 0}
-                />
-            </Route>
-             <Route path="/transactions" exact>
-                <TransactionHistoryView
-                    transactions={sortTransactions(data.transactions)}
+                    bills={data.bills}
+                    loans={data.loans}
                     categories={data.categories}
-                    wallets={data.wallets}
-                    onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
-                    currencySymbol={currentCurrency.symbol}
-                />
-            </Route>
-          </IonRouterOutlet>
-          <IonTabBar slot="bottom">
-            <IonTabButton tab="home" href="/home">
-              <IonIcon icon={homeIcon} />
-              <IonLabel>Home</IonLabel>
-            </IonTabButton>
-            <IonTabButton tab="analytics" href="/analytics">
-              <IonIcon icon={analyticsIcon} />
-              <IonLabel>Analytics</IonLabel>
-            </IonTabButton>
-            <IonTabButton tab="add" onClick={() => { setSelectedTxId(null); setPresetTransaction(undefined); setTransactionModalTitle(undefined); openModal('TX_FORM'); }}>
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white shadow-lg -mt-4">
-                    <Plus className="w-6 h-6" />
-                </div>
-            </IonTabButton>
-            <IonTabButton tab="commitments" href="/commitments">
-              <IonIcon icon={commitmentsIcon} />
-              <IonLabel>Commitments</IonLabel>
-            </IonTabButton>
-            <IonTabButton tab="settings" href="/settings">
-              <IonIcon icon={settingsIcon} />
-              <IonLabel>Settings</IonLabel>
-            </IonTabButton>
-          </IonTabBar>
-        </IonTabs>
-      </IonReactRouter>
+                    onAddBill={() => { setSelectedBillId(null); openModal('BILL_FORM'); }}
+                    onEditBill={(b) => { setSelectedBillId(b.id); openModal('BILL_FORM'); }}
+                    onPayBill={handlePayBill}
+                    onAddLoan={() => { setSelectedLoanId(null); openModal('LOAN_FORM'); }}
+                    onEditLoan={(l) => { setSelectedLoanId(l.id); openModal('LOAN_FORM'); }}
+                    onPayLoan={handlePayLoan}
+                    onPayCC={handlePayCC}
+                />;
+            case 'SETTINGS':
+                return <SettingsView
+                    data={data}
+                    onManageCategories={() => openModal('CATEGORY_MANAGER')}
+                    onImport={(newData) => setData(newData)}
+                    onReset={async () => { await clearData(); window.location.reload(); }}
+                    onCurrencyChange={(code) => setData(prev => ({ ...prev, currency: code }))}
+                />;
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <IonApp>
+            {renderContent()}
+            <BottomNav
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                onAddClick={() => {
+                    setSelectedTxId(null);
+                    setPresetTransaction(undefined);
+                    setTransactionModalTitle(undefined);
+                    openModal('TX_FORM');
+                }}
+            />
 
       <TransactionFormModal
         isOpen={modal === 'TX_FORM'}

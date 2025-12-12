@@ -16,23 +16,23 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
         <div className="bg-surface/90 dark:bg-surface/90 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-2xl shadow-gray-200/50 dark:shadow-black/50 rounded-3xl py-3 px-6 flex justify-between items-center">
             
-            <button onClick={() => onTabChange('HOME')} className={getIconClass(activeTab === 'HOME')}>
+            <button aria-label="Home" onClick={() => onTabChange('HOME')} className={getIconClass(activeTab === 'HOME')}>
                 <Home className="w-5 h-5" />
             </button>
             
-            <button onClick={() => onTabChange('ANALYTICS')} className={getIconClass(activeTab === 'ANALYTICS')}>
+            <button aria-label="Analytics" onClick={() => onTabChange('ANALYTICS')} className={getIconClass(activeTab === 'ANALYTICS')}>
                 <BarChart3 className="w-5 h-5" />
             </button>
             
-            <button onClick={onAddClick} className="w-12 h-12 bg-primary rounded-2xl shadow-lg shadow-primary/40 flex items-center justify-center text-white hover:bg-primary-hover transition-transform active:scale-95 mx-2">
+            <button aria-label="Add Transaction" onClick={onAddClick} className="w-12 h-12 bg-primary rounded-2xl shadow-lg shadow-primary/40 flex items-center justify-center text-white hover:bg-primary-hover transition-transform active:scale-95 mx-2">
                 <Plus className="w-6 h-6" />
             </button>
             
-            <button onClick={() => onTabChange('COMMITMENTS')} className={getIconClass(activeTab === 'COMMITMENTS')}>
+            <button aria-label="Commitments" onClick={() => onTabChange('COMMITMENTS')} className={getIconClass(activeTab === 'COMMITMENTS')}>
                 <Sparkle className="w-5 h-5" />
             </button>
             
-            <button onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
+            <button aria-label="Settings" onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
                 <Settings className="w-5 h-5" />
             </button>
         </div>
