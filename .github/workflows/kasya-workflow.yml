@@ -149,14 +149,40 @@ jobs:
             const pr = context.payload.pull_request;
             const prBody = pr.body || "";
 
-            // Regex to find linked issues
+            // 1. Parse Breakdown Section
+            const updates = {};
+            const breakdownMatch = prBody.match(/## Breakdown\s+([\s\S]*)/i);
+            if (breakdownMatch) {
+              const breakdownText = breakdownMatch[1];
+              // Regex to find "### Issue #<id>" blocks. Captures: 1=ID, 2=Content
+              const regex = /### Issue #(\d+)\s+([\s\S]*?)(?=(?:### Issue #|$))/gi;
+              let match;
+              while ((match = regex.exec(breakdownText)) !== null) {
+                  const id = parseInt(match[1], 10);
+                  const content = match[2].trim();
+                  updates[id] = content;
+              }
+            }
+            console.log("Parsed Updates:", JSON.stringify(updates));
+
+            // 2. Identify Linked Issues
             const issueMatches = prBody.match(/#(\d+)/g) || [];
             const linkedIssueIds = [...new Set(issueMatches.map(s => parseInt(s.replace('#', ''), 10)))];
 
             console.log(`Found linked issues in PR: ${linkedIssueIds.join(', ')}`);
 
+            // 3. Process Each Issue
             for (const id of linkedIssueIds) {
                try {
+                 // Post Comment if Update exists
+                 if (updates[id]) {
+                    await github.rest.issues.createComment({
+                      owner, repo, issue_number: id,
+                      body: `**Update from Jules:**\n${updates[id]}`
+                    });
+                    console.log(`Posted update comment on issue #${id}`);
+                 }
+
                  // Remove status labels
                  const labelsToRemove = ['in review', 'in progress', 'planning', 'jules', 'context'];
                  for (const label of labelsToRemove) {
@@ -218,6 +244,16 @@ jobs:
               });
             } catch (e) {
               console.log(`Error assigning PR: ${e.message}`);
+            }
+
+            // Mark as Ready for Review (Undraft)
+            try {
+              await github.rest.pulls.update({
+                owner, repo, pull_number, draft: false
+              });
+              console.log("Marked PR as ready for review.");
+            } catch (e) {
+              console.log(`Error updating PR status: ${e.message}`);
             }
 
             // Request Review
