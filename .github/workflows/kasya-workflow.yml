@@ -103,7 +103,7 @@ jobs:
             // 7. Request Plan
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body: "Batch ready. @Jules please post the plan."
+              body: "Batch ready. Jules please post the plan."
             });
 
   review-transition:
