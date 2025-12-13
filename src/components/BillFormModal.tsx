@@ -20,7 +20,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [amount, setAmount] = useState('');
   const [dueDay, setDueDay] = useState('');
   const [startDate, setStartDate] = useState(new Date());
-  const [frequency, setFrequency] = useState<RecurrenceFrequency>('MONTHLY');
+  const [occurrence, setOccurrence] = useState<RecurrenceFrequency>('MONTHLY');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [icon, setIcon] = useState('⚡');
 
@@ -32,14 +32,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setAmount(initialBill.amount.toString());
         setDueDay(initialBill.dueDay.toString());
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
-        setFrequency(initialBill.recurrence);
+        setOccurrence(initialBill.recurrence);
       } else {
         setType('BILL');
         setName('');
         setAmount('');
         setDueDay('');
         setStartDate(new Date());
-        setFrequency('MONTHLY');
+        setOccurrence('MONTHLY');
       }
     }
   }, [isOpen, initialBill]);
@@ -58,7 +58,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       name,
       amount: parseFloat(amount),
       dueDay: parseInt(dueDay),
-      recurrence: frequency,
+      recurrence: occurrence,
       icon,
       type,
       startDate: new Date(startDate).toISOString()
@@ -84,7 +84,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{headerText}</h2>
           <div className="flex items-center space-x-2">
             {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
-            <button type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
 
@@ -111,27 +111,32 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
-            <input type="number" value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="Day of the month (e.g., 15)" required min="1" max="31"/>
-          </div>
-
           <div className="flex space-x-2">
             <div className="flex-1">
-                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
-                <button type="button" onClick={() => setShowDatePicker(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
-                    <Calendar className="w-4 h-4 mr-2 text-text-secondary"/>
-                    <span className="text-sm font-bold text-text-primary">{startDate.toLocaleDateString()}</span>
-                </button>
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
+              <select value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Frequency</label>
-              <select value={frequency} onChange={e => setFrequency(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
+              <select value={occurrence} onChange={e => setOccurrence(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
+                <option value="ONE_TIME">One Time</option>
                 <option value="WEEKLY">Weekly</option>
                 <option value="MONTHLY">Monthly</option>
                 <option value="YEARLY">Yearly</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
+            <button type="button" onClick={() => setShowDatePicker(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
+                <Calendar className="w-4 h-4 mr-2 text-text-secondary"/>
+                <span className="text-sm font-bold text-text-primary">{startDate.toLocaleDateString()}</span>
+            </button>
           </div>
 
           <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBill ? 'Save Changes' : 'Add Item'}</button>

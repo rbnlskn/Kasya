@@ -29,7 +29,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
                 <Plus className="w-6 h-6" />
             </button>
             
-            <button onClick={() => onTabChange('COMMITMENTS')} className={getIconClass(activeTab === 'COMMITMENTS')}>
+            <button data-testid="commitments-button" onClick={() => onTabChange('COMMITMENTS')} className={getIconClass(activeTab === 'COMMITMENTS')}>
                 <Sparkle className="w-5 h-5" />
             </button>
             

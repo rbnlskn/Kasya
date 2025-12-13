@@ -78,6 +78,7 @@ export interface Bill {
   type: BillType;
   startDate: string; // ISO String
   lastPaidDate?: string; // ISO String of last payment
+  endDate?: string; // ISO String
 }
 
 export type LoanType = 'PAYABLE' | 'RECEIVABLE'; // I Owe vs They Owe
@@ -96,6 +97,8 @@ export interface Loan {
   recurrence: RecurrenceFrequency; 
   icon: string;
   startDate: string; // ISO String
+  duration?: number;
+  durationUnit?: 'DAYS' | 'MONTHS' | 'YEARS';
 }
 
 export interface AppState {
