@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/rbnlskn/Kasya/compare/v1.4.0...v1.5.0) (2025-12-13)
+
+
+### Features
+
+* update workflow for structured PR summaries and sub-issue comments ([#77](https://github.com/rbnlskn/Kasya/issues/77)) ([82b2830](https://github.com/rbnlskn/Kasya/commit/82b28307a8af7f149415d42caa588d35469ac327))
+
 ## [1.4.0](https://github.com/rbnlskn/Kasya/compare/v1.3.2...v1.4.0) (2025-12-13)
 
 
