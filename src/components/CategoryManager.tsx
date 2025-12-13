@@ -97,12 +97,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                         onClick={() => setEditingCategory(cat)}
                         className={`flex flex-col items-center justify-center p-2 bg-surface rounded-2xl active:scale-95 transition-transform ${draggedItemIndex === index ? 'opacity-50' : ''} cursor-pointer group`}
                     >
-                        {/* SQUIRCLE ICON: rounded-lg to match Settings */}
+                        {/* SQUIRCLE ICON: Standardized */}
                         <div 
-                            className={`w-14 h-14 rounded-lg flex items-center justify-center text-2xl mb-2 relative shadow-sm ${!cat.color.startsWith('#') ? cat.color : ''}`} 
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-2xl mb-2 relative shadow-sm ${!cat.color.startsWith('#') ? cat.color : ''}`}
                             style={getStyle(cat.color)}
                         >
-                            {cat.icon}
+                            <span className="text-3xl">{cat.icon}</span>
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"><GripVertical className="w-3 h-3 text-gray-500"/></div>
                         </div>
                         <span className="text-[10px] font-bold text-text-primary text-center leading-tight w-full truncate px-1">{cat.name}</span>

@@ -33,11 +33,11 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   }
 
   const renderIcon = () => {
-    if (isTransfer) return <ArrowRightLeft className="w-5 h-5 text-gray-600" />;
+    if (isTransfer) return <ArrowRightLeft className="w-6 h-6 text-gray-600" />;
     try {
-      if (category?.icon && /\p{Emoji}/u.test(category.icon)) return <span className="text-2xl leading-none">{category.icon}</span>;
+      if (category?.icon && /\p{Emoji}/u.test(category.icon)) return <span className="text-3xl leading-none">{category.icon}</span>;
     } catch (e) {}
-    return <DollarSign className="w-5 h-5 text-gray-500" />;
+    return <DollarSign className="w-6 h-6 text-gray-500" />;
   };
 
   const getIconStyle = () => {
@@ -95,12 +95,12 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="text-right flex-shrink-0 pl-2">
           <div className="flex flex-col items-end">
              {isTransfer ? (
-                <div className="font-bold text-sm text-gray-800">
+                <div className="font-bold text-sm text-blue-500">
                     <span>{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     {fee > 0 && <span className="text-red-500 text-xs ml-1">& -{currencySymbol}{fee}</span>}
                 </div>
              ) : (
-                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-gray-800'}`}>
+                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                     {isPositive ? '+' : '-'}{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                  </p>
              )}

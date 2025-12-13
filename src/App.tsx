@@ -529,7 +529,7 @@ const App: React.FC = () => {
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
               <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
                   <div className="flex justify-between items-center">
-                     <Logo className="h-8" />
+                     <Logo size="2rem" />
                   </div>
               </div>
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
