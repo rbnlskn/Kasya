@@ -41,7 +41,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setAmount('');
         setDueDay('');
         setStartDate(new Date());
-        setOccurrence('MONTHLY');
+        setOccurrence(undefined as unknown as RecurrenceFrequency);
       }
     }
   }, [isOpen, initialBill]);

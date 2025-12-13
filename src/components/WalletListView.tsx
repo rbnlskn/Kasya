@@ -86,9 +86,9 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
 
             <div className="flex items-center flex-1 mr-4 relative z-10">
                  {/* Icon Container */}
-                 <div className={`w-12 h-12 rounded-xl ${w.color} flex items-center justify-center text-white mr-3 shadow-sm`}>
+                 <div className={`w-10 h-10 rounded-xl ${w.color} flex items-center justify-center text-white mr-3 shadow-sm`}>
                      <div className={w.textColor}>
-                         {getWalletIcon(w.type, "w-6 h-6")}
+                         {getWalletIcon(w.type, "w-5 h-5")}
                      </div>
                  </div>
                  <div className="flex flex-col">

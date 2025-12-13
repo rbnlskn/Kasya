@@ -53,7 +53,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         setFee('');
         setType('PAYABLE');
         setStartDate(new Date());
-        setOccurrence('MONTHLY');
+        setOccurrence(undefined as unknown as RecurrenceFrequency);
         setDueDay('');
         setDuration('');
         setCreateTransaction(false);
@@ -68,12 +68,25 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
     e.preventDefault();
     if (!name || !principalAmount) return;
 
-    const totalAmount = parseFloat(principalAmount) + (parseFloat(interest) || 0);
+    const totalAmount = initialLoan ? parseFloat(principalAmount) : parseFloat(principalAmount) + (parseFloat(interest) || 0);
+
+    let endDate: string | undefined = undefined;
+    if (duration) {
+      const date = new Date(startDate);
+      if (durationUnit === 'DAYS') {
+        date.setDate(date.getDate() + parseInt(duration));
+      } else if (durationUnit === 'MONTHS') {
+        date.setMonth(date.getMonth() + parseInt(duration));
+      } else if (durationUnit === 'YEARS') {
+        date.setFullYear(date.getFullYear() + parseInt(duration));
+      }
+      endDate = date.toISOString();
+    }
 
     onSave({
       name,
       totalAmount,
-      paidAmount: 0,
+      paidAmount: initialLoan ? initialLoan.paidAmount : 0,
       interest: parseFloat(interest) || 0,
       fee: parseFloat(fee) || 0,
       type,
@@ -82,6 +95,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
       recurrence: occurrence,
       icon: '💰', // Hardcoded icon
       startDate: new Date(startDate).toISOString(),
+      endDate,
       duration: parseInt(duration) || undefined,
       durationUnit: duration ? durationUnit : undefined
     }, initialLoan?.id, createTransaction ? selectedWalletId : undefined);

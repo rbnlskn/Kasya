@@ -136,9 +136,10 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   };
 
   const handleTemplateSelect = (t: any) => {
-      const bgHex = t.bg.match(/bg-\[(#[0-9A-Fa-f]{6})\]/)?.[1] || '#000000';
+      const bgHex = t.bg.match(/#([0-9A-Fa-f]{6})/) ? t.bg.match(/#([0-9A-Fa-f]{6})/)![0] : '#000000';
+      const textHex = t.text.match(/#([0-9A-Fa-f]{6})/) ? t.text.match(/#([0-9A-Fa-f]{6})/)![0] : '#FFFFFF';
       setCustomBg(bgHex);
-      setCustomText(isColorLight(bgHex) ? '#1f2937' : '#FFFFFF');
+      setCustomText(textHex);
       setType(t.type || WalletType.E_WALLET);
       setName(t.name === 'Cash' ? 'Cash' : t.name);
   };
@@ -153,10 +154,10 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       name: name || 'Wallet Name',
       type: type || '...',
       balance: currentBalanceVal,
-      color: `bg-[${customBg}]`,
-      textColor: `text-[${customText}]`,
+      color: '',
+      textColor: '',
       currency: 'PHP',
-  }), [name, type, currentBalanceVal, customBg, customText]);
+  }), [name, type, currentBalanceVal]);
 
 
   return (
@@ -178,6 +179,8 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                 <WalletCard
                     wallet={previewWallet}
                     currencySymbol={currencySymbol}
+                    bgColor={customBg}
+                    textColor={customText}
                 />
             </div>
           </div>
