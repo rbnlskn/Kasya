@@ -9,7 +9,7 @@ interface DayPickerProps {
 }
 
 const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+  const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -20,18 +20,18 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
   };
 
   const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
   const handleDateClick = (day: number) => {
     const newDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+    // Preserve time from selectedDate
     newDate.setHours(selectedDate.getHours());
     newDate.setMinutes(selectedDate.getMinutes());
-    newDate.setSeconds(selectedDate.getSeconds());
     onChange(newDate);
   };
 
@@ -58,16 +58,16 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
   };
 
   return (
-    <div className="w-full bg-white p-4 rounded-3xl">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold text-gray-800">
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-bold text-text-primary">
           {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
-        <div className="flex space-x-1">
-          <button onClick={handlePrevMonth} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-gray-600">
+        <div className="flex space-x-2">
+          <button onClick={handlePrevMonth} className="p-2 bg-app-bg rounded-full hover:bg-gray-100 text-text-primary">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <button onClick={handleNextMonth} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-gray-600">
+          <button onClick={handleNextMonth} className="p-2 bg-app-bg rounded-full hover:bg-gray-100 text-text-primary">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
@@ -75,7 +75,7 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
 
       <div className="grid grid-cols-7 mb-2 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-xs font-bold text-gray-400">{d}</div>
+          <div key={i} className="text-xs font-bold text-text-secondary opacity-50">{d}</div>
         ))}
       </div>
 
@@ -92,8 +92,8 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
               ${isSelected(day)
                 ? 'bg-primary text-white shadow-lg shadow-primary/30'
                 : isToday(day)
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-gray-700 hover:bg-slate-100'}
+                  ? 'bg-primary/10 text-primary border border-primary/20'
+                  : 'text-text-primary hover:bg-app-bg'}
             `}
           >
             {day}
@@ -101,9 +101,8 @@ const DayPicker: React.FC<DayPickerProps> = ({ selectedDate, onChange, onClose }
         ))}
       </div>
 
-      <div className="flex justify-between mt-6 text-sm font-bold">
-          <button onClick={() => { const today = new Date(); onChange(today); if (onClose) onClose(); }} className="text-gray-500 hover:text-primary">Today</button>
-          <button onClick={onClose} className="text-primary">Done</button>
+      <div className="flex justify-center mt-6">
+          <button onClick={() => { handleDateClick(new Date().getDate()); if(onClose) onClose(); }} className="text-primary font-bold text-sm">Today</button>
       </div>
     </div>
   );

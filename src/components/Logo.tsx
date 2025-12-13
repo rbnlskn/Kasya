@@ -1,3 +1,4 @@
+import React from 'react';
 import { Zap } from 'lucide-react';
 
 const Logo = ({ className = "h-8 w-auto" }: { className?: string }) => {

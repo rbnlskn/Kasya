@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Transaction, Category, TransactionType, Wallet } from '../types';
 import { ArrowRightLeft, DollarSign, CornerRightDown } from 'lucide-react';
