@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/rbnlskn/Kasya/compare/v1.2.2...v1.2.3) (2025-12-13)
+
+
+### Bug Fixes
+
+* Critical Navigation and UI Regressions ([#66](https://github.com/rbnlskn/Kasya/issues/66)) ([68213a3](https://github.com/rbnlskn/Kasya/commit/68213a3e246daa4ff520a149432d0e816e77f37f)), closes [#62](https://github.com/rbnlskn/Kasya/issues/62) [#63](https://github.com/rbnlskn/Kasya/issues/63) [#64](https://github.com/rbnlskn/Kasya/issues/64) [#62](https://github.com/rbnlskn/Kasya/issues/62) [#63](https://github.com/rbnlskn/Kasya/issues/63) [#64](https://github.com/rbnlskn/Kasya/issues/64) [#62](https://github.com/rbnlskn/Kasya/issues/62) [#63](https://github.com/rbnlskn/Kasya/issues/63) [#64](https://github.com/rbnlskn/Kasya/issues/64)
+
 ### [1.2.2](https://github.com/rbnlskn/Kasya/compare/v1.2.1...v1.2.2) (2025-12-12)
 
 ### [1.2.1](https://github.com/rbnlskn/Kasya/compare/v1.2.0...v1.2.1) (2025-12-12)
