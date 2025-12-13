@@ -5,7 +5,7 @@ import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, Dollar
 import { App } from '@capacitor/app';
 import { AppState, ThemeMode } from '../types';
 import { CURRENCIES } from '../data/currencies';
-import { exportFile, saveToDocuments } from '../services/exportService';
+import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
 
 interface SettingsViewProps {
   data: AppState;
@@ -27,55 +27,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
     App.getInfo().then(info => setAppVersion(info.version));
   }, []);
 
-  const getFormattedDate = () => {
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      return `mf-${yyyy}-${mm}-${dd}-${hh}${min}`;
+  const handleBackup = async () => {
+    await exportBackup(data);
+    setShowBackupSheet(false);
   };
 
-  const handleExport = async (type: 'CSV' | 'JSON' | 'TEMPLATE', method: 'SHARE' | 'SAVE' = 'SHARE') => {
-    try {
-      let fileContent = '';
-      let fileName = '';
-      let mimeType = '';
-      const dateStr = getFormattedDate();
-
-      if (type === 'JSON') {
-        fileContent = JSON.stringify(data, null, 2);
-        fileName = `Moneyfest_Backup_${dateStr}.json`;
-        mimeType = 'application/json';
-      } else if (type === 'CSV' || type === 'TEMPLATE') {
-        const headers = ['Date', 'Type', 'Amount', 'Fee', 'Category', 'Wallet', 'To Wallet', 'Description'];
-        let rows: string[] = [];
-        
-        if (type === 'CSV') {
-            rows = data.transactions.map(t => {
-            const catName = data.categories.find(c => c.id === t.categoryId)?.name || '';
-            const walletName = data.wallets.find(w => w.id === t.walletId)?.name || '';
-            const toWalletName = t.transferToWalletId ? data.wallets.find(w => w.id === t.transferToWalletId)?.name || '' : '';
-            const safeDesc = (t.description || '').replace(/"/g, '""');
-            return [`"${t.date}"`, `"${t.type}"`, t.amount, t.fee || 0, `"${catName}"`, `"${walletName}"`, `"${toWalletName}"`, `"${safeDesc}"`].join(',');
-            });
-        }
-        
-        fileContent = [headers.join(','), ...rows].join('\n');
-        fileName = type === 'TEMPLATE' ? 'moneyfest-import-template.csv' : `Moneyfest_Export_${dateStr}.csv`;
-        mimeType = 'text/csv';
-      }
-
-      if (method === 'SAVE') await saveToDocuments(fileContent, fileName);
-      else await exportFile(fileContent, fileName, mimeType);
-      
-      setShowBackupSheet(false);
-    } catch (e) {
-      console.error("Export failed", e);
-      alert("Failed to export data.");
-    }
-  };
+  const handleTemplateDownload = async () => {
+    await downloadTransactionTemplate();
+    setShowBackupSheet(false);
+  }
 
   const handleImportClick = () => fileInputRef.current?.click();
 
@@ -169,10 +129,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                 </div>
                 
                 {[
-                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Share Backup (JSON)", desc: "Best for full restoration", action: () => handleExport('JSON', 'SHARE') },
-                    { icon: <Save className="w-6 h-6 text-indigo-500" />, title: "Save to File (JSON)", desc: "Save directly to Documents", action: () => handleExport('JSON', 'SAVE') },
-                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Sheets", action: () => handleExport('CSV', 'SHARE') },
-                    { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for migration", action: () => handleExport('TEMPLATE', 'SHARE') }
+                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Downloads/Kasya", action: handleBackup },
+                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template", desc: "Save CSV template to Downloads/Kasya", action: handleTemplateDownload }
                 ].map((opt, i) => (
                     <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-transparent hover:border-border group">
                         <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>

@@ -193,7 +193,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
             <div className="flex-1">
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
               <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                  <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
+                  <span className={`text-sm font-bold ${dueDay === '' ? 'text-text-secondary/80' : 'text-text-primary'}`}>{dueDay === 0 ? 'No Due Day' : (dueDay || 'Select...')}</span>
                   <ChevronDown className="w-4 h-4 text-text-secondary"/>
               </button>
             </div>
@@ -219,15 +219,12 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                   {createTransaction && (
                       <div className="mt-3">
                           <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">Into Wallet</label>
-                          <select
-                            value={selectedWalletId}
-                            onChange={(e) => setSelectedWalletId(e.target.value)}
-                            className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all h-12"
-                          >
-                              {wallets.map(w => (
-                                  <option key={w.id} value={w.id}>{w.name}</option>
-                              ))}
-                          </select>
+                          <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                            <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
+                                {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
+                            </span>
+                            <ChevronDown className="w-4 h-4 text-text-secondary"/>
+                          </button>
                           <p className="text-xs text-primary/60 mt-1.5 leading-tight">
                               Creates an <span className="font-bold">{type === 'PAYABLE' ? 'Income' : 'Expense'}</span> of <span className="font-bold">{currencySymbol}{incomeAmount.toLocaleString()}</span> (Principal - Fee).
                           </p>
@@ -270,9 +267,22 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
             <div>
               <h3 className="font-bold text-lg text-text-primary mb-4">Select Due Day</h3>
               <div className="grid grid-cols-7 gap-2">
+                <button onClick={() => { setDueDay(0); setSelectorView('NONE'); }} className={`col-span-7 py-2 rounded-lg text-sm font-bold mb-2 ${dueDay === 0 ? 'bg-primary/10 text-primary' : 'bg-slate-100'}`}>No Due Day</button>
                 {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                   <button key={day} onClick={() => { setDueDay(day); setSelectorView('NONE'); }} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
                     {day}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {selectorView === 'WALLET' && (
+            <div>
+              <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {wallets.map(w => (
+                  <button key={w.id} onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${selectedWalletId === w.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                    {w.name}
                   </button>
                 ))}
               </div>

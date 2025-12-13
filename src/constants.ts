@@ -1,8 +1,12 @@
 
-
 import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme.js';
+
+export const APP_VERSION = '1.5.5';
+export const CHANGELOG = [
+    { version: '1.5.5', date: '2024-05-23', changes: ['Fixed loan date projection, harmonized bill/subscription forms, and overhauled the backup system.'] },
+];
 
 export const CURRENCY_SYMBOL = '₱';
 

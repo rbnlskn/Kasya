@@ -34,7 +34,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${!bgColor ? finalBgColor : ''} ${!textColor ? finalTextColor : ''} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
+      className={`flex-shrink-0 w-52 h-28 rounded-2xl p-4 relative ${!bgColor ? finalBgColor : ''} ${!textColor ? finalTextColor : ''} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
       style={style}
     >
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
@@ -45,7 +45,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
         <div className="flex justify-between items-start">
             <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">
-                  {wallet.type === WalletType.CREDIT_CARD ? 'Available Limit' : 'Balance'}
+                  {wallet.type === WalletType.CREDIT_CARD ? 'Current Balance' : 'Balance'}
                 </span>
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
