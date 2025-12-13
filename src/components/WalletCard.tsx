@@ -49,8 +49,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
                 </span>
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
-            <div className="p-1 bg-white/20 rounded-full">
-              {getWalletIcon(wallet.type, "w-4 h-4 opacity-90")}
+            <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl">
+              {getWalletIcon(wallet.type, "w-6 h-6 opacity-90")}
             </div>
         </div>
 

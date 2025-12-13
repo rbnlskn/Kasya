@@ -81,7 +81,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="flex items-center space-x-4 overflow-hidden">
           {/* SQUIRCLE ICON */}
           <div 
-             className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0 ${getIconClass()} transition-transform group-active:scale-95`}
+             className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 ${getIconClass()} transition-transform group-active:scale-95`}
              style={getIconStyle()}
           >
             {renderIcon()}

@@ -72,11 +72,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
 
   return (
     <>
-    <div className="fixed inset-0 z-[70] flex items-end justify-center pointer-events-none">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4">
       <div className="absolute inset-0 bg-black/50 transition-opacity pointer-events-auto" onClick={onClose}></div>
-      <div className={`bg-surface w-full rounded-t-3xl max-h-[85vh] flex flex-col relative z-10 pointer-events-auto ${isExiting ? 'animate-out slide-out-to-bottom duration-300 fill-mode-forwards' : 'animate-in slide-in-from-bottom duration-300'}`}>
+      <div className={`bg-surface w-full max-w-md rounded-3xl max-h-[85vh] flex flex-col relative z-10 pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
         
-        <div className="px-6 pt-6 pb-4 flex justify-between items-center border-b border-border">
+        <div className="px-6 pt-6 pb-4 flex justify-between items-center">
             <h2 className="text-xl font-bold text-text-primary">Edit Categories</h2>
             <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"><X className="w-5 h-5 text-text-secondary" /></button>
         </div>
@@ -123,8 +123,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
 
     {/* EDIT MODAL */}
     {editingCategory && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/50" onClick={() => setEditingCategory(null)}>
-            <div className="bg-surface w-[95%] max-w-md p-6 rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50" onClick={() => setEditingCategory(null)}>
+            <div className="bg-surface w-[90%] max-w-md p-6 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                      <h2 className="font-bold text-lg text-text-primary">Edit Category</h2>
                      <button onClick={() => setEditingCategory(null)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"><X className="w-4 h-4 text-text-secondary"/></button>
@@ -174,8 +174,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
 
     {/* EMOJI PICKER SHEET */}
     {emojiPickerOpen && (
-        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50" onClick={() => setEmojiPickerOpen(false)}>
-            <div className="bg-surface w-[95%] max-w-md rounded-3xl max-h-[60vh] overflow-y-auto p-4 animate-in slide-in-from-bottom duration-300 mx-auto mb-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50" onClick={() => setEmojiPickerOpen(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl max-h-[60vh] overflow-y-auto p-4 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4 px-2">
                     <h3 className="font-bold text-lg text-text-primary">Select Emoji</h3>
                     <button onClick={() => setEmojiPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
