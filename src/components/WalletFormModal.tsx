@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { X, Check, Trash2, ChevronDown, CreditCard, Calendar, Wallet as WalletIcon } from 'lucide-react';
 import { Wallet, WalletType } from '../types';
 import { WALLET_TEMPLATES } from '../data/templates';
 import DayPicker from './DayPicker';
-import { getWalletIcon } from './WalletCard';
-// COLORS import removed to avoid conflict
+import WalletCard, { getWalletIcon } from './WalletCard';
 
 interface WalletFormModalProps {
   isOpen: boolean;
@@ -149,10 +148,21 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const hasBalanceChanged = initialWallet && Math.abs(balanceDiff) > 0.01;
   const isCreditCard = type === WalletType.CREDIT_CARD;
 
+  const previewWallet = useMemo<Wallet>(() => ({
+      id: initialWallet?.id || 'new',
+      name: name || 'Wallet Name',
+      type: type || '...',
+      balance: currentBalanceVal,
+      color: '',
+      textColor: '',
+      currency: 'PHP',
+  }), [name, type, balance, currentBalanceVal]);
+
+
   return (
     <>
     <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4 pb-safe">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-black/50 pointer-events-auto transition-opacity" onClick={onClose}></div>
       <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialWallet ? 'Edit Wallet' : 'New Wallet'}</h2>
@@ -164,32 +174,14 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
-             <div
-                className="flex-shrink-0 w-48 h-28 rounded-xl p-3 relative shadow-md overflow-hidden"
-                style={{ backgroundColor: customBg, color: customText }}
-             >
-                <div className="flex flex-col justify-between h-full relative z-10">
-                    <div className="flex justify-between items-start">
-                        <span className="text-[10px] font-medium opacity-70 uppercase tracking-wider">{isCreditCard ? 'LIMIT' : 'BALANCE'}</span>
-                    </div>
-
-                    <div className="flex-1 flex items-center">
-                        <span className="text-xl font-bold tracking-tight">
-                            {currencySymbol}{currentBalanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </span>
-                    </div>
-
-                    <div className="flex justify-between items-end">
-                        <div className="flex flex-col overflow-hidden mr-2">
-                            <span className="font-semibold text-xs truncate opacity-90">{name || 'Name'}</span>
-                            <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 truncate">{type || 'TYPE'}</span>
-                        </div>
-                        <div className="opacity-80 flex-shrink-0 mb-0.5">
-                            {getWalletIcon(type, "w-4 h-4")}
-                        </div>
-                    </div>
-                </div>
-             </div>
+            <div className="scale-[1.1] origin-center">
+                <WalletCard
+                    wallet={previewWallet}
+                    currencySymbol={currencySymbol}
+                    bgColor={customBg}
+                    textColor={customText}
+                />
+            </div>
           </div>
           
           <div>
@@ -275,7 +267,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
     {/* TYPE SELECTOR */}
     {isSelectingType && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsSelectingType(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setIsSelectingType(false)}>
             <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="font-bold text-lg text-text-primary">Select Wallet Type</h3>
@@ -300,7 +292,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
     {/* COLOR PICKER */}
     {isColorPickerOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsColorPickerOpen(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setIsColorPickerOpen(false)}>
             <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-lg text-text-primary">Select Color</h3>
@@ -335,7 +327,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
     {/* DAY PICKER */}
     {isDayPickerOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsDayPickerOpen(false)}>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setIsDayPickerOpen(false)}>
             <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
                  <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-lg text-text-primary">Select Statement Day</h3>
