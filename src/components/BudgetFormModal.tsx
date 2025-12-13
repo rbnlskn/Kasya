@@ -101,8 +101,8 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
             <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400" required placeholder="0.00" inputMode="decimal" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl pl-8 pr-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           

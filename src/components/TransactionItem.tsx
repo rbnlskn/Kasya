@@ -81,7 +81,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="flex items-center space-x-4 overflow-hidden">
           {/* SQUIRCLE ICON */}
           <div 
-             className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0 ${getIconClass()} transition-transform group-active:scale-95`}
+             className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0 ${getIconClass()} transition-transform group-active:scale-95`}
              style={getIconStyle()}
           >
             {renderIcon()}
@@ -95,12 +95,12 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="text-right flex-shrink-0 pl-2">
           <div className="flex flex-col items-end">
              {isTransfer ? (
-                <div className="font-bold text-sm text-gray-800">
+                <div className="font-bold text-sm text-blue-600">
                     <span>{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     {fee > 0 && <span className="text-red-500 text-xs ml-1">& -{currencySymbol}{fee}</span>}
                 </div>
              ) : (
-                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-gray-800'}`}>
+                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
                     {isPositive ? '+' : '-'}{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                  </p>
              )}

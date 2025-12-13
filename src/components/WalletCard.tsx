@@ -7,8 +7,6 @@ interface WalletCardProps {
   wallet: Wallet;
   onClick?: (wallet: Wallet) => void;
   currencySymbol: string;
-  bgColor?: string;
-  textColor?: string;
 }
 
 export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
@@ -23,19 +21,11 @@ export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
     }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, bgColor, textColor }) => {
-  const finalBgColor = bgColor || wallet.color;
-  const finalTextColor = textColor || wallet.textColor;
-
-  const style: React.CSSProperties = {};
-  if (bgColor) style.backgroundColor = bgColor;
-  if (textColor) style.color = textColor;
-
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol }) => {
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${!bgColor ? finalBgColor : ''} ${!textColor ? finalTextColor : ''} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
-      style={style}
+      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${wallet.color} ${wallet.textColor} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
     >
       <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
@@ -49,8 +39,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
                 </span>
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
-            <div className="p-1 bg-white/20 rounded-full">
-              {getWalletIcon(wallet.type, "w-4 h-4 opacity-90")}
+            <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl">
+              {getWalletIcon(wallet.type, "w-6 h-6 opacity-90")}
             </div>
         </div>
 

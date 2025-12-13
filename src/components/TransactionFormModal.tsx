@@ -124,13 +124,13 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
           <div>
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Amount</label>
             <div className="relative group">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
                 type="number" 
                 value={amount}
                 step="0.01"
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400"
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl pl-8 pr-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 placeholder="0.00"
                 inputMode="decimal"
                 autoFocus={false}
@@ -142,12 +142,12 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
              <div>
                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Transfer Fee</label>
                <div className="relative group">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium">{currencySymbol}</span>
                   <input 
                     type="number" 
                     value={fee}
                     onChange={(e) => setFee(e.target.value)}
-                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-9 pr-4 text-lg font-bold text-text-primary outline-none transition-all placeholder-slate-400"
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl pl-8 pr-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                     placeholder="0.00"
                     inputMode="decimal"
                   />
