@@ -1,6 +1,6 @@
 
+
 import React, { useRef, useState, useEffect } from 'react';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
 import { AppState, ThemeMode } from '../types';
@@ -9,13 +9,15 @@ import { exportFile, saveToDocuments } from '../services/exportService';
 
 interface SettingsViewProps {
   data: AppState;
+  onBack: () => void;
   onManageCategories: () => void;
+  onViewTransactions: () => void;
   onImport: (newData: AppState) => void;
   onReset: () => void;
   onCurrencyChange: (currency: string) => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ data, onManageCategories, onImport, onReset, onCurrencyChange }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCategories, onViewTransactions, onImport, onReset, onCurrencyChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
@@ -125,14 +127,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onManageCategories, o
   );
 
   return (
-    <IonPage>
-      <IonHeader className="ion-no-border">
-        <IonToolbar>
-          <IonTitle>Settings</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent fullscreen>
-        <div className="ion-padding">
+    <>
+      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">Settings</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 py-2 space-y-8 pb-32">
         <section>
           <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-widest mb-4 px-2">General</h3>
           <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
@@ -212,8 +212,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onManageCategories, o
         </div>
       )}
 
-    </IonContent>
-    </IonPage>
+    </>
   );
 };
 export default SettingsView;

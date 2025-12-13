@@ -1,11 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Check, Trash2, ChevronDown, CreditCard, Calendar, Wallet as WalletIcon } from 'lucide-react';
 import { Wallet, WalletType } from '../types';
 import { WALLET_TEMPLATES } from '../data/templates';
 import DayPicker from './DayPicker';
 import { getWalletIcon } from './WalletCard';
-import { IonModal, IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonButtons, IonDatetime } from '@ionic/react';
-import WalletCard from './WalletCard';
 // COLORS import removed to avoid conflict
 
 interface WalletFormModalProps {
@@ -15,6 +14,7 @@ interface WalletFormModalProps {
   onDelete: (id: string) => void;
   initialWallet?: Wallet;
   currencySymbol: string;
+  isExiting?: boolean;
 }
 
 const isColorLight = (hexColor: string): boolean => {
@@ -32,9 +32,9 @@ const isColorLight = (hexColor: string): boolean => {
     return hsp > 127.5;
 };
 
-const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialWallet, currencySymbol }) => {
+const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialWallet, currencySymbol, isExiting }) => {
   const [name, setName] = useState('');
-  const [type, setType] = useState<WalletType | ''>('');
+  const [type, setType] = useState<string>('');
   const [balance, setBalance] = useState('');
   // Hardcoded default for simplicity, matching the teal default or new blue
   const DEFAULT_PRIMARY = '#2563eb';
@@ -61,7 +61,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     if (isOpen) {
       if (initialWallet) {
         setName(initialWallet.name);
-        setType(initialWallet.type as WalletType);
+        setType(initialWallet.type);
         setBalance(initialWallet.balance.toFixed(2));
         setStatementDay(initialWallet.statementDay || 1);
         
@@ -80,6 +80,8 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       setIsAdjustment(true);
     }
   }, [initialWallet, isOpen]);
+
+  if (!isOpen && !isExiting) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +140,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       const bgHex = t.bg.match(/bg-\[(#[0-9A-Fa-f]{6})\]/)?.[1] || '#000000';
       setCustomBg(bgHex);
       setCustomText(isColorLight(bgHex) ? '#1f2937' : '#FFFFFF');
-      setType(t.type as WalletType || WalletType.E_WALLET);
+      setType(t.type || WalletType.E_WALLET);
       setName(t.name === 'Cash' ? 'Cash' : t.name);
   };
 
@@ -148,38 +150,50 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const isCreditCard = type === WalletType.CREDIT_CARD;
 
   return (
-    <IonModal isOpen={isOpen} onDidDismiss={onClose} className="wallet-modal-class">
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>{initialWallet ? 'Edit Wallet' : 'New Wallet'}</IonTitle>
-          <IonButtons slot="end">
-            {initialWallet && (
-              <IonButton onClick={handleDelete} color="danger">
-                <Trash2 className="w-5 h-5" />
-              </IonButton>
-            )}
-            <IonButton onClick={onClose}>
-              <X className="w-5 h-5" />
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent className="ion-padding">
+    <>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4 pb-safe">
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
+      <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialWallet ? 'Edit Wallet' : 'New Wallet'}</h2>
+          <div className="flex items-center space-x-2">
+            {initialWallet && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
+            <button onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
-            <WalletCard wallet={{
-                id: 'preview',
-                name: name || 'Wallet Name',
-                type: type || WalletType.CASH,
-                balance: parseFloat(balance) || 0,
-                color: customBg,
-                textColor: customText,
-                currency: 'PHP'
-            }} currencySymbol={currencySymbol} />
+             <div
+                className="flex-shrink-0 w-48 h-28 rounded-xl p-3 relative shadow-md overflow-hidden"
+                style={{ backgroundColor: customBg, color: customText }}
+             >
+                <div className="flex flex-col justify-between h-full relative z-10">
+                    <div className="flex justify-between items-start">
+                        <span className="text-[10px] font-medium opacity-70 uppercase tracking-wider">{isCreditCard ? 'LIMIT' : 'BALANCE'}</span>
+                    </div>
+
+                    <div className="flex-1 flex items-center">
+                        <span className="text-xl font-bold tracking-tight">
+                            {currencySymbol}{currentBalanceVal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                    </div>
+
+                    <div className="flex justify-between items-end">
+                        <div className="flex flex-col overflow-hidden mr-2">
+                            <span className="font-semibold text-xs truncate opacity-90">{name || 'Name'}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 truncate">{type || 'TYPE'}</span>
+                        </div>
+                        <div className="opacity-80 flex-shrink-0 mb-0.5">
+                            {getWalletIcon(type, "w-4 h-4")}
+                        </div>
+                    </div>
+                </div>
+             </div>
           </div>
           
           <div>
-            <label className="text-xs font-semibold text-gray-500 uppercase mb-1.5 block">Templates</label>
+            <label className="text-xs font-semibold text-text-secondary uppercase mb-1.5 block">Templates</label>
             <div className="grid grid-cols-4 gap-2">
                 {WALLET_TEMPLATES.map((c, idx) => (
                     <button
@@ -254,86 +268,84 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
               </div>
           )}
 
-        <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
+          <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
         </form>
-      </IonContent>
+      </div>
+    </div>
 
-      {/* TYPE SELECTOR */}
-      <IonModal isOpen={isSelectingType} onDidDismiss={() => setIsSelectingType(false)}>
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>Select Wallet Type</IonTitle>
-            <IonButtons slot="end">
-              <IonButton onClick={() => setIsSelectingType(false)}><X className="w-5 h-5" /></IonButton>
-            </IonButtons>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">
-          <div className="space-y-2">
-              {Object.values(WalletType).map(t => (
-                  <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${type === t ? 'bg-primary/5 border border-primary/20' : 'hover:bg-slate-100'}`}>
-                      <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                              {getWalletIcon(t, "w-5 h-5 text-gray-500")}
-                          </div>
-                          <span className="font-medium text-gray-800">{t}</span>
-                      </div>
-                      {type === t && <Check className="w-5 h-5 text-primary" />}
-                  </button>
-              ))}
-          </div>
-        </IonContent>
-      </IonModal>
-
-      {/* COLOR PICKER */}
-      <IonModal isOpen={isColorPickerOpen} onDidDismiss={() => setIsColorPickerOpen(false)}>
-        <IonHeader>
-            <IonToolbar>
-                <IonTitle>Select Color</IonTitle>
-                <IonButtons slot="end">
-                    <IonButton onClick={() => setIsColorPickerOpen(false)}><X className="w-5 h-5" /></IonButton>
-                </IonButtons>
-            </IonToolbar>
-        </IonHeader>
-        <IonContent className="ion-padding">
-            <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
-                <button onClick={() => setActiveColorTab('BG')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'BG' ? 'bg-white shadow' : 'text-gray-500'}`}>Background</button>
-                <button onClick={() => setActiveColorTab('TEXT')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'TEXT' ? 'bg-white shadow' : 'text-gray-500'}`}>Text</button>
-            </div>
-            <div className="flex flex-wrap gap-4 justify-center">
-                {CUSTOM_PALETTE.map(c => (
-                    <button key={c} onClick={() => { if(activeColorTab==='BG') handleSetBg(c); else setCustomText(c); }} className="w-10 h-10 rounded-full shadow-sm border" style={{backgroundColor: c}} />
-                ))}
-            </div>
-            <div className="mt-6 pt-4 border-t">
-                <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Custom Hex</label>
-                <div className="flex items-center space-x-2">
-                    <div className="w-10 h-10 rounded-lg border" style={{backgroundColor: activeColorTab === 'BG' ? customBg : customText}}></div>
-                    <input
-                        type="text"
-                        value={activeColorTab === 'BG' ? customBg : customText}
-                        onChange={(e) => { if(activeColorTab==='BG') handleSetBg(e.target.value); else setCustomText(e.target.value); }}
-                        className="flex-1 bg-slate-100 border rounded-lg px-3 py-2 font-mono text-sm uppercase"
-                        placeholder="#000000"
-                    />
+    {/* TYPE SELECTOR */}
+    {isSelectingType && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsSelectingType(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-lg text-text-primary">Select Wallet Type</h3>
+                    <button onClick={() => setIsSelectingType(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
+                </div>
+                <div className="space-y-2">
+                    {Object.values(WalletType).map(t => (
+                        <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${type === t ? 'bg-primary/5 border border-primary/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                            <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                    {getWalletIcon(t, "w-5 h-5 text-text-secondary")}
+                                </div>
+                                <span className="font-medium text-text-primary">{t}</span>
+                            </div>
+                            {type === t && <Check className="w-5 h-5 text-primary" />}
+                        </button>
+                    ))}
                 </div>
             </div>
-        </IonContent>
-      </IonModal>
+        </div>
+    )}
 
-      {/* DAY PICKER */}
-      <IonModal isOpen={isDayPickerOpen} onDidDismiss={() => setIsDayPickerOpen(false)}>
-          <IonDatetime
-              presentation="date"
-              value={new Date(new Date().getFullYear(), new Date().getMonth(), statementDay).toISOString()}
-              onIonChange={e => {
-                  const day = new Date(e.detail.value as string).getDate();
-                  setStatementDay(day);
-                  setIsDayPickerOpen(false);
-              }}
-          />
-      </IonModal>
-    </IonModal>
+    {/* COLOR PICKER */}
+    {isColorPickerOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsColorPickerOpen(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-lg text-text-primary">Select Color</h3>
+                    <button onClick={() => setIsColorPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
+                </div>
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-4">
+                    <button onClick={() => setActiveColorTab('BG')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'BG' ? 'bg-surface shadow' : 'text-text-secondary'}`}>Background</button>
+                    <button onClick={() => setActiveColorTab('TEXT')} className={`flex-1 py-2 text-sm font-bold rounded-lg ${activeColorTab === 'TEXT' ? 'bg-surface shadow' : 'text-text-secondary'}`}>Text</button>
+                </div>
+                <div className="flex flex-wrap gap-4 justify-center">
+                    {CUSTOM_PALETTE.map(c => (
+                        <button key={c} onClick={() => { if(activeColorTab==='BG') handleSetBg(c); else setCustomText(c); }} className="w-10 h-10 rounded-full shadow-sm border border-border" style={{backgroundColor: c}} />
+                    ))}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-border">
+                    <label className="text-xs font-bold text-text-secondary uppercase mb-2 block">Custom Hex</label>
+                    <div className="flex items-center space-x-2">
+                        <div className="w-10 h-10 rounded-lg border border-border" style={{backgroundColor: activeColorTab === 'BG' ? customBg : customText}}></div>
+                        <input
+                            type="text"
+                            value={activeColorTab === 'BG' ? customBg : customText}
+                            onChange={(e) => { if(activeColorTab==='BG') handleSetBg(e.target.value); else setCustomText(e.target.value); }}
+                            className="flex-1 bg-slate-100 dark:bg-slate-800 border border-border rounded-lg px-3 py-2 font-mono text-sm uppercase text-text-primary"
+                            placeholder="#000000"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {/* DAY PICKER */}
+    {isDayPickerOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setIsDayPickerOpen(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                 <div className="flex justify-between items-center mb-6">
+                    <h3 className="font-bold text-lg text-text-primary">Select Statement Day</h3>
+                    <button onClick={() => setIsDayPickerOpen(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
+                </div>
+                <DayPicker selectedDate={new Date(new Date().getFullYear(), new Date().getMonth(), statementDay === 0 ? 1 : statementDay)} onChange={(d) => {setStatementDay(d.getDate()); setIsDayPickerOpen(false);}} />
+            </div>
+        </div>
+    )}
+    </>
   );
 };
 export default WalletFormModal;
