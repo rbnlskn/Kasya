@@ -411,8 +411,25 @@ const App: React.FC = () => {
   const handleDeleteWallet = (id: string) => setData(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
-  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) })) : setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }] }));
-  const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
+  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string) => {
+    if (id) {
+        setData(prev => ({
+            ...prev,
+            bills: prev.bills.map(b => b.id === id ? { ...b, ...billData, endDate: undefined } : b)
+        }));
+    } else {
+        setData(prev => ({
+            ...prev,
+            bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }]
+        }));
+    }
+  };
+  const handleDeleteBill = (id: string) => {
+    setData(prev => ({
+        ...prev,
+        bills: prev.bills.map(b => b.id === id ? { ...b, endDate: new Date().toISOString() } : b)
+    }));
+  };
   
   const handleSaveLoan = (loanData: Omit<Loan, 'id'>, id?: string, initialTransactionWalletId?: string) => {
       let newLoanId = id;

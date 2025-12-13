@@ -56,6 +56,14 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       const startDate = new Date(b.startDate);
       const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+      const endDate = b.endDate ? new Date(b.endDate) : null;
+      const endMonthStart = endDate ? new Date(endDate.getFullYear(), endDate.getMonth(), 1) : null;
+
+      if (endMonthStart && currentMonthStart > endMonthStart) {
+          return false;
+      }
+
       return currentMonthStart >= startMonthStart;
   });
 
@@ -185,7 +193,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </h3>
         <div className="flex items-center space-x-3">
             {onViewAll && <button onClick={onViewAll} className="text-[10px] text-gray-500 font-bold uppercase tracking-wide hover:text-primary">VIEW ALL</button>}
-            {onAdd && <button onClick={onAdd} className="w-8 h-8 flex items-center justify-center bg-primary/5 text-primary rounded-xl hover:bg-primary/10 active:scale-95 transition-transform"><Plus className="w-5 h-5"/></button>}
+            {onAdd && <button data-testid={`add-${title.toLowerCase().replace(/ & /g, '-')}-button`} onClick={onAdd} className="w-8 h-8 flex items-center justify-center bg-primary/5 text-primary rounded-xl hover:bg-primary/10 active:scale-95 transition-transform"><Plus className="w-5 h-5"/></button>}
         </div>
     </div>
   );

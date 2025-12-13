@@ -22,10 +22,11 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
   const [fee, setFee] = useState('');
   const [type, setType] = useState<LoanType>('PAYABLE');
   const [startDate, setStartDate] = useState(new Date());
-  const [paymentType, setPaymentType] = useState<RecurrenceFrequency>('MONTHLY');
+  const [occurrence, setOccurrence] = useState<RecurrenceFrequency>('MONTHLY');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dueDay, setDueDay] = useState('');
   const [duration, setDuration] = useState('');
+  const [durationUnit, setDurationUnit] = useState<'DAYS' | 'MONTHS' | 'YEARS'>('MONTHS');
   
   const [createTransaction, setCreateTransaction] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
@@ -39,7 +40,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         setFee(initialLoan.fee?.toString() || '');
         setType(initialLoan.type);
         setStartDate(initialLoan.startDate ? new Date(initialLoan.startDate) : new Date());
-        setPaymentType(initialLoan.recurrence);
+        setOccurrence(initialLoan.recurrence);
         setDueDay(initialLoan.dueDay?.toString() || '');
         setDuration(''); // Duration not stored in Loan object
         setCreateTransaction(false);
@@ -50,10 +51,10 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         setFee('');
         setType('PAYABLE');
         setStartDate(new Date());
-        setPaymentType('MONTHLY');
+        setOccurrence('MONTHLY');
         setDueDay('');
         setDuration('');
-        setCreateTransaction(true);
+        setCreateTransaction(false);
         if (wallets.length > 0) setSelectedWalletId(wallets[0].id);
       }
     }
@@ -76,9 +77,11 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
       type,
       status: 'UNPAID',
       dueDay: parseInt(dueDay) || 0,
-      recurrence: paymentType,
+      recurrence: occurrence,
       icon: '💰', // Hardcoded icon
-      startDate: new Date(startDate).toISOString()
+      startDate: new Date(startDate).toISOString(),
+      duration: parseInt(duration) || undefined,
+      durationUnit: duration ? durationUnit : undefined
     }, initialLoan?.id, createTransaction ? selectedWalletId : undefined);
     onClose();
   };
@@ -101,7 +104,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialLoan ? 'Edit Loan' : 'New Loan/Debt'}</h2>
           <div className="flex items-center space-x-2">
             {initialLoan && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
-            <button type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
 
@@ -154,11 +157,12 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                 </button>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Frequency</label>
-              <select value={paymentType} onChange={e => setPaymentType(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
-                <option value="DAILY">Daily</option>
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
+              <select value={occurrence} onChange={e => setOccurrence(e.target.value as RecurrenceFrequency)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
+                <option value="ONE_TIME">One Time</option>
                 <option value="WEEKLY">Weekly</option>
                 <option value="MONTHLY">Monthly</option>
+                <option value="YEARLY">Yearly</option>
               </select>
             </div>
           </div>
@@ -166,19 +170,30 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
           <div className="flex space-x-2">
             <div className="flex-1">
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
-              <input type="number" value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="Day of month"/>
+              <select value={dueDay} onChange={e => setDueDay(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
             </div>
             <div className="flex-1">
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Duration</label>
-              <input type="text" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., 12 months"/>
+              <div className="flex items-center bg-slate-100 rounded-xl h-12">
+                <input type="number" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-transparent px-4 text-base font-medium text-text-primary outline-none" placeholder="e.g., 12"/>
+                <select name="duration-unit" value={durationUnit} onChange={e => setDurationUnit(e.target.value as 'DAYS' | 'MONTHS' | 'YEARS')} className="bg-transparent text-sm font-bold text-text-secondary pr-3 outline-none">
+                  <option value="DAYS">Days</option>
+                  <option value="MONTHS">Months</option>
+                  <option value="YEARS">Years</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {!initialLoan && (
               <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
                   <div className="flex items-center justify-between">
-                      <label className="text-sm font-bold text-primary/80">Record as Transaction</label>
-                      <input type="checkbox" checked={createTransaction} onChange={(e) => setCreateTransaction(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                      <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record as Transaction</label>
+                      <input id="record-tx-checkbox" type="checkbox" checked={createTransaction} onChange={(e) => setCreateTransaction(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
                   </div>
                   {createTransaction && (
                       <div className="mt-3">
@@ -186,14 +201,14 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                           <select
                             value={selectedWalletId}
                             onChange={(e) => setSelectedWalletId(e.target.value)}
-                            className="w-full p-2 rounded-lg bg-surface border-2 border-primary/20 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50 text-text-primary"
+                            className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all h-12"
                           >
                               {wallets.map(w => (
                                   <option key={w.id} value={w.id}>{w.name}</option>
                               ))}
                           </select>
                           <p className="text-xs text-primary/60 mt-1.5 leading-tight">
-                              Creates an <span className="font-bold">Income</span> of <span className="font-bold">{currencySymbol}{incomeAmount.toLocaleString()}</span> (Principal - Fee).
+                              Creates an <span className="font-bold">{type === 'PAYABLE' ? 'Income' : 'Expense'}</span> of <span className="font-bold">{currencySymbol}{incomeAmount.toLocaleString()}</span> (Principal - Fee).
                           </p>
                       </div>
                   )}
