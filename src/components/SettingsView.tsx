@@ -159,22 +159,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
 
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json,.csv" />
 
-      {/* Backup Sheet */}
+      {/* Backup Modal */}
       {showBackupSheet && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBackupSheet(false)}>
-            <div className="bg-surface w-full rounded-t-[2rem] p-6 animate-in slide-in-from-bottom duration-300 space-y-3 pb-safe" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6 px-2">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setShowBackupSheet(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 space-y-3" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-xl text-text-primary">Backup Options</h3>
-                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
+                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 
                 {[
                     { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Share Backup (JSON)", desc: "Best for full restoration", action: () => handleExport('JSON', 'SHARE') },
                     { icon: <Save className="w-6 h-6 text-indigo-500" />, title: "Save to File (JSON)", desc: "Save directly to Documents", action: () => handleExport('JSON', 'SAVE') },
-                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Google Sheets", action: () => handleExport('CSV', 'SHARE') },
-                    { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for data migration", action: () => handleExport('TEMPLATE', 'SHARE') }
+                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Sheets", action: () => handleExport('CSV', 'SHARE') },
+                    { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for migration", action: () => handleExport('TEMPLATE', 'SHARE') }
                 ].map((opt, i) => (
-                    <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-app-bg hover:bg-gray-100 transition-colors border border-transparent hover:border-border group">
+                    <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-transparent hover:border-border group">
                         <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>
                         <div className="text-left">
                             <div className="font-bold text-text-primary">{opt.title}</div>
@@ -188,17 +188,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
 
       {/* Currency Modal */}
       {showCurrencyModal && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCurrencyModal(false)}>
-            <div className="bg-surface w-full rounded-t-[2rem] max-h-[80vh] overflow-y-auto p-6 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-6 px-2">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setShowCurrencyModal(false)}>
+            <div className="bg-surface w-[90%] max-w-md rounded-3xl max-h-[80vh] overflow-y-auto p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-xl text-text-primary">Select Currency</h3>
-                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
+                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="space-y-2">
                     {CURRENCIES.map(c => (
-                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary text-primary' : 'bg-app-bg hover:bg-gray-100 border border-transparent'}`}>
+                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary text-primary' : 'bg-slate-100 hover:bg-slate-200 border border-transparent'}`}>
                             <div className="flex items-center space-x-4">
-                                <span className="text-2xl w-10 text-center font-black opacity-80">{c.symbol}</span>
+                                <span className="text-2xl w-10 text-center font-bold opacity-80">{c.symbol}</span>
                                 <div className="text-left">
                                     <div className="font-bold">{c.code}</div>
                                     <div className="text-xs font-medium opacity-60">{c.name}</div>
