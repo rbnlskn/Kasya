@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Redirect, Route, useLocation } from 'react-router-dom';
-import { IonApp, IonRouterOutlet, setupIonicReact, IonModal } from '@ionic/react';
+import { IonApp, IonRouterOutlet, setupIonicReact, IonModal, IonPage } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
 import { AppState, Transaction, TransactionType, Wallet, Budget, Bill, Loan } from './types';
@@ -36,6 +36,7 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
+import './styles/global.css';
 
 setupIonicReact({});
 
@@ -386,9 +387,13 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full bg-slate-50 flex items-center justify-center flex-col">
-        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-      </div>
+        <IonApp>
+            <IonPage>
+                <div className="h-screen w-full bg-slate-50 flex items-center justify-center flex-col">
+                    <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                </div>
+            </IonPage>
+        </IonApp>
     );
   }
 
@@ -397,24 +402,22 @@ const App: React.FC = () => {
     const showNav = ['/home', '/analytics', '/commitments', '/settings'].includes(location.pathname);
 
     return (
-      <>
+      <IonPage>
         <IonRouterOutlet>
-            <Route exact path="/home">
-              <HomePage
-                data={data}
-                spendingMap={spendingMap}
-                currentCurrency={currentCurrency}
-                recentTransactionsWithHeaders={recentTransactionsWithHeaders}
-                onOpenModal={openModal}
-                onSetSelectedWalletId={setSelectedWalletId}
-                onSetSelectedBudgetId={setSelectedBudgetId}
-                onSetSelectedTxId={setSelectedTxId}
-              />
-            </Route>
-            <Route exact path="/analytics">
-              <AnalyticsPage />
-            </Route>
-            <Route path="/commitments">
+            <Route exact path="/home" render={() =>
+                <HomePage
+                    data={data}
+                    spendingMap={spendingMap}
+                    currentCurrency={currentCurrency}
+                    recentTransactionsWithHeaders={recentTransactionsWithHeaders}
+                    onOpenModal={openModal}
+                    onSetSelectedWalletId={setSelectedWalletId}
+                    onSetSelectedBudgetId={setSelectedBudgetId}
+                    onSetSelectedTxId={setSelectedTxId}
+                />
+            } />
+            <Route exact path="/analytics" render={() => <AnalyticsPage />} />
+            <Route path="/commitments" render={() =>
               <CommitmentsView
                 wallets={data.wallets}
                 currencySymbol={currentCurrency.symbol}
@@ -429,8 +432,8 @@ const App: React.FC = () => {
                 onPayLoan={handlePayLoan}
                 onPayCC={handlePayCC}
               />
-            </Route>
-            <Route path="/settings">
+            } />
+            <Route path="/settings" render={() =>
               <SettingsView
                 data={data}
                 onManageCategories={() => openModal('CATEGORY_MANAGER')}
@@ -438,19 +441,17 @@ const App: React.FC = () => {
                 onReset={async () => { await clearData(); window.location.reload(); }}
                 onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))}
               />
-            </Route>
-            <Route exact path="/">
-              <Redirect to="/home" />
-            </Route>
-            <Route path="/wallets" exact>
+            } />
+            <Route exact path="/" render={() => <Redirect to="/home" />} />
+            <Route path="/wallets" exact render={() =>
               <WalletListView
                 wallets={data.wallets}
                 onAdd={() => { setSelectedWalletId(null); openModal('WALLET_FORM'); }}
                 onEdit={(w) => { setSelectedWalletId(w.id); openModal('WALLET_FORM'); }}
                 currencySymbol={currentCurrency.symbol}
               />
-            </Route>
-             <Route path="/wallets/:id">
+            } />
+             <Route path="/wallets/:id" render={() =>
                 <WalletDetailView
                     getWalletById={(id) => data.wallets.find(w => w.id === id)}
                     getTransactionsByWalletId={(id) => sortTransactions(data.transactions.filter(t => t.walletId === id || t.transferToWalletId === id))}
@@ -460,8 +461,8 @@ const App: React.FC = () => {
                     onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
                 />
-            </Route>
-            <Route path="/budgets" exact>
+            } />
+            <Route path="/budgets" exact render={() =>
               <BudgetManager
                 budgets={data.budgets}
                 categories={data.categories}
@@ -471,7 +472,7 @@ const App: React.FC = () => {
                 onDelete={handleDeleteBudget}
                 currencySymbol={currentCurrency.symbol}
               />
-            </Route>
+            } />
             <Route path="/budgets/:id" render={props => {
                 const budget = data.budgets.find(b => b.id === props.match.params.id);
                 if (!budget) return <Redirect to="/budgets" />;
@@ -486,7 +487,7 @@ const App: React.FC = () => {
                     spending={spendingMap[budget.id] || 0}
                 />
              }}/>
-             <Route path="/transactions" exact>
+             <Route path="/transactions" exact render={() =>
                 <TransactionHistoryView
                     transactions={sortTransactions(data.transactions)}
                     categories={data.categories}
@@ -494,7 +495,7 @@ const App: React.FC = () => {
                     onTransactionClick={(t) => { setSelectedTxId(t.id); openModal('TX_FORM'); }}
                     currencySymbol={currentCurrency.symbol}
                 />
-            </Route>
+            } />
         </IonRouterOutlet>
         {showNav && <BottomNav
               onAddClick={() => {
@@ -504,7 +505,7 @@ const App: React.FC = () => {
                   openModal('TX_FORM');
               }}
           />}
-      </>
+      </IonPage>
     );
   }
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonContent, IonTitle, IonButton } from '@ionic/react';
-import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
+import { Edit2, Calendar, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Budget, Transaction, Category, Wallet } from '../types';
 import TransactionItem from './TransactionItem';
 
@@ -16,7 +16,7 @@ interface BudgetDetailViewProps {
   spending: number;
 }
 
-type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
+type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY';
 
 const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transactions, categories, wallets, onEdit, onTransactionClick, currencySymbol, spending }) => {
   const rangeType = budget.period === 'DAILY' ? 'DAILY' : budget.period === 'WEEKLY' ? 'WEEKLY' : 'MONTHLY';
@@ -83,7 +83,9 @@ const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transaction
           </IonButtons>
           <IonTitle>{budget.name} Budget</IonTitle>
           <IonButtons slot="end">
-            <IonButton onClick={onEdit}>Edit</IonButton>
+            <IonButton onClick={onEdit}>
+              <Edit2 size={20} />
+            </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>

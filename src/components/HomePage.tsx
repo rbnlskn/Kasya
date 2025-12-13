@@ -38,7 +38,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </div>
 
-      <div className="px-6 grid grid-cols-1 gap-6 content-start">
+      <div className="px-6 grid grid-cols-1 gap-4 content-start">
         <section className="w-full">
           <div className="flex justify-between items-end mb-3 px-1">
             <h2 className="text-sm font-extrabold text-text-secondary dark:text-text-secondary uppercase tracking-widest">Wallets</h2>

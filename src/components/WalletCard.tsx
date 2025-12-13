@@ -41,21 +41,24 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
       <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-white/5 rounded-full pointer-events-none"></div>
 
+      {/* Bottom Right Watermark */}
+      <div className="absolute -bottom-4 -right-4 w-20 h-20 border-4 border-white/10 rounded-full opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
+
       <div className="flex flex-col h-full relative z-10">
-        <div className="flex justify-between items-start">
-            <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">
-                  {wallet.type === WalletType.CREDIT_CARD ? 'Available Limit' : 'Balance'}
-                </span>
-                <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
-            </div>
-            <div className="p-1 bg-white/20 rounded-full">
-              {getWalletIcon(wallet.type as WalletType, "w-4 h-4 opacity-90")}
+        <div className="flex-1 flex flex-col justify-start">
+            <div className="flex justify-between items-start">
+                <span className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</span>
+                <div className="p-1.5 bg-white/20 rounded-full">
+                  {getWalletIcon(wallet.type as WalletType, "w-4 h-4 opacity-90")}
+                </div>
             </div>
         </div>
 
-        <div className="flex-1 flex items-end">
-            <p className="text-2xl font-bold tracking-tight leading-tight">
+        <div>
+            <span className="text-xs font-bold uppercase tracking-wider opacity-70 block leading-tight">
+              {wallet.type === WalletType.CREDIT_CARD ? 'Available Limit' : 'Total Balance'}
+            </span>
+            <p className="text-xl font-bold tracking-tight leading-tight">
                 {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
         </div>
