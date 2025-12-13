@@ -36,7 +36,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const [type, setType] = useState<string>('');
   const [balance, setBalance] = useState('');
   // Hardcoded default for simplicity, matching the teal default or new blue
-  const DEFAULT_PRIMARY = '#2563eb';
+  const DEFAULT_PRIMARY = '#2563EB';
   const DEFAULT_DANGER = '#ef4444';
   const DEFAULT_INFO = '#3b82f6';
 
