@@ -398,7 +398,7 @@ const App: React.FC = () => {
               }
               return { 
                   ...prev, 
-                  wallets: prev.wallets.map(w => w.id === id ? { ...w, ...wData, color: wData.color, textColor: wData.textColor } : w),
+                  wallets: prev.wallets.map(w => w.id === id ? { ...w, ...wData } : w),
                   transactions: newTransactions
               };
           });
@@ -529,7 +529,7 @@ const App: React.FC = () => {
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
               <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
                   <div className="flex justify-between items-center">
-                     <Logo className="text-2xl" />
+                     <Logo className="h-8" />
                   </div>
               </div>
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">

@@ -161,11 +161,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
 
       {/* Backup Sheet */}
       {showBackupSheet && (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBackupSheet(false)}>
-            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 space-y-3" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg text-text-primary">Backup Options</h3>
-                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBackupSheet(false)}>
+            <div className="bg-surface w-full rounded-t-[2rem] p-6 animate-in slide-in-from-bottom duration-300 space-y-3 pb-safe" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6 px-2">
+                    <h3 className="font-bold text-xl text-text-primary">Backup Options</h3>
+                    <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 
                 {[
@@ -174,11 +174,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                     { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Google Sheets", action: () => handleExport('CSV', 'SHARE') },
                     { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for data migration", action: () => handleExport('TEMPLATE', 'SHARE') }
                 ].map((opt, i) => (
-                    <button key={i} onClick={opt.action} className="w-full flex items-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-                        <div className="mr-4">{opt.icon}</div>
+                    <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-app-bg hover:bg-gray-100 transition-colors border border-transparent hover:border-border group">
+                        <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>
                         <div className="text-left">
-                            <div className="font-medium text-sm text-text-primary">{opt.title}</div>
-                            <div className="text-xs text-text-secondary">{opt.desc}</div>
+                            <div className="font-bold text-text-primary">{opt.title}</div>
+                            <div className="text-xs text-text-secondary font-medium">{opt.desc}</div>
                         </div>
                     </button>
                 ))}
@@ -188,23 +188,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
 
       {/* Currency Modal */}
       {showCurrencyModal && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCurrencyModal(false)}>
-            <div className="bg-surface w-[90%] max-w-md rounded-3xl max-h-[80vh] overflow-y-auto p-6 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-lg text-text-primary">Select Currency</h3>
-                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full"><X className="w-4 h-4" /></button>
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCurrencyModal(false)}>
+            <div className="bg-surface w-full rounded-t-[2rem] max-h-[80vh] overflow-y-auto p-6 animate-in slide-in-from-bottom duration-300 pb-safe" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6 px-2">
+                    <h3 className="font-bold text-xl text-text-primary">Select Currency</h3>
+                    <button onClick={() => setShowCurrencyModal(false)} className="p-2 bg-app-bg rounded-full hover:bg-gray-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="space-y-2">
                     {CURRENCIES.map(c => (
-                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary/20 text-primary' : 'hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'}`}>
-                            <div className="flex items-center space-x-3">
-                                <span className="text-xl w-8 text-center font-bold opacity-80">{c.symbol}</span>
+                        <button key={c.code} onClick={() => { onCurrencyChange(c.code); setShowCurrencyModal(false); }} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${data.currency === c.code ? 'bg-primary/10 border border-primary text-primary' : 'bg-app-bg hover:bg-gray-100 border border-transparent'}`}>
+                            <div className="flex items-center space-x-4">
+                                <span className="text-2xl w-10 text-center font-black opacity-80">{c.symbol}</span>
                                 <div className="text-left">
-                                    <div className="font-medium text-sm">{c.code}</div>
-                                    <div className="text-xs opacity-60">{c.name}</div>
+                                    <div className="font-bold">{c.code}</div>
+                                    <div className="text-xs font-medium opacity-60">{c.name}</div>
                                 </div>
                             </div>
-                            {data.currency === c.code && <Check className="w-5 h-5 text-primary" />}
+                            {data.currency === c.code && <Check className="w-6 h-6 text-primary" />}
                         </button>
                     ))}
                 </div>

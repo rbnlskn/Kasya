@@ -97,6 +97,7 @@ export interface Loan {
   recurrence: RecurrenceFrequency; 
   icon: string;
   startDate: string; // ISO String
+  endDate?: string; // ISO String
   duration?: number;
   durationUnit?: 'DAYS' | 'MONTHS' | 'YEARS';
 }

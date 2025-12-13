@@ -157,7 +157,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       color: '',
       textColor: '',
       currency: 'PHP',
-  }), [name, type, currentBalanceVal]);
+  }), [name, type, balance, currentBalanceVal]);
 
 
   return (
@@ -187,17 +187,16 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1.5 block">Templates</label>
-            <div className="flex overflow-x-auto space-x-2 pb-2 -mx-6 px-6">
+            <div className="grid grid-cols-4 gap-2">
                 {WALLET_TEMPLATES.map((c, idx) => (
                     <button
                         key={idx}
                         type="button"
                         onClick={() => handleTemplateSelect(c)}
-                        className={`w-28 h-16 rounded-lg ${c.bg} ${c.text} flex flex-col items-center justify-center font-bold text-xs shadow-sm transition-transform active:scale-95 leading-tight p-2 flex-shrink-0 relative overflow-hidden`}
+                        className={`w-full h-12 rounded-lg ${c.bg} ${c.text} flex items-center justify-center font-bold text-[10px] shadow-sm transition-transform active:scale-95 flex-col leading-tight p-1`}
                     >
-                        <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-white/10 rounded-full pointer-events-none"></div>
-                        <span className="truncate">{c.name}</span>
-                        <span className="text-[10px] opacity-70 font-normal">{c.type}</span>
+                        <span>{c.name}</span>
+                        <span className="text-[8px] opacity-70 font-normal">{c.type}</span>
                     </button>
                 ))}
             </div>
@@ -230,12 +229,12 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
             <div className="relative group">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-medium group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
                 type="number" 
                 value={balance} 
                 onChange={e => setBalance(e.target.value)}
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl pl-8 pr-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400"
                 required 
                 inputMode="decimal"
                 step="0.01"

@@ -95,12 +95,12 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         <div className="text-right flex-shrink-0 pl-2">
           <div className="flex flex-col items-end">
              {isTransfer ? (
-                <div className="font-bold text-sm text-blue-600">
+                <div className="font-bold text-sm text-gray-800">
                     <span>{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     {fee > 0 && <span className="text-red-500 text-xs ml-1">& -{currencySymbol}{fee}</span>}
                 </div>
              ) : (
-                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                 <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-gray-800'}`}>
                     {isPositive ? '+' : '-'}{currencySymbol}{displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                  </p>
              )}
