@@ -103,7 +103,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   return (
     <>
     <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4 pb-safe">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity pointer-events-auto" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-black/40 transition-opacity pointer-events-auto" onClick={onClose}></div>
 
       <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
         <div className="flex justify-between items-center mb-6">
@@ -262,9 +262,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
     {/* OVERLAY SELECTORS */}
     {selectorView !== 'NONE' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectorView('NONE')}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" onClick={() => setSelectorView('NONE')}>
 
-             {selectorView !== 'TIME_PICKER' && (
+             {selectorView !== 'TIME_PICKER' && selectorView !== 'DATE_PICKER' && (
                  <div className="bg-surface w-[90%] max-w-md rounded-3xl p-4 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
                     <div className="flex justify-between items-center mb-4 p-2">
                         <h3 className="font-bold text-lg text-text-primary">

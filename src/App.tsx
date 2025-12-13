@@ -135,7 +135,7 @@ const App: React.FC = () => {
             setSelectedBudgetId(null);
             setIsOverlayExiting(false);
         }
-    }, 300);
+    }, 200);
   }, [overlay, returnToWalletList, returnToBudgetList]);
 
   const closeModal = useCallback(() => {
@@ -152,7 +152,7 @@ const App: React.FC = () => {
           setSelectedLoanId(null);
           setPresetTransaction(undefined);
           setTransactionModalTitle(undefined);
-      }, 300);
+      }, 200);
   }, [overlay]);
 
   const handleBack = useCallback(() => {
