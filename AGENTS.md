@@ -26,12 +26,29 @@ You must check the labels on the Issue before acting.
     -   **Important:** Link the Batch Issue in the PR description (e.g., "Fixes #123").
     -   Post a comment on the Batch Issue with the link to the PR (e.g., "PR Created: #456") or the text "pull request" to trigger the next phase.
 
-## 3. PR Revision Protocol
+## 3. Pull Request Standards
+When opening a Pull Request, you MUST follow this description format to ensure automation works correctly:
+
+```markdown
+## Summary
+A brief paragraph describing the overall changes.
+
+## Breakdown
+
+### Issue #<id>
+- Detailed bullet points of what was fixed or changed for this specific issue.
+
+### Issue #<id>
+- Changes for the next issue...
+```
+*Note: The `### Issue #<id>` headers are critical. The automation uses them to extract comments and close the specific sub-issues.*
+
+## 4. PR Revision Protocol
 If the user requests changes on your PR:
 1.  **Acknowledge:** Post a comment acknowledging the feedback.
 2.  **Plan:** Briefly state your revised plan to fix it.
 3.  **Execute:** Push changes to the branch immediately.
 4.  **Summarize:** Post a comment summarizing the changes made.
 
-## 4. Batching Strategy
+## 5. Batching Strategy
 - **Multiple Issue Handling:** If the issue description references sub-issues (e.g., "Fixes #12"), solve ALL of them in this session.
