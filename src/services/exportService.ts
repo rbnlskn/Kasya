@@ -1,9 +1,7 @@
-import { Filesystem, Directory, Encoding, PermissionStatus } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
-import { AppState, Transaction } from '../types';
-
-const FOLDER_NAME = 'Kasya';
+import { AppState } from '../types';
 
 const getFormattedDate = () => {
   const date = new Date();
@@ -13,78 +11,67 @@ const getFormattedDate = () => {
   return `${mm}-${dd}-${yyyy}`;
 };
 
-const createKasyaFolder = async () => {
-    try {
-        await Filesystem.mkdir({
-            path: FOLDER_NAME,
-            directory: Directory.Documents,
-            recursive: true
-        });
-    } catch (e) {
-        console.info('Kasya folder might already exist or failed to create.', e);
-    }
-};
-
-const checkAndRequestPermissions = async (): Promise<boolean> => {
-    if (!Capacitor.isNativePlatform()) return true;
-
-    try {
-        // Unconditionally request permissions to force a check/prompt if needed.
-        // This handles cases where the initial check might be misleading or cached.
-        const permStatus = await Filesystem.requestPermissions();
-        return permStatus.publicStorage === 'granted';
-    } catch (e) {
-        console.error('Permission check failed', e);
-        return false;
-    }
-};
-
 export const exportBackup = async (data: AppState): Promise<{ success: boolean; message: string }> => {
   if (!Capacitor.isNativePlatform()) {
-    return { success: false, message: 'Backup is only available on native devices.' };
-  }
-
-  const hasPermission = await checkAndRequestPermissions();
-  if (!hasPermission) {
-    return { success: false, message: 'Storage permission is required to save backups. Please grant it in your device settings.' };
+    // For web, we can just download the file as a blob
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Kasya-Backup-${getFormattedDate()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    return { success: true, message: 'Backup downloaded successfully.' };
   }
 
   try {
-    await createKasyaFolder();
-
     const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
-    const path = `${FOLDER_NAME}/${fileName}`;
 
+    // Write to Cache directory (no permissions needed)
     const result = await Filesystem.writeFile({
-        path: path,
+        path: fileName,
         data: JSON.stringify(data, null, 2),
-        directory: Directory.Documents,
+        directory: Directory.Cache,
         encoding: Encoding.UTF8,
     });
 
-    return { success: true, message: `Backup saved to Documents/${path}` };
+    // Share the file
+    await Share.share({
+        title: 'Backup Kasya Data',
+        text: 'Here is your backup file.',
+        url: result.uri,
+        dialogTitle: 'Save Backup'
+    });
+
+    return { success: true, message: 'Backup ready to share/save.' };
 
   } catch (error) {
     console.error('Backup failed:', error);
-    return { success: false, message: 'Failed to save backup. An unexpected error occurred.' };
+    return { success: false, message: 'Failed to generate backup.' };
   }
 };
 
 export const downloadTransactionTemplate = async (): Promise<{ success: boolean; message: string }> => {
     if (!Capacitor.isNativePlatform()) {
-        return { success: false, message: 'Download is only available on native devices.' };
-    }
-
-    const hasPermission = await checkAndRequestPermissions();
-    if (!hasPermission) {
-        return { success: false, message: 'Storage permission is required. Please grant it in settings.' };
+         // For web
+        const csvContent = [
+            "Date,Time,Type,Amount,Wallet,Category,Description",
+            "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
+            "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
+            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
+        ].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Kasya-Transaction-Template.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        return { success: true, message: 'Template downloaded.' };
     }
 
     try {
-        await createKasyaFolder();
-
         const fileName = 'Kasya-Transaction-Template.csv';
-        const path = `${FOLDER_NAME}/${fileName}`;
         const csvContent = [
             "Date,Time,Type,Amount,Wallet,Category,Description",
             "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
@@ -92,17 +79,25 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
             "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
         ].join('\n');
 
-        await Filesystem.writeFile({
-            path: path,
+        // Write to Cache directory
+        const result = await Filesystem.writeFile({
+            path: fileName,
             data: csvContent,
-            directory: Directory.Documents,
+            directory: Directory.Cache,
             encoding: Encoding.UTF8,
         });
 
-        return { success: true, message: `Template saved to Documents/${path}` };
+        // Share the file
+        await Share.share({
+            title: 'Kasya Transaction Template',
+            url: result.uri,
+            dialogTitle: 'Save Template'
+        });
+
+        return { success: true, message: 'Template ready to share/save.' };
 
     } catch (error) {
         console.error('Template download failed:', error);
-        return { success: false, message: 'Failed to save template. An error occurred.' };
+        return { success: false, message: 'Failed to generate template.' };
     }
 };

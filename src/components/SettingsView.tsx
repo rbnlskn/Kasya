@@ -51,7 +51,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
     });
   }
 
-  const handleImportClick = () => fileInputRef.current?.click();
+  const handleImportClick = () => {
+     // Ensure ref exists and click it.
+     // This native HTML input click works reliably across Capacitor WebViews for file picking
+     // without needing extra permissions.
+     if(fileInputRef.current) {
+         fileInputRef.current.click();
+     }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
