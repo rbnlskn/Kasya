@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/rbnlskn/Kasya/compare/v1.8.5...v1.9.0) (2025-12-14)
+
+
+### Features
+
+* Request permissions on startup ([#119](https://github.com/rbnlskn/Kasya/issues/119)) ([8a27813](https://github.com/rbnlskn/Kasya/commit/8a27813af463198ba833130c31332d5bc92c6d35))
+
 ### [1.8.5](https://github.com/rbnlskn/Kasya/compare/v1.8.4...v1.8.5) (2025-12-14)
 
 ### [1.8.4](https://github.com/rbnlskn/Kasya/compare/v1.8.2...v1.8.4) (2025-12-14)
