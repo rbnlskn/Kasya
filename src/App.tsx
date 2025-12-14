@@ -432,7 +432,7 @@ const App: React.FC = () => {
           loansList.push({ ...loanData, id: newLoanId });
       }
       setData(prev => ({ ...prev, loans: loansList }));
-      if (initialTransactionWalletId && !id && newLoanId) {
+      if (initialTransactionWalletId && !id && newLoanId && loanData.type === 'PAYABLE') {
            const isPayable = loanData.type === 'PAYABLE'; 
            const principal = loanData.totalAmount - (loanData.interest || 0);
            const txAmount = principal - (loanData.fee || 0);
@@ -526,8 +526,8 @@ const App: React.FC = () => {
                      <Logo size="2rem" />
                   </div>
               </div>
-              <div className="flex-1 flex flex-col p-6 pt-2 pb-24">
-                 <div className="flex flex-col gap-4 flex-1">
+              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
+                 <div className="grid grid-cols-1 gap-4 content-start">
                      <section>
                          <div className="flex justify-between items-end mb-2 px-1">
                             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Wallets</h2>
@@ -549,7 +549,7 @@ const App: React.FC = () => {
                          </div>
                      </section>
 
-<section className="w-full">
+<section>
     <div className="flex justify-between items-end mb-2 px-1">
         <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Budgets</h2>
         <button onClick={() => handleOpenOverlay('ALL_BUDGETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
@@ -571,16 +571,17 @@ const App: React.FC = () => {
     </div>
 </section>
 
-<section className="flex flex-col flex-1 min-h-0">
+<section>
     <div className="flex justify-between items-center mb-2 px-1">
         <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Recents</h2>
         <button onClick={() => handleOpenOverlay('ALL_TRANSACTIONS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
     </div>
-    <div className="grid gap-0 flex-1 overflow-y-auto no-scrollbar">
+    <div>
         {data.transactions.length === 0 ? (
-            <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200 h-full flex items-center justify-center">No recent transactions</div>
+            <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
         ) : (
-            recentTransactionsWithHeaders.slice(0, 3).map((item) => (
+            <div className="grid gap-0">
+                {recentTransactionsWithHeaders.slice(0, 3).map((item) => (
                 <TransactionItem
                     key={item.tx.id}
                     transaction={item.tx}
@@ -590,7 +591,8 @@ const App: React.FC = () => {
                     dateHeader={item.header}
                     currencySymbol={currentCurrency.symbol}
                 />
-            ))
+            ))}
+            </div>
         )}
     </div>
 </section>
