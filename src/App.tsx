@@ -27,6 +27,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { COLORS } from './styles/theme.js';
+import { requestInitialPermissions } from './services/permissionService';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
@@ -71,6 +72,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const initApp = async () => {
         try {
+            await requestInitialPermissions();
             const loadedData = await loadData();
             setData(loadedData);
         } catch (e) {
