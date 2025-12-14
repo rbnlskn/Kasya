@@ -17,13 +17,9 @@ export const requestInitialPermissions = async (): Promise<void> => {
 
     try {
         // 1. Request Storage Permissions (Filesystem)
-        // We check first to avoid unnecessary prompts if already granted,
-        // although requestPermissions usually handles this check internally.
-        const storageStatus = await Filesystem.checkPermissions();
-
-        if (storageStatus.publicStorage !== 'granted') {
-            await Filesystem.requestPermissions();
-        }
+        // We unconditionally request permissions to ensure the prompt appears if possible.
+        // On Android 13+, this might not show a dialog for "Storage" but checks against granular permissions if configured.
+        await Filesystem.requestPermissions();
 
         // 2. Request Notification Permissions
         const notificationStatus = await LocalNotifications.checkPermissions();

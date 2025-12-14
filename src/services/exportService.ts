@@ -29,13 +29,9 @@ const checkAndRequestPermissions = async (): Promise<boolean> => {
     if (!Capacitor.isNativePlatform()) return true;
 
     try {
-        let permStatus = await Filesystem.checkPermissions();
-
-        if (permStatus.publicStorage === 'granted') {
-            return true;
-        }
-
-        permStatus = await Filesystem.requestPermissions();
+        // Unconditionally request permissions to force a check/prompt if needed.
+        // This handles cases where the initial check might be misleading or cached.
+        const permStatus = await Filesystem.requestPermissions();
         return permStatus.publicStorage === 'granted';
     } catch (e) {
         console.error('Permission check failed', e);
