@@ -2,7 +2,14 @@
 . "$(dirname "$0")/_/husky.sh"
 set -e
 
-echo "Running auto-increment..."
+branch_name=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached")
+
+if [ "$branch_name" = "main" ]; then
+  echo "On branch main. Skipping auto-increment."
+  exit 0
+fi
+
+echo "Running auto-increment on branch $branch_name..."
 node scripts/auto-increment.cjs
 node scripts/sync-version.cjs
 git add package.json src/constants.ts android/app/build.gradle
