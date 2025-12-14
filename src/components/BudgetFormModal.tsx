@@ -84,7 +84,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
                 <div className="flex items-center text-text-primary">
                     {selectedCategoryObj ? (
                         <>
-                            <div className="w-9 h-9 icon-container text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
+                            <div className="w-8 h-8 icon-container text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
                             <span className="font-medium text-sm">{selectedCategoryObj.name}</span>
                         </>
                     ) : <span className="pl-2 text-sm text-text-secondary">Select Category</span>}

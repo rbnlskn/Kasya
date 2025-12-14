@@ -179,7 +179,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
-                                <div className="w-9 h-9 icon-container" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
+                                <div className="w-8 h-8 icon-container" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
                                     {getCategoryIcon(selectedCategory)}
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
@@ -199,7 +199,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
-                            <div className={`w-9 h-9 icon-container ${getWallet(selectedWallet)?.color || 'bg-gray-100'} ${getWallet(selectedWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
+                            <div className={`w-8 h-8 icon-container ${getWallet(selectedWallet)?.color || 'bg-gray-100'} ${getWallet(selectedWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
                                 {getWalletIcon(getWallet(selectedWallet)?.type || '')}
                             </div>
                             <span className="text-sm font-bold text-text-primary">{getWalletName(selectedWallet)}</span>
@@ -220,7 +220,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
-                                <div className={`w-9 h-9 icon-container ${getWallet(selectedToWallet)?.color || 'bg-gray-100'} ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
+                                <div className={`w-8 h-8 icon-container ${getWallet(selectedToWallet)?.color || 'bg-gray-100'} ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
                                     {getWalletIcon(getWallet(selectedToWallet)?.type || '')}
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>

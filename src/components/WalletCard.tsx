@@ -55,7 +55,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       {/* Background Decorations */}
       <div className={`absolute w-[280px] h-[280px] rounded-full top-5 right-[-80px] z-0 ${watermarkBg}`}></div>
       <div
-        className={`absolute text-[160px] filter grayscale pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-10px] right-[-30px]' : 'bottom-[-40px] right-[-30px]'} ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
+        className={`absolute text-[160px] filter saturate-0 pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-10px] right-[-30px]' : 'bottom-[-40px] right-[-30px]'} ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
       >
         {emoji}
       </div>
@@ -89,9 +89,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
 // Exporting the original getWalletIcon in case it's used elsewhere in the app.
 import { CreditCard, Wallet as WalletIcon, Landmark, Smartphone, TrendingUp, Bitcoin } from 'lucide-react';
 
-export const getWalletIcon = (type: string, className: string = "w-full h-full filter grayscale") => {
+export const getWalletIcon = (type: string, className: string = "w-full h-full") => {
     const { emoji } = getWalletTypeDetails(type);
-    return <span className={`text-2xl ${className}`}>{emoji}</span>;
+    return <span className={`text-2xl filter grayscale ${className}`}>{emoji}</span>;
 };
 
 export default WalletCard;
