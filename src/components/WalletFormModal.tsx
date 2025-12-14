@@ -169,7 +169,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialWallet ? 'Edit Wallet' : 'New Wallet'}</h2>
           <div className="flex items-center space-x-2">
             {initialWallet && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
-            <button onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            <button data-testid="close-button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
 
@@ -185,17 +185,24 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1.5 block">Templates</label>
-            <div className="grid grid-cols-4 gap-2">
-                {WALLET_TEMPLATES.map((c, idx) => (
-                    <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleTemplateSelect(c)}
-                        className={`w-full h-12 rounded-lg ${c.bg} ${c.text} flex items-center justify-center font-bold text-[10px] shadow-sm transition-transform active:scale-95 flex-col leading-tight p-1`}
-                    >
-                        <span>{c.name}</span>
-                        <span className="text-[8px] opacity-70 font-normal">{c.type}</span>
-                    </button>
+            <div className="flex overflow-x-auto space-x-3 pb-2 -mx-6 px-6 no-scrollbar">
+                {WALLET_TEMPLATES.map((template, idx) => (
+                    <div key={idx} className="flex-shrink-0 w-[170px] h-[100px] cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all" onClick={() => handleTemplateSelect(template)}>
+                        <div className="scale-[0.5] origin-top-left">
+                             <WalletCard
+                                wallet={{
+                                    id: `template-${idx}`,
+                                    name: template.name,
+                                    type: template.type,
+                                    balance: 0,
+                                    color: template.bg,
+                                    textColor: template.text,
+                                    currency: 'PHP'
+                                }}
+                                currencySymbol={currencySymbol}
+                            />
+                        </div>
+                    </div>
                 ))}
             </div>
           </div>
@@ -227,12 +234,12 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
             <div className="relative group">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
                 type="number" 
                 value={balance} 
                 onChange={e => setBalance(e.target.value)}
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400"
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 required 
                 inputMode="decimal"
                 step="0.01"

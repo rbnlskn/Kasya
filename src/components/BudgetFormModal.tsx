@@ -84,7 +84,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
                 <div className="flex items-center text-text-primary">
                     {selectedCategoryObj ? (
                         <>
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
+                            <div className="w-10 h-10 icon-container text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
                             <span className="font-medium text-sm">{selectedCategoryObj.name}</span>
                         </>
                     ) : <span className="pl-2 text-sm text-text-secondary">Select Category</span>}
@@ -101,8 +101,8 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
             <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-xl group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl py-3 pl-10 pr-4 text-xl font-black text-text-primary outline-none transition-all placeholder-slate-400" required placeholder="0.00" inputMode="decimal" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
@@ -121,7 +121,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
             <div className="grid grid-cols-4 gap-4">
                 {categories.map(c => (
                     <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/5 border-2 border-primary' : 'hover:bg-slate-100'}`}>
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl mb-2" style={{backgroundColor: c.color}}>{c.icon}</div>
+                        <div className="w-10 h-10 icon-container text-xl mb-2" style={{backgroundColor: c.color}}>{c.icon}</div>
                         <span className="text-xs font-semibold text-center leading-tight truncate w-full text-text-primary">{c.name}</span>
                     </button>
                 ))}

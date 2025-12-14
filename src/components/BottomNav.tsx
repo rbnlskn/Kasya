@@ -25,7 +25,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
                 <BarChart3 className="w-5 h-5" />
             </button>
             
-            <button onClick={onAddClick} className="w-12 h-12 bg-primary rounded-2xl shadow-lg shadow-primary/40 flex items-center justify-center text-white hover:bg-primary-hover transition-transform active:scale-95 mx-2">
+            <button data-testid="add-transaction-button" onClick={onAddClick} className="w-12 h-12 bg-primary rounded-2xl shadow-lg shadow-primary/40 flex items-center justify-center text-white hover:bg-primary-hover transition-transform active:scale-95 mx-2">
                 <Plus className="w-6 h-6" />
             </button>
             

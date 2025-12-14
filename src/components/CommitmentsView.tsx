@@ -191,38 +191,65 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-  const validLoans = loans.filter(loan => {
-    const start = new Date(loan.startDate);
-    const startMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+  const isLoanDueInMonth = (loan: Loan, checkDate: Date): boolean => {
+    // If paid, only show in the month it was paid.
+    if (loan.status === 'PAID') {
+      if (!loan.lastPaidDate) return false;
+      const paidDate = new Date(loan.lastPaidDate);
+      return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
+    }
 
-    const current = new Date(currentDate);
-    const currentMonth = new Date(current.getFullYear(), current.getMonth(), 1);
+    const startDate = new Date(loan.startDate);
 
-    if (startMonth > currentMonth) return false;
+    // Loans without due days are shown every month after start.
+    if (!loan.dueDay || loan.dueDay === 0) {
+      const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const checkMonth = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
+      return checkMonth >= startMonth;
+    }
 
-    // Indefinite (No Due Day) loans are always valid from their start date
-    if (loan.dueDay === 0) {
-        if (loan.status === 'PAID') {
-            const paidDate = loan.lastPaidDate ? new Date(loan.lastPaidDate) : new Date();
-            const paidMonth = new Date(paidDate.getFullYear(), paidDate.getMonth(), 1);
-            return current <= paidMonth;
-        }
+    // Calculate first due date
+    let firstDueDate = new Date(startDate);
+    firstDueDate.setDate(loan.dueDay);
+    if (firstDueDate < startDate) {
+      firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
+
+    if (loan.recurrence === 'ONE_TIME') {
+        return firstDueDate.getFullYear() === checkDate.getFullYear() && firstDueDate.getMonth() === checkDate.getMonth();
+    }
+
+    const duration = loan.duration || 1200; // 100 years fallback
+    for (let i = 0; i < duration; i++) {
+      let installmentDate = new Date(firstDueDate);
+
+      switch (loan.recurrence) {
+        case 'MONTHLY':
+          installmentDate.setMonth(firstDueDate.getMonth() + i);
+          break;
+        case 'YEARLY':
+          installmentDate.setFullYear(firstDueDate.getFullYear() + i);
+          break;
+        case 'WEEKLY':
+          installmentDate.setDate(firstDueDate.getDate() + (i * 7));
+          break;
+        default:
+          return false;
+      }
+
+      if (installmentDate.getFullYear() > checkDate.getFullYear() ||
+         (installmentDate.getFullYear() === checkDate.getFullYear() && installmentDate.getMonth() > checkDate.getMonth())) {
+        return false;
+      }
+
+      if (installmentDate.getFullYear() === checkDate.getFullYear() && installmentDate.getMonth() === checkDate.getMonth()) {
         return true;
+      }
     }
+    return false;
+  };
 
-    // For one-time loans, check if the calculated due date falls in the current month.
-    if (loan.recurrence === 'ONE_TIME' && loan.duration && loan.durationUnit) {
-        const dueDate = new Date(start);
-        if (loan.durationUnit === 'DAYS') dueDate.setDate(start.getDate() + loan.duration);
-        else if (loan.durationUnit === 'MONTHS') dueDate.setMonth(start.getMonth() + loan.duration);
-        else if (loan.durationUnit === 'YEARS') dueDate.setFullYear(start.getFullYear() + loan.duration);
-
-        return dueDate.getFullYear() === current.getFullYear() && dueDate.getMonth() === current.getMonth();
-    }
-
-    // For recurring loans, they are valid every month after start.
-    return true;
-});
+  const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));
 
   const SectionHeader = ({ title, icon, onAdd, onViewAll }: { title: string, icon: React.ReactNode, onAdd?: () => void, onViewAll?: () => void }) => (
     <div className="flex justify-between items-center mb-3">

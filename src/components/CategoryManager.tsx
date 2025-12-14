@@ -99,7 +99,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                     >
                         {/* SQUIRCLE ICON: Standardized */}
                         <div 
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-2xl mb-2 relative shadow-sm ${!cat.color.startsWith('#') ? cat.color : ''}`}
+                            className={`icon-container text-2xl mb-2 relative shadow-sm ${!cat.color.startsWith('#') ? cat.color : ''}`}
                             style={getStyle(cat.color)}
                         >
                             <span className="text-2xl">{cat.icon}</span>
@@ -136,7 +136,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                       <button 
                           type="button" 
                           onClick={() => setEmojiPickerOpen(true)} 
-                          className={`w-24 h-24 rounded-xl flex items-center justify-center text-5xl shadow-sm transition-transform hover:scale-105 active:scale-95 ${!editingCategory.color.startsWith('#') ? editingCategory.color : ''}`}
+                          className={`w-24 h-24 rounded-2xl flex items-center justify-center text-5xl shadow-sm transition-transform hover:scale-105 active:scale-95 ${!editingCategory.color.startsWith('#') ? editingCategory.color : ''}`}
                           style={getStyle(editingCategory.color)}
                       >
                           {editingCategory.icon}
