@@ -16,7 +16,7 @@ interface CommitmentsViewProps {
   onPayBill: (bill: Bill) => void;
   onAddLoan: () => void;
   onEditLoan: (loan: Loan) => void;
-  onPayLoan: (loan: Loan) => void;
+  onPayLoan: (loan: Loan, amount?: number) => void;
   onPayCC: (wallet: Wallet) => void;
   onWalletClick?: (wallet: Wallet) => void;
 }
@@ -342,8 +342,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
         <SectionHeader title="Loans & Debts" icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
         <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {validLoans.filter(l => l.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
-             {validLoans.filter(l => l.status !== 'PAID').length === 0 && (
+            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
+             {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
                 <div className="text-center text-sm text-gray-400 py-6">No active loans.</div>
             )}
         </div>
@@ -417,13 +417,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
                     {loanFilter === 'ACTIVE' ? (
                         <>
-                            {validLoans.filter(l => l.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
-                            {validLoans.filter(l => l.status !== 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(l => renderLoanItem(l))}
                         </>
                     ) : (
                         <>
-                            {validLoans.filter(l => l.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
-                            {validLoans.filter(l => l.status === 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map(l => renderLoanItem(l))}
                         </>
                     )}
                 </div>
