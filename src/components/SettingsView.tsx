@@ -44,50 +44,93 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-      try {
-        const result = event.target?.result as string;
-        if (file.name.endsWith('.json')) {
-             const parsed = JSON.parse(result);
-             if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
-                onImport(parsed);
-                alert('Data imported successfully!');
-             } else { throw new Error('Invalid JSON structure'); }
-        } else if (file.name.endsWith('.csv')) {
-            const lines = result.split('\n').slice(1); // Skip header
-            const newTransactions: Transaction[] = [];
-            lines.forEach((line, index) => {
-                if (!line.trim()) return;
-                const [date, time, type, amount, walletName, categoryName, description] = line.split(',');
-
-                const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === walletName.trim().toLowerCase());
-                const category = data.categories.find(c => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase());
-
-                if (!wallet || !category) {
-                    console.warn(`Skipping line ${index + 2}: Wallet or Category not found.`);
+        try {
+            const result = event.target?.result as string;
+            if (file.name.endsWith('.json')) {
+                const parsed = JSON.parse(result);
+                if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
+                    onImport(parsed);
+                    alert('Data imported successfully!');
+                } else { throw new Error('Invalid JSON structure'); }
+            } else if (file.name.endsWith('.csv')) {
+                const lines = result.split(/\r?\n/);
+                if (lines.length < 2) {
+                    alert('CSV file is empty or has no data rows.');
                     return;
                 }
 
-                newTransactions.push({
-                    id: `tx_csv_${Date.now()}_${index}`,
-                    date: new Date(`${date} ${time}`).toISOString(),
-                    type: type.toUpperCase() as TransactionType,
-                    amount: parseFloat(amount),
-                    walletId: wallet.id,
-                    categoryId: category.id,
-                    description: description,
-                    createdAt: Date.now() + index,
-                });
-            });
+                const headers = lines[0].split(',').map(h => h.trim());
+                const dataRows = lines.slice(1);
 
-            if (newTransactions.length > 0) {
-                const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions] };
-                onImport(updatedData);
-                alert(`${newTransactions.length} transactions imported successfully!`);
-            } else {
-                alert('No new transactions were imported. Please check the CSV file format.');
+                const newTransactions: Transaction[] = [];
+                let skippedCount = 0;
+
+                dataRows.forEach((line, index) => {
+                    if (!line.trim()) return; // Skip empty rows
+                    const values = line.split(',');
+
+                    // Create an object from headers and values
+                    const row = headers.reduce((obj, header, i) => {
+                        obj[header.toLowerCase()] = values[i]?.trim();
+                        return obj;
+                    }, {} as Record<string, string>);
+
+
+                    const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === row.wallet?.toLowerCase());
+                    const category = data.categories.find(c => c.name.trim().toLowerCase() === row.category?.toLowerCase());
+
+                    if (!wallet || !category || !row.date || !row.type || !row.amount) {
+                        console.warn(`Skipping line ${index + 2}: Missing required data, or Wallet/Category not found.`);
+                        skippedCount++;
+                        return;
+                    }
+
+                    // Robust date parsing
+                    let parsedDate;
+                    if (row.date.includes('-')) { // YYYY-MM-DD
+                        parsedDate = new Date(row.date + (row.time ? `T${row.time}` : 'T00:00:00'));
+                    } else if (row.date.includes('/')) { // MM/DD/YYYY
+                        const parts = row.date.split('/');
+                        const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                        parsedDate = new Date(isoDate + (row.time ? `T${row.time}` : 'T00:00:00'));
+                    } else {
+                        parsedDate = new Date(row.date + (row.time ? ` ${row.time}` : ''));
+                    }
+
+                    if (isNaN(parsedDate.getTime())) {
+                        console.warn(`Skipping line ${index + 2}: Invalid date format.`);
+                        skippedCount++;
+                        return;
+                    }
+
+                    newTransactions.push({
+                        id: `tx_csv_${Date.now()}_${index}`,
+                        date: parsedDate.toISOString(),
+                        type: row.type.toUpperCase() as TransactionType,
+                        amount: parseFloat(row.amount),
+                        walletId: wallet.id,
+                        categoryId: category.id,
+                        description: row.description || '',
+                        createdAt: Date.now() + index,
+                    });
+                });
+
+                if (newTransactions.length > 0) {
+                    const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) };
+                    onImport(updatedData);
+                    let alertMessage = `${newTransactions.length} transactions imported successfully!`;
+                    if (skippedCount > 0) {
+                        alertMessage += `\n${skippedCount} rows were skipped due to errors.`;
+                    }
+                    alert(alertMessage);
+                } else {
+                    alert('No new transactions were imported. Please check the CSV file format and content.');
+                }
             }
+        } catch (err) {
+            console.error("Import error:", err);
+            alert('Failed to import data. Please ensure the file is a valid backup or correctly formatted CSV.');
         }
-      } catch (err) { alert('Failed to import data. Please ensure the file is a valid backup.'); }
     };
     reader.readAsText(file);
     e.target.value = '';
