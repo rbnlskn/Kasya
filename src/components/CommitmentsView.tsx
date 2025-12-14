@@ -130,7 +130,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
     // Overdue check should be against the *actual* next due date, not the projected one
     const actualNextDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
-    if (today > actualNextDueDate && loanStatus?.status !== 'PAID') {
+    if (today > actualNextDueDate) {
          return `Overdue since ${actualNextDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     }
 

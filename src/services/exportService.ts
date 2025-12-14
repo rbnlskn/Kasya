@@ -1,4 +1,4 @@
-import { Filesystem, Directory, Encoding, PermissionState } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding, PermissionStatus } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { AppState, Transaction } from '../types';
@@ -31,12 +31,12 @@ const checkAndRequestPermissions = async (): Promise<boolean> => {
     try {
         let permStatus = await Filesystem.checkPermissions();
 
-        if (permStatus.publicStorage === PermissionState.GRANTED) {
+        if (permStatus.publicStorage === 'granted') {
             return true;
         }
 
         permStatus = await Filesystem.requestPermissions();
-        return permStatus.publicStorage === PermissionState.GRANTED;
+        return permStatus.publicStorage === 'granted';
     } catch (e) {
         console.error('Permission check failed', e);
         return false;
