@@ -5,6 +5,8 @@ import { Category, Wallet, TransactionType, Transaction } from '../types';
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import { formatCurrency } from '../utils/number';
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -20,8 +22,8 @@ interface TransactionFormModalProps {
 }
 
 const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title, isExiting }) => {
-  const [amount, setAmount] = useState('');
-  const [fee, setFee] = useState('');
+  const { value: amount, rawValue: amountRaw, onChange: handleAmountChange, setValue: setAmount } = useCurrencyInput(initialTransaction?.amount || '');
+  const { value: fee, rawValue: feeRaw, onChange: handleFeeChange, setValue: setFee } = useCurrencyInput(initialTransaction?.fee || '');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
@@ -53,21 +55,17 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       }
       setSelectorView('NONE');
     }
-  }, [isOpen, initialTransaction]);
+  }, [isOpen, initialTransaction, setAmount, setFee]);
 
   if (!isOpen && !isExiting) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amountVal = parseFloat(amount);
-    if (isNaN(amountVal) || amountVal <= 0) return;
-    if (!selectedWallet) return;
-    if (type !== TransactionType.TRANSFER && !selectedCategory) return;
-    if (type === TransactionType.TRANSFER && !selectedToWallet) return;
+    if (!isFormValid()) return;
     
     onSave({
-      amount: amountVal,
-      fee: parseFloat(fee) || 0,
+      amount: amountRaw,
+      fee: feeRaw,
       type,
       categoryId: type === TransactionType.TRANSFER ? 'cat_transfer' : selectedCategory,
       walletId: selectedWallet,
@@ -91,10 +89,11 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const getCategoryIcon = (id: string) => getCategory(id)?.icon || null;
 
   const isFormValid = () => {
-      if (!amount || parseFloat(amount) <= 0) return false;
+      if (amountRaw <= 0) return false;
       if (!selectedWallet) return false;
       if (type !== TransactionType.TRANSFER && !selectedCategory) return false;
       if (type === TransactionType.TRANSFER && !selectedToWallet) return false;
+      if (type === TransactionType.TRANSFER && selectedWallet === selectedToWallet) return false;
       return true;
   };
 
@@ -126,10 +125,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
-                type="number" 
+                type="text"
                 value={amount}
-                step="0.01"
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={handleAmountChange}
                 className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 placeholder="0.00"
                 inputMode="decimal"
@@ -144,9 +142,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
                   <input 
-                    type="number" 
+                    type="text"
                     value={fee}
-                    onChange={(e) => setFee(e.target.value)}
+                    onChange={handleFeeChange}
                     className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                     placeholder="0.00"
                     inputMode="decimal"
@@ -179,8 +177,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
-                                <div className="w-8 h-8" style={{ backgroundColor: getCategory(selectedCategory)?.color, borderRadius: '0.75rem' }}>
-                                    <div className="icon-container">{getCategoryIcon(selectedCategory)}</div>
+                                <div className="w-8 h-8 flex items-center justify-center" style={{ backgroundColor: getCategory(selectedCategory)?.color, borderRadius: '0.75rem' }}>
+                                    <div className="text-xl">{getCategoryIcon(selectedCategory)}</div>
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
                              </>
@@ -279,7 +277,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                         <div className="grid grid-cols-4 gap-2">
                             {categories.map(c => (
                                 <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
-                                    <div className="w-10 h-10 text-xl mb-1.5 shadow-sm" style={{backgroundColor: c.color, borderRadius: '0.75rem'}}><div className="icon-container">{c.icon}</div></div>
+                                    <div className="w-12 h-12 flex items-center justify-center text-xl mb-1.5 shadow-sm" style={{backgroundColor: c.color, borderRadius: '1rem'}}><div className="text-xl">{c.icon}</div></div>
                                     <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                                 </button>
                             ))}
@@ -291,12 +289,12 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                             {wallets.map(w => (
                                 <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 ${w.color} ${w.textColor} shadow-sm`} style={{borderRadius: '0.75rem'}}>
-                                          <div className="icon-container">{getWalletIcon(w.type)}</div>
+                                        <div className={`w-10 h-10 ${w.color} ${w.textColor} shadow-sm flex items-center justify-center`} style={{borderRadius: '0.75rem'}}>
+                                          <div className="opacity-50">{getWalletIcon(w.type)}</div>
                                         </div>
                                         <div className="text-left">
                                             <div className="font-bold text-sm text-text-primary">{w.name}</div>
-                                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
+                                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{formatCurrency(w.balance)}</div>
                                         </div>
                                     </div>
                                     {(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}

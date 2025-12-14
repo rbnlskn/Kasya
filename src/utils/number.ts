@@ -1,13 +1,12 @@
-export const formatCurrency = (value: number | string, includeDecimals: boolean = true): string => {
+export const formatCurrency = (value: number | string): string => {
   const numericValue = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
 
   if (isNaN(numericValue)) {
-    return includeDecimals ? '0.00' : '0';
+    return '0.00';
   }
 
-  const options = includeDecimals
-    ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-    : { minimumFractionDigits: 0, maximumFractionDigits: 0 };
-
-  return new Intl.NumberFormat('en-US', options).format(numericValue);
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numericValue);
 };

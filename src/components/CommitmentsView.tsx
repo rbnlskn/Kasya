@@ -186,37 +186,48 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
     const isOverdue = dueDateText.includes('Overdue');
-    const paymentAmount = loan.installmentAmount ? loan.installmentAmount : loan.totalAmount - paidAmount;
+    const paymentAmount = loan.installmentAmount || 0;
+
+    const totalInstallments = loan.duration;
+    const paidInstallments = paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0;
+    const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
 
     return (
-        <div key={loan.id} onClick={() => onEditLoan(loan)} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer active:scale-[0.99] transition-transform">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4 ${isPaid ? 'bg-green-50 text-green-500' : 'bg-rose-50 text-rose-500'}`}>
-                {loanCategoryIcon}
-            </div>
+      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform">
+        <div className="flex items-center justify-between mb-3">
             <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{loan.name}</h4>
-                <p className={`text-[10px] font-medium ${isPaid ? 'text-green-500' : (isOverdue ? 'text-red-500' : 'text-gray-400')}`}>
-                     {dueDateText}
-                </p>
+                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate flex items-center">
+                    {loan.name}
+                    <span className={`text-[9px] font-bold ml-2 px-1.5 py-0.5 rounded ${isPaid ? 'bg-green-100 text-green-600' : (isOverdue ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500')}`}>
+                        {dueDateText}
+                    </span>
+                </h4>
             </div>
-            <div className="flex flex-col items-end ml-2">
-                <span className={`block font-bold text-sm text-gray-800 text-right ${isPaid ? 'opacity-50' : ''}`}>
-                     <span className="text-gray-400 font-medium text-xs">{currencySymbol}{formatCurrency(paidAmount)}</span>
-                     <span className="mx-0.5 text-gray-300">/</span>
-                     <span>{currencySymbol}{formatCurrency(paymentAmount)}</span>
-                </span>
-                
-                {!isPaid && (
-                     <button 
-                        onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
-                        className="text-xs bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-100 mt-1"
-                    >
-                        {loan.type === 'PAYABLE' ? 'Pay' : 'Collect'}
-                    </button>
-                )}
-                {isPaid && <span className="text-[10px] text-green-500 font-bold mt-1">Done</span>}
-            </div>
+            {!isPaid && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
+                    className="text-xs bg-primary/10 text-primary-hover font-bold px-4 py-2 rounded-lg active:scale-95 transition-transform hover:bg-primary/20"
+                >
+                    {loan.type === 'PAYABLE' ? 'Pay' : 'Collect'}
+                </button>
+            )}
         </div>
+
+        <div className="flex items-end justify-between mb-3">
+            <span className={`block font-black text-2xl tracking-tight ${isPaid ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                {currencySymbol}{formatCurrency(paymentAmount)}
+            </span>
+        </div>
+
+        {totalInstallments > 0 && !isPaid && (
+            <div className="flex items-center gap-2">
+                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap">{paidInstallments}/{totalInstallments} payments</span>
+            </div>
+        )}
+      </div>
     );
   };
 
@@ -292,10 +303,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));
 
-  const SectionHeader = ({ title, icon, onAdd, onViewAll }: { title: string, icon: React.ReactNode, onAdd?: () => void, onViewAll?: () => void }) => (
+  const SectionHeader = ({ title, count, icon, onAdd, onViewAll }: { title: string, count: number, icon: React.ReactNode, onAdd?: () => void, onViewAll?: () => void }) => (
     <div className="flex justify-between items-center mb-3">
         <h3 className="text-base font-extrabold text-gray-800 tracking-tight flex items-center">
-            <span className="text-gray-400 mr-2">{icon}</span> {title}
+            <span className="text-gray-400 mr-2">{icon}</span>
+            {title}
+            {count > 0 && <span className="text-xs font-bold text-gray-400 ml-2">({count})</span>}
         </h3>
         <div className="flex items-center space-x-3">
             {onViewAll && <button onClick={onViewAll} className="text-[10px] text-gray-500 font-bold uppercase tracking-wide hover:text-primary">VIEW ALL</button>}
@@ -319,11 +332,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
     </div>
 
-    <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
+    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
 
       {/* Credit Cards */}
 <section>
-    <SectionHeader title="Credit Cards" icon={<CreditCard className="w-4 h-4" />} />
+    <SectionHeader title="Credit Cards" count={creditCards.length} icon={<CreditCard className="w-4 h-4" />} />
     <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
         {creditCards.length > 0 ? creditCards.map(cc => {
             const currentBalance = (cc.creditLimit || 0) - cc.balance;
@@ -332,20 +345,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             return (
                 <div key={cc.id} className="relative flex-shrink-0 group">
                     <WalletCard
-                        wallet={walletWithBalance}
+                        wallet={{...walletWithBalance, label: 'BALANCE'}}
                         currencySymbol={currencySymbol}
                         onClick={(w) => onWalletClick && onWalletClick(w)}
                         scale={0.75}
+                        dueDate={getCCDueText(cc.statementDay)}
                     />
-                    <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
-                        <span className="bg-black/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm font-bold">
-                            {getCCDueText(cc.statementDay)}
-                        </span>
+                    <div className="absolute bottom-4 right-4 z-20">
                         <button
                             onClick={() => onPayCC(cc)}
-                            className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+                            className="px-4 py-2 bg-white/20 rounded-full text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
                         >
-                           <CreditCard className="w-4 h-4" />
+                           Pay
                         </button>
                     </div>
                 </div>
@@ -360,9 +371,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       {/* Subscriptions & Bills */}
       <section>
-        <SectionHeader title="Bills & Subscriptions" icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
+        <SectionHeader title="Bills & Subscriptions" count={upcomingBills.length} icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
         <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {upcomingBills.length > 0 ? upcomingBills.map(b => renderBillItem(b)) : (
+            {upcomingBills.length > 0 ? upcomingBills.slice(0,2).map(b => renderBillItem(b)) : (
                 <div className="text-center text-sm text-gray-400 py-6">All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!</div>
             )}
         </div>
@@ -370,11 +381,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       {/* Loans */}
       <section>
-        <SectionHeader title="Loans & Debts" icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
+        <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
+        <div className="space-y-2">
+            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 2).map(l => renderLoanItem(l))}
              {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
-                <div className="text-center text-sm text-gray-400 py-6">No active loans.</div>
+                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">No active loans.</div>
             )}
         </div>
       </section>

@@ -2,11 +2,13 @@
 import React from 'react';
 import { Wallet, WalletType } from '../types';
 import { isColorLight } from '../utils/color';
+import { formatCurrency } from '../utils/number';
 interface WalletCardProps {
-  wallet: Wallet;
+  wallet: Wallet & { label?: string };
   onClick?: (wallet: Wallet) => void;
   currencySymbol: string;
   scale?: number;
+  dueDate?: string;
 }
 
 // Helper to get details based on wallet type
@@ -24,8 +26,9 @@ const getWalletTypeDetails = (type: string) => {
   }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, scale = 1 }) => {
-  const { emoji, label } = getWalletTypeDetails(wallet.type);
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, scale = 1, dueDate }) => {
+  const { emoji, label: defaultLabel } = getWalletTypeDetails(wallet.type);
+  const label = wallet.label || defaultLabel;
   const isLifted = ['💵', '💳', '🏦', '🐷'].includes(emoji);
 
   // Check if the color is a hex code for inline styling, or a Tailwind class
@@ -63,9 +66,12 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       {/* Card Header */}
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
-          <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
-            {label}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
+              {label}
+            </span>
+            {dueDate && <span className="text-[10px] font-bold opacity-60 bg-white/10 px-1.5 py-0.5 rounded-md">{dueDate}</span>}
+          </div>
           <span className="text-xl font-bold truncate max-w-[180px]">
             {wallet.name}
           </span>
@@ -78,7 +84,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       {/* Card Footer */}
       <div className="relative z-10">
         <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
-          {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
       </div>
     </div>

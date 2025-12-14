@@ -487,7 +487,7 @@ const App: React.FC = () => {
       if (!wallet.creditLimit) return;
       const debt = wallet.creditLimit - wallet.balance; 
       if (debt <= 0) return; 
-      setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `Payment`, transferToWalletId: wallet.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `${wallet.name}`, transferToWalletId: wallet.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };
@@ -526,16 +526,16 @@ const App: React.FC = () => {
                      <Logo size="2rem" />
                   </div>
               </div>
-              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
-                 <div className="grid grid-cols-1 gap-4 content-start">
-                     <section className="w-full">
+              <div className="flex-1 flex flex-col p-6 pt-2 pb-24">
+                 <div className="flex flex-col gap-4 flex-1">
+                     <section>
                          <div className="flex justify-between items-end mb-2 px-1">
                             <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Wallets</h2>
                             <button onClick={() => handleOpenOverlay('ALL_WALLETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             <button data-testid="add-wallet-button" onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-[150px] rounded-3xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors group bg-white active:scale-95">
-                                <Plus className="w-8 h-8 group-active:scale-90 transition-transform" />
+                                <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
                             </button>
                             {data.wallets.map((w) => (
                                 <WalletCard
@@ -571,16 +571,16 @@ const App: React.FC = () => {
     </div>
 </section>
 
-<section className="w-full">
+<section className="flex flex-col flex-1 min-h-0">
     <div className="flex justify-between items-center mb-2 px-1">
         <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Recents</h2>
         <button onClick={() => handleOpenOverlay('ALL_TRANSACTIONS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
     </div>
-    <div className="grid gap-0">
+    <div className="grid gap-0 flex-1 overflow-y-auto no-scrollbar">
         {data.transactions.length === 0 ? (
-            <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
+            <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200 h-full flex items-center justify-center">No recent transactions</div>
         ) : (
-            recentTransactionsWithHeaders.slice(0,3).map((item) => (
+            recentTransactionsWithHeaders.slice(0, 3).map((item) => (
                 <TransactionItem
                     key={item.tx.id}
                     transaction={item.tx}
