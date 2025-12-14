@@ -179,7 +179,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center">
                         {selectedCategory ? (
                              <>
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg mr-2 shadow-sm" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
+                                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl p-2 mr-2 shadow-sm" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
                                     {getCategoryIcon(selectedCategory)}
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
@@ -199,9 +199,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
-                            <div className={`w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
+                            <div className={`w-10 h-10 p-2 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
                                 <div className={getWallet(selectedWallet)?.textColor || 'text-gray-500'}>
-                                    {getWalletIcon(getWallet(selectedWallet)?.type || '', "w-5 h-5")}
+                                    {getWalletIcon(getWallet(selectedWallet)?.type || '', "w-6 h-6")}
                                 </div>
                             </div>
                             <span className="text-sm font-bold text-text-primary">{getWalletName(selectedWallet)}</span>
@@ -222,11 +222,11 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
-                                <div className={`w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
+                                <div className={`w-10 h-10 p-2 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
                                     <div className={getWallet(selectedToWallet)?.textColor || 'text-gray-500'}>
-                                        {getWalletIcon(getWallet(selectedToWallet)?.type || '', "w-5 h-5")}
+                                        {getWalletIcon(getWallet(selectedToWallet)?.type || '', "w-6 h-6")}
                                     </div>
-                                oversized</div>
+                                </div>
                                 <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>
                             </>
                         ) : (

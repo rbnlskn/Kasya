@@ -154,10 +154,10 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       name: name || 'Wallet Name',
       type: type || '...',
       balance: currentBalanceVal,
-      color: '',
-      textColor: '',
+      color: customBg,
+      textColor: customText,
       currency: 'PHP',
-  }), [name, type, balance, currentBalanceVal]);
+  }), [name, type, balance, currentBalanceVal, customBg, customText]);
 
 
   return (
