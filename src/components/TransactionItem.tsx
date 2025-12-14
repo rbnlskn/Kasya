@@ -76,7 +76,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
       {dateHeader && <h3 className="text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-2 mt-4 pl-2">{dateHeader}</h3>}
       <div 
         onClick={() => onClick && onClick(transaction)} 
-        className="flex items-center justify-between py-3 px-3 cursor-pointer hover:bg-slate-50 rounded-2xl transition-colors group mb-1 border border-transparent hover:border-slate-100"
+        className="flex items-center justify-between py-3 px-3 cursor-pointer hover:bg-slate-50 rounded-2xl transition-colors group border border-transparent hover:border-slate-100"
       >
         <div className="flex items-center space-x-4 overflow-hidden">
           {/* SQUIRCLE ICON */}

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test('Frontend Verification', async ({ page }) => {
   // 1. Load the app and verify the home screen
-  await page.goto('http://localhost:5175/');
+  await page.goto('http://localhost:5173/');
   await page.waitForSelector('h2:has-text("Wallets")');
   await page.screenshot({ path: 'screenshot-home.png' });
 

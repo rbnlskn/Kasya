@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, Plus, Edit2 } from 'lucide-react';
 import { Wallet } from '../types';
 import { getWalletIcon } from './WalletCard';
+import { formatCurrency } from '../utils/number';
 
 interface WalletListViewProps {
   wallets: Wallet[];
@@ -60,7 +61,7 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
           <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95"><Plus className="w-6 h-6"/></button>
         </div>
         <div className="bg-surface dark:bg-surface border border-border dark:border-border text-text-primary dark:text-text-primary p-6 rounded-3xl shadow-lg mb-1 relative overflow-hidden">
-          <div className="relative z-10"><p className="text-sm text-text-secondary dark:text-text-secondary">Total Balance</p><h2 className="text-3xl font-bold">{currencySymbol}{totalBalance.toLocaleString()}</h2></div>
+          <div className="relative z-10"><p className="text-sm text-text-secondary dark:text-text-secondary">Total Balance</p><h2 className="text-3xl font-bold">{currencySymbol}{formatCurrency(totalBalance)}</h2></div>
           <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-1/4 translate-x-1/4"><div className="w-32 h-32 bg-primary rounded-full"></div></div>
         </div>
       </div>
@@ -87,7 +88,7 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
             <div className="flex items-center flex-1 mr-4 relative z-10">
                  {/* Icon Container */}
                  <div className={`w-10 h-10 rounded-xl ${w.color} flex items-center justify-center text-white mr-3 shadow-sm`}>
-                     <div className={w.textColor}>
+                     <div className={`${w.textColor} opacity-50`}>
                          {getWalletIcon(w.type, "w-5 h-5")}
                      </div>
                  </div>
@@ -97,7 +98,7 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
                  </div>
             </div>
             <div className="text-right flex-shrink-0 relative z-10 flex flex-col items-end">
-              <span className="block font-bold text-text-primary dark:text-text-primary">{currencySymbol}{w.balance.toLocaleString()}</span>
+              <span className="block font-bold text-text-primary dark:text-text-primary">{currencySymbol}{formatCurrency(w.balance)}</span>
             </div>
           </div>
         ))}

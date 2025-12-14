@@ -126,7 +126,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
-                type="number" 
+                type="number"
                 value={amount}
                 step="0.01"
                 onChange={(e) => setAmount(e.target.value)}
@@ -144,7 +144,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
                   <input 
-                    type="number" 
+                    type="number"
                     value={fee}
                     onChange={(e) => setFee(e.target.value)}
                     className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
@@ -158,13 +158,13 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
           <div>
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Date & Time</label>
             <div className="flex space-x-2">
-                <div onClick={() => setSelectorView('DATE_PICKER')} className="flex-1 bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-200 h-12">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('DATE_PICKER'); }} className="flex-1 bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-200 h-12">
                     <div className="flex items-center space-x-3">
                         <Calendar className="w-5 h-5 text-text-secondary"/>
                         <span className="text-sm font-bold text-text-primary">{formattedDate}</span>
                     </div>
                 </div>
-                <div onClick={() => setSelectorView('TIME_PICKER')} className="bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-200 h-12">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('TIME_PICKER'); }} className="bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-200 h-12">
                     <span className="text-sm font-bold text-primary-hover">
                         {dateVal.toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}
                     </span>
@@ -175,7 +175,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
           {type !== TransactionType.TRANSFER && (
               <div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category</label>
-                <div onClick={() => setSelectorView('CATEGORY')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('CATEGORY'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
                     <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
@@ -195,7 +195,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
           <div>
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{type === TransactionType.TRANSFER ? 'From Wallet' : 'Wallet'}</label>
-            <div onClick={() => setSelectorView('WALLET_FROM')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
+            <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_FROM'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
@@ -218,7 +218,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
              <div>
                 <div className="flex justify-center -my-2.5 relative z-10"><div className="bg-slate-200 p-1.5 rounded-full ring-4 ring-surface"><ArrowRightLeft className="w-4 h-4 text-gray-500" /></div></div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">To Wallet</label>
-                <div onClick={() => setSelectorView('WALLET_TO')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
