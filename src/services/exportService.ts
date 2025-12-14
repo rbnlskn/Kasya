@@ -1,4 +1,4 @@
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding, PermissionState } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { AppState, Transaction } from '../types';
@@ -20,16 +20,37 @@ const createKasyaFolder = async () => {
             directory: Directory.Documents,
             recursive: true
         });
-    } catch(e) {
-        // May fail if directory exists, which is fine.
-        console.info('Kasya folder might already exist.')
+    } catch (e) {
+        console.info('Kasya folder might already exist or failed to create.', e);
     }
 };
 
-export const exportBackup = async (data: AppState) => {
+const checkAndRequestPermissions = async (): Promise<boolean> => {
+    if (!Capacitor.isNativePlatform()) return true;
+
+    try {
+        let permStatus = await Filesystem.checkPermissions();
+
+        if (permStatus.publicStorage === PermissionState.GRANTED) {
+            return true;
+        }
+
+        permStatus = await Filesystem.requestPermissions();
+        return permStatus.publicStorage === PermissionState.GRANTED;
+    } catch (e) {
+        console.error('Permission check failed', e);
+        return false;
+    }
+};
+
+export const exportBackup = async (data: AppState): Promise<{ success: boolean; message: string }> => {
   if (!Capacitor.isNativePlatform()) {
-    alert('Backup is only available on native devices.');
-    return;
+    return { success: false, message: 'Backup is only available on native devices.' };
+  }
+
+  const hasPermission = await checkAndRequestPermissions();
+  if (!hasPermission) {
+    return { success: false, message: 'Storage permission is required to save backups. Please grant it in your device settings.' };
   }
 
   try {
@@ -38,25 +59,29 @@ export const exportBackup = async (data: AppState) => {
     const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
     const path = `${FOLDER_NAME}/${fileName}`;
 
-    await Filesystem.writeFile({
+    const result = await Filesystem.writeFile({
         path: path,
         data: JSON.stringify(data, null, 2),
         directory: Directory.Documents,
         encoding: Encoding.UTF8,
     });
 
-    alert(`Backup saved successfully to Documents/Kasya/${fileName}`);
+    return { success: true, message: `Backup saved to Documents/${path}` };
 
   } catch (error) {
     console.error('Backup failed:', error);
-    alert('Failed to save backup. Please ensure you have granted storage permissions.');
+    return { success: false, message: 'Failed to save backup. An unexpected error occurred.' };
   }
 };
 
-export const downloadTransactionTemplate = async () => {
+export const downloadTransactionTemplate = async (): Promise<{ success: boolean; message: string }> => {
     if (!Capacitor.isNativePlatform()) {
-        alert('Template download is only available on native devices.');
-        return;
+        return { success: false, message: 'Download is only available on native devices.' };
+    }
+
+    const hasPermission = await checkAndRequestPermissions();
+    if (!hasPermission) {
+        return { success: false, message: 'Storage permission is required. Please grant it in settings.' };
     }
 
     try {
@@ -78,10 +103,10 @@ export const downloadTransactionTemplate = async () => {
             encoding: Encoding.UTF8,
         });
 
-        alert(`Template saved successfully to Documents/Kasya/${fileName}`);
+        return { success: true, message: `Template saved to Documents/${path}` };
 
     } catch (error) {
         console.error('Template download failed:', error);
-        alert('Failed to save template. Please ensure you have granted storage permissions.');
+        return { success: false, message: 'Failed to save template. An error occurred.' };
     }
 };

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Calendar, CreditCard, PiggyBank, Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
+import { formatCurrency } from '../utils/number';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -93,31 +94,49 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const getLoanDueDateText = (loan: Loan) => {
-    if (loanStatusMap[loan.id]?.status === 'PAID') return 'Settled';
+    const loanStatus = loanStatusMap[loan.id];
+    if (loanStatus?.status === 'PAID') return 'Settled';
     if (loan.dueDay === 0) return 'No Due Date';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const startDate = new Date(loan.startDate);
-    let firstDueDate = new Date(startDate);
-    firstDueDate.setDate(loan.dueDay);
-    if (firstDueDate < startDate) {
+    let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), loan.dueDay);
+    if (firstDueDate <= startDate) {
       firstDueDate.setMonth(firstDueDate.getMonth() + 1);
     }
 
-    let targetDueDate: Date;
-
-    if (loan.endDate && loan.recurrence === 'ONE_TIME') {
-        targetDueDate = new Date(loan.endDate);
-    } else {
-        targetDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
+    let nextDueDate = firstDueDate;
+    if (loanStatus?.lastPaidDate) {
+        const lastPaid = new Date(loanStatus.lastPaidDate);
+        nextDueDate = new Date(lastPaid.getFullYear(), lastPaid.getMonth(), loan.dueDay);
+        nextDueDate.setMonth(nextDueDate.getMonth() + 1);
     }
 
+    // Determine the installment date for the *current* viewing month
+    let installmentDateForView = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
+
+    // If the loan has been paid this month, show the *next* month's due date
+    if (loanStatus?.lastPaidDate) {
+        const lastPaidDate = new Date(loanStatus.lastPaidDate);
+        if(lastPaidDate.getMonth() === currentDate.getMonth() && lastPaidDate.getFullYear() === currentDate.getFullYear()) {
+            installmentDateForView.setMonth(installmentDateForView.getMonth() + 1);
+        }
+    }
+
+    const targetDueDate = installmentDateForView;
     targetDueDate.setHours(0, 0, 0, 0);
 
-    if (today > targetDueDate) {
-        return `Overdue since ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    // Overdue check should be against the *actual* next due date, not the projected one
+    const actualNextDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
+    if (today > actualNextDueDate && loanStatus?.status !== 'PAID') {
+         return `Overdue since ${actualNextDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+
+    // Distinguish between upcoming and standard due dates
+    if (targetDueDate.getFullYear() > currentDate.getFullYear() || (targetDueDate.getFullYear() === currentDate.getFullYear() && targetDueDate.getMonth() > currentDate.getMonth())) {
+        return `Upcoming: ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
     }
 
     return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
@@ -147,7 +166,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </p>
         </div>
         <div className="flex flex-col items-end ml-2">
-             <span className={`block font-bold text-sm text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{sub.amount.toLocaleString()}</span>
+             <span className={`block font-bold text-sm text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>
             {!paid ? (
                 <button 
                     onClick={(e) => { e.stopPropagation(); onPayBill(sub); }} 
@@ -182,9 +201,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
             <div className="flex flex-col items-end ml-2">
                 <span className={`block font-bold text-sm text-gray-800 text-right ${isPaid ? 'opacity-50' : ''}`}>
-                     <span className="text-gray-400 font-medium text-xs">{currencySymbol}{paidAmount.toLocaleString()}</span>
+                     <span className="text-gray-400 font-medium text-xs">{currencySymbol}{formatCurrency(paidAmount)}</span>
                      <span className="mx-0.5 text-gray-300">/</span>
-                     <span>{currencySymbol}{paymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                     <span>{currencySymbol}{formatCurrency(paymentAmount)}</span>
                 </span>
                 
                 {!isPaid && (
@@ -203,68 +222,72 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const isLoanDueInMonth = (loan: Loan, checkDate: Date): boolean => {
     const loanStatus = loanStatusMap[loan.id];
-    // If paid, only show in the month it was paid.
-    if (loanStatus?.status === 'PAID') {
-      if (!loanStatus.lastPaidDate) return false;
-      const paidDate = new Date(loanStatus.lastPaidDate);
-      return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
-    }
-
     const startDate = new Date(loan.startDate);
+    const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const checkMonth = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
 
-    // Loans without due days are shown every month after start.
-    if (!loan.dueDay || loan.dueDay === 0) {
-      const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      const checkMonth = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
-      return checkMonth >= startMonth;
-    }
-
-    // Calculate first due date
-    let firstDueDate = new Date(startDate);
-    firstDueDate.setDate(loan.dueDay);
-    if (firstDueDate < startDate) {
-      firstDueDate.setMonth(firstDueDate.getMonth() + 1);
-    }
-
-    if (loan.recurrence === 'ONE_TIME') {
-        const endDate = loan.endDate ? new Date(loan.endDate) : firstDueDate;
-        const checkTime = checkDate.getTime();
-        // Set to the very start of the day to include the start date
-        const startTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
-        // Set to the very end of the day to include the end date
-        const endTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999).getTime();
-
-        return checkTime >= startTime && checkTime <= endTime;
-    }
-
-    const duration = loan.duration || 1200; // 100 years fallback
-    for (let i = 0; i < duration; i++) {
-      let installmentDate = new Date(firstDueDate);
-
-      switch (loan.recurrence) {
-        case 'MONTHLY':
-          installmentDate.setMonth(firstDueDate.getMonth() + i);
-          break;
-        case 'YEARLY':
-          installmentDate.setFullYear(firstDueDate.getFullYear() + i);
-          break;
-        case 'WEEKLY':
-          installmentDate.setDate(firstDueDate.getDate() + (i * 7));
-          break;
-        default:
-          return false;
-      }
-
-      if (installmentDate.getFullYear() > checkDate.getFullYear() ||
-         (installmentDate.getFullYear() === checkDate.getFullYear() && installmentDate.getMonth() > checkDate.getMonth())) {
+    const endDate = loan.endDate ? new Date(loan.endDate) : null;
+    if (endDate && checkMonth > new Date(endDate.getFullYear(), endDate.getMonth(), 1)) {
         return false;
-      }
-
-      if (installmentDate.getFullYear() === checkDate.getFullYear() && installmentDate.getMonth() === checkDate.getMonth()) {
-        return true;
-      }
     }
-    return false;
+
+    // If a loan is fully paid, it should only appear in lists if it was paid that month.
+    if (loanStatus?.status === 'PAID') {
+        if (!loanStatus.lastPaidDate) return false;
+        const paidDate = new Date(loanStatus.lastPaidDate);
+        return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
+    }
+
+    // If the loan has a start date in the future, don't show it.
+    if (startMonth > checkMonth) {
+        return false;
+    }
+
+    // --- Core Logic Change ---
+    // If a loan has been paid this month, it should still appear, showing its next due date.
+    if (loanStatus?.lastPaidDate) {
+        const lastPaidDate = new Date(loanStatus.lastPaidDate);
+        if (lastPaidDate.getFullYear() === checkDate.getFullYear() && lastPaidDate.getMonth() === checkDate.getMonth()) {
+            return true;
+        }
+    }
+
+    // Standard check for whether an installment is due in the viewing month.
+    // Calculate first *actual* due date, which is always after the start date.
+    let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), loan.dueDay || 1);
+    if (firstDueDate <= startDate) {
+        firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
+
+    const firstDueMonth = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
+
+    // Don't show before the first due date month (unless it started this month).
+    if (checkMonth < firstDueMonth && checkMonth.getTime() !== startMonth.getTime()) {
+        return false;
+    }
+
+    // For recurring loans, check if an installment falls within the month.
+    if (loan.recurrence !== 'ONE_TIME') {
+        const yearsDiff = checkDate.getFullYear() - firstDueDate.getFullYear();
+        const monthsDiff = yearsDiff * 12 + (checkDate.getMonth() - firstDueDate.getMonth());
+
+        if (monthsDiff < 0) return false;
+
+        switch (loan.recurrence) {
+            case 'MONTHLY':
+                return true; // If we passed the start date, it's due every month.
+            case 'YEARLY':
+                return checkDate.getMonth() === firstDueDate.getMonth();
+            case 'WEEKLY':
+                 // This is complex; for now, we assume monthly for weekly loans due day.
+                 return true;
+            default:
+                return false;
+        }
+    }
+
+    // For one-time loans, it's only due in the month of its first due date.
+    return checkMonth.getTime() === firstDueMonth.getTime() || (checkMonth.getTime() === startMonth.getTime() && firstDueDate.getMonth() === startDate.getMonth());
   };
 
   const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));

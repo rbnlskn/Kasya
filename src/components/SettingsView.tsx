@@ -6,6 +6,7 @@ import { App } from '@capacitor/app';
 import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
 import { CURRENCIES } from '../data/currencies';
 import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
+import InfoModal from './InfoModal';
 
 interface SettingsViewProps {
   data: AppState;
@@ -22,19 +23,32 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
   const [appVersion, setAppVersion] = useState('');
+  const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'SUCCESS' | 'ERROR' }>({ isOpen: false, title: '', message: '', type: 'SUCCESS' });
 
   useEffect(() => {
     App.getInfo().then(info => setAppVersion(info.version));
   }, []);
 
   const handleBackup = async () => {
-    await exportBackup(data);
+    const result = await exportBackup(data);
     setShowBackupSheet(false);
+    setInfoModal({
+        isOpen: true,
+        title: result.success ? 'Backup Successful' : 'Backup Failed',
+        message: result.message,
+        type: result.success ? 'SUCCESS' : 'ERROR',
+    });
   };
 
   const handleTemplateDownload = async () => {
-    await downloadTransactionTemplate();
+    const result = await downloadTransactionTemplate();
     setShowBackupSheet(false);
+    setInfoModal({
+        isOpen: true,
+        title: result.success ? 'Template Downloaded' : 'Download Failed',
+        message: result.message,
+        type: result.success ? 'SUCCESS' : 'ERROR',
+    });
   }
 
   const handleImportClick = () => fileInputRef.current?.click();
@@ -245,6 +259,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         </div>
       )}
 
+      <InfoModal
+        isOpen={infoModal.isOpen}
+        onClose={() => setInfoModal({ ...infoModal, isOpen: false })}
+        title={infoModal.title}
+        message={infoModal.message}
+        type={infoModal.type}
+      />
     </>
   );
 };

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Trash2, ArrowDownLeft, ArrowUpRight, Calendar, ChevronDown } from 'lucide-react';
 import { Loan, LoanType, RecurrenceFrequency, Wallet } from '../types';
 import DayPicker from './DayPicker';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface LoanFormModalProps {
   isOpen: boolean;
@@ -17,9 +18,9 @@ interface LoanFormModalProps {
 
 const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialLoan, currencySymbol, wallets, isExiting }) => {
   const [name, setName] = useState('');
-  const [principalAmount, setPrincipalAmount] = useState('');
-  const [interest, setInterest] = useState('');
-  const [fee, setFee] = useState('');
+  const principalAmountInput = useCurrencyInput('');
+  const interestInput = useCurrencyInput('');
+  const feeInput = useCurrencyInput('');
   const [type, setType] = useState<LoanType>('PAYABLE');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
@@ -36,10 +37,9 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
     if (isOpen) {
       if (initialLoan) {
         setName(initialLoan.name);
-        // On edit, principalAmount is the *total* amount. Interest is just for display.
-        setPrincipalAmount(initialLoan.totalAmount.toString());
-        setInterest(initialLoan.interest?.toString() || '');
-        setFee(initialLoan.fee?.toString() || '');
+        principalAmountInput.setValue(initialLoan.totalAmount.toString());
+        interestInput.setValue(initialLoan.interest?.toString() || '');
+        feeInput.setValue(initialLoan.fee?.toString() || '');
         setType(initialLoan.type);
         setStartDate(initialLoan.startDate ? new Date(initialLoan.startDate) : new Date());
         setOccurrence(initialLoan.recurrence);
@@ -50,9 +50,9 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
       } else {
         // Reset for new loan
         setName('');
-        setPrincipalAmount('');
-        setInterest('');
-        setFee('');
+        principalAmountInput.setValue('');
+        interestInput.setValue('');
+        feeInput.setValue('');
         setType('PAYABLE');
         setStartDate(new Date());
         setOccurrence('');
@@ -69,14 +69,12 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !principalAmount || !occurrence) return;
+    if (!name || !principalAmountInput.rawValue || !occurrence) return;
 
-    // IMPORTANT: If editing, the principal IS the total. If new, principal + interest = total.
     const totalAmount = initialLoan
-      ? parseFloat(principalAmount)
-      : (parseFloat(principalAmount) || 0) + (parseFloat(interest) || 0);
+      ? principalAmountInput.rawValue
+      : (principalAmountInput.rawValue || 0) + (interestInput.rawValue || 0);
 
-    // Date logic correction
     let endDate: string | undefined = undefined;
     if (duration && parseInt(duration) > 0) {
         const date = new Date(startDate);
@@ -98,8 +96,8 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
     onSave({
       name,
       totalAmount,
-      interest: parseFloat(interest) || 0,
-      fee: parseFloat(fee) || 0,
+      interest: interestInput.rawValue || 0,
+      fee: feeInput.rawValue || 0,
       type,
       dueDay: Number(dueDay) || 0,
       recurrence: occurrence,
@@ -120,7 +118,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
     }
   };
 
-  const incomeAmount = (parseFloat(principalAmount) || 0) - (parseFloat(fee) || 0);
+  const incomeAmount = (principalAmountInput.rawValue || 0) - (feeInput.rawValue || 0);
 
   return (
     <>
@@ -154,7 +152,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Principal Amount</label>
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-              <input type="number" value={principalAmount} onChange={e => setPrincipalAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" step="0.01" />
+              <input type="text" {...principalAmountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
             </div>
           </div>
 
@@ -163,14 +161,14 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Interest</label>
                 <div className="relative group">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                    <input type="number" value={interest} onChange={e => setInterest(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
+                    <input type="text" {...interestInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
                 </div>
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Fee</label>
                 <div className="relative group">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                    <input type="number" value={fee} onChange={e => setFee(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
+                    <input type="text" {...feeInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
                 </div>
               </div>
           </div>
