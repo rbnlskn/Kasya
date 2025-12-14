@@ -99,6 +99,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const startDate = new Date(loan.startDate);
+    let firstDueDate = new Date(startDate);
+    firstDueDate.setDate(loan.dueDay);
+    if (firstDueDate < startDate) {
+      firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
+
     let targetDueDate: Date;
 
     if (loan.endDate && loan.recurrence === 'ONE_TIME') {
@@ -177,7 +184,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <span className={`block font-bold text-sm text-gray-800 text-right ${isPaid ? 'opacity-50' : ''}`}>
                      <span className="text-gray-400 font-medium text-xs">{currencySymbol}{paidAmount.toLocaleString()}</span>
                      <span className="mx-0.5 text-gray-300">/</span>
-                     <span>{currencySymbol}{loan.totalAmount.toLocaleString()}</span>
+                     <span>{currencySymbol}{paymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </span>
                 
                 {!isPaid && (

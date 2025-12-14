@@ -89,9 +89,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
 // Exporting the original getWalletIcon in case it's used elsewhere in the app.
 import { CreditCard, Wallet as WalletIcon, Landmark, Smartphone, TrendingUp, Bitcoin } from 'lucide-react';
 
-export const getWalletIcon = (type: string, className: string = "w-full h-full") => {
+export const getWalletIcon = (type: string, className: string = "") => {
     const { emoji } = getWalletTypeDetails(type);
-    return <span className={`text-2xl filter grayscale ${className}`}>{emoji}</span>;
+    return <div className={`icon-container filter grayscale ${className}`}>{emoji}</div>;
 };
 
 export default WalletCard;
