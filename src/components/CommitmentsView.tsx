@@ -294,6 +294,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                         wallet={walletWithBalance}
                         currencySymbol={currencySymbol}
                         onClick={(w) => onWalletClick && onWalletClick(w)}
+                        scale={0.85}
                     />
                     <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
                         <span className="bg-black/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm font-bold">

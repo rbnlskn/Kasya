@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Wallet, WalletType } from '../types';
-
+import { isColorLight } from '../utils/color';
 interface WalletCardProps {
   wallet: Wallet;
   onClick?: (wallet: Wallet) => void;
   currencySymbol: string;
+  scale?: number;
 }
 
 // Helper to get details based on wallet type
@@ -23,7 +24,7 @@ const getWalletTypeDetails = (type: string) => {
   }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, scale = 1 }) => {
   const { emoji, label } = getWalletTypeDetails(wallet.type);
   const isLifted = ['💵', '💳', '🏦', '🐷'].includes(emoji);
 
@@ -31,23 +32,30 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
   const isHexBg = wallet.color?.startsWith('#');
   const isHexText = wallet.textColor?.startsWith('#');
 
-  const cardStyle: React.CSSProperties = {};
+  const cardStyle: React.CSSProperties = {
+      transform: `scale(${scale})`,
+      transformOrigin: 'top left'
+  };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
 
   const finalBgColor = !isHexBg ? (wallet.color || 'bg-black') : '';
   const finalTextColor = !isHexText ? (wallet.textColor || 'text-white') : '';
+  const isDarkBg = isHexBg ? !isColorLight(wallet.color) : true;
+  const isDarkText = isHexText ? !isColorLight(wallet.textColor) : false;
+  const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-black/10';
 
   return (
+    <div style={{width: 340 * scale, height: 200 * scale}}>
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`flex-shrink-0 w-[340px] h-[200px] rounded-3xl p-6 relative ${finalBgColor} ${finalTextColor} shadow-lg shadow-black/10 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
+      className={`w-[340px] h-[200px] rounded-3xl p-6 relative ${finalBgColor} ${finalTextColor} shadow-lg shadow-black/10 transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
       style={cardStyle}
     >
       {/* Background Decorations */}
-      <div className="absolute w-[280px] h-[280px] bg-black/10 rounded-full top-5 right-[-80px] z-0"></div>
+      <div className={`absolute w-[280px] h-[280px] rounded-full top-5 right-[-80px] z-0 ${watermarkBg}`}></div>
       <div
-        className={`absolute text-[160px] filter grayscale opacity-15 pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-10px] right-[-30px]' : 'bottom-[-40px] right-[-30px]'}`}
+        className={`absolute text-[160px] filter grayscale pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-10px] right-[-30px]' : 'bottom-[-40px] right-[-30px]'} ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
       >
         {emoji}
       </div>
@@ -73,6 +81,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
           {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </p>
       </div>
+    </div>
     </div>
   );
 };

@@ -175,7 +175,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex justify-center">
-            <div className="scale-[1.1] origin-center">
+            <div className="scale-[0.9] origin-center">
                 <WalletCard
                     wallet={previewWallet}
                     currencySymbol={currencySymbol}
