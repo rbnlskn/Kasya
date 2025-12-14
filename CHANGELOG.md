@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/rbnlskn/Kasya/compare/v1.7.1...v1.8.0) (2025-12-14)
+
+
+### Features
+
+* setup auto-increment version on commit ([#107](https://github.com/rbnlskn/Kasya/issues/107)) ([1a92cba](https://github.com/rbnlskn/Kasya/commit/1a92cbabc514c8e3bf1acbb0d46e8d25a2b539b3))
+
 ### [1.7.1](https://github.com/rbnlskn/Kasya/compare/v1.6.0...v1.7.1) (2025-12-14)
 
 ## [1.6.0](https://github.com/rbnlskn/Kasya/compare/v1.5.6...v1.6.0) (2025-12-14)

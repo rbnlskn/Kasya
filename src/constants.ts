@@ -3,7 +3,7 @@ import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from '.
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme.js';
 
-export const APP_VERSION = '1.7.0';
+export const APP_VERSION = '1.8.1';
 export const CHANGELOG = [
     { version: '1.7.0', date: '2024-05-24', changes: ['Redesigned Wallet Cards, standardized icons and fields, and fixed subscription and loan bugs.'] },
     { version: '1.5.5', date: '2024-05-23', changes: ['Fixed loan date projection, harmonized bill/subscription forms, and overhauled the backup system.'] },
