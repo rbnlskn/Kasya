@@ -179,8 +179,6 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                 <WalletCard
                     wallet={previewWallet}
                     currencySymbol={currencySymbol}
-                    bgColor={customBg}
-                    textColor={customText}
                 />
             </div>
           </div>

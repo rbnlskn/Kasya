@@ -179,7 +179,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center">
                         {selectedCategory ? (
                              <>
-                                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mr-3 shadow-sm" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg mr-2 shadow-sm" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
                                     {getCategoryIcon(selectedCategory)}
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
@@ -226,7 +226,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                                     <div className={getWallet(selectedToWallet)?.textColor || 'text-gray-500'}>
                                         {getWalletIcon(getWallet(selectedToWallet)?.type || '', "w-5 h-5")}
                                     </div>
-                                </div>
+                                oversized</div>
                                 <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>
                             </>
                         ) : (
@@ -279,7 +279,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                         <div className="grid grid-cols-4 gap-2">
                             {categories.map(c => (
                                 <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-1.5 shadow-sm`} style={{backgroundColor: c.color}}>{c.icon}</div>
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-1.5 shadow-sm`} style={{backgroundColor: c.color}}>{c.icon}</div>
                                     <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                                 </button>
                             ))}
@@ -291,8 +291,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                             {wallets.map(w => (
                                 <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 rounded-lg ${w.color} flex items-center justify-center ${w.textColor} shadow-sm`}>
-                                            {getWalletIcon(w.type, "w-5 h-5")}
+                                        <div className={`w-8 h-8 rounded-lg ${w.color} flex items-center justify-center ${w.textColor} shadow-sm`}>
+                                            {getWalletIcon(w.type, "w-4 h-4")}
                                         </div>
                                         <div className="text-left">
                                             <div className="font-bold text-sm text-text-primary">{w.name}</div>

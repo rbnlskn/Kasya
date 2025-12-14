@@ -1,71 +1,87 @@
-
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
+import { AppState, Transaction } from '../types';
 
-export const exportFile = async (data: string, fileName: string, mimeType: string = 'text/plain') => {
-  try {
-    if (Capacitor.isNativePlatform()) {
-      // Native Logic: Write to Cache then Share
-      const path = fileName; // Filesystem accepts simple filenames for Cache directory
+const FOLDER_NAME = 'Kasya';
 
-      await Filesystem.writeFile({
-        path: path,
-        data: data,
-        directory: Directory.Cache,
-        encoding: Encoding.UTF8,
-      });
+const getFormattedDate = () => {
+  const date = new Date();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `${mm}-${dd}-${yyyy}`;
+};
 
-      const uriResult = await Filesystem.getUri({
-        directory: Directory.Cache,
-        path: path,
-      });
-
-      await Share.share({
-        title: 'Export Data',
-        text: 'Here is your Moneyfest data backup.',
-        url: uriResult.uri,
-        dialogTitle: 'Export Data', // Android only
-      });
-
-    } else {
-      // Web Logic: Blob download
-      const blob = new Blob([data], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-
-      setTimeout(() => {
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-      }, 100);
+const createKasyaFolder = async () => {
+    try {
+        await Filesystem.mkdir({
+            path: FOLDER_NAME,
+            directory: Directory.Documents,
+            recursive: true
+        });
+    } catch(e) {
+        // May fail if directory exists, which is fine.
+        console.info('Kasya folder might already exist.')
     }
+};
+
+export const exportBackup = async (data: AppState) => {
+  if (!Capacitor.isNativePlatform()) {
+    alert('Backup is only available on native devices.');
+    return;
+  }
+
+  try {
+    await createKasyaFolder();
+
+    const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
+    const path = `${FOLDER_NAME}/${fileName}`;
+
+    await Filesystem.writeFile({
+        path: path,
+        data: JSON.stringify(data, null, 2),
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8,
+    });
+
+    alert(`Backup saved successfully to Documents/Kasya/${fileName}`);
+
   } catch (error) {
-    console.error('Export failed:', error);
-    alert('Failed to export data. Please try again.');
+    console.error('Backup failed:', error);
+    alert('Failed to save backup. Please ensure you have granted storage permissions.');
   }
 };
 
-export const saveToDocuments = async (data: string, fileName: string) => {
-    if (Capacitor.isNativePlatform()) {
-       try {
-         await Filesystem.writeFile({
-           path: fileName,
-           data: data,
-           directory: Directory.Documents,
-           encoding: Encoding.UTF8
-         });
-         alert('Saved to Documents folder successfully!');
-       } catch(e) {
-         console.error('Save to Docs failed:', e);
-         alert('Failed to save directly to Documents. Trying standard share...');
-         exportFile(data, fileName, 'text/plain');
-       }
-    } else {
-        // Fallback to web download
-        exportFile(data, fileName, 'text/plain');
+export const downloadTransactionTemplate = async () => {
+    if (!Capacitor.isNativePlatform()) {
+        alert('Template download is only available on native devices.');
+        return;
+    }
+
+    try {
+        await createKasyaFolder();
+
+        const fileName = 'Kasya-Transaction-Template.csv';
+        const path = `${FOLDER_NAME}/${fileName}`;
+        const csvContent = [
+            "Date,Time,Type,Amount,Wallet,Category,Description",
+            "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
+            "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
+            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
+        ].join('\n');
+
+        await Filesystem.writeFile({
+            path: path,
+            data: csvContent,
+            directory: Directory.Documents,
+            encoding: Encoding.UTF8,
+        });
+
+        alert(`Template saved successfully to Documents/Kasya/${fileName}`);
+
+    } catch (error) {
+        console.error('Template download failed:', error);
+        alert('Failed to save template. Please ensure you have granted storage permissions.');
     }
 };

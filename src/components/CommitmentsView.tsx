@@ -75,34 +75,44 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const upcomingBills = sortedBills.filter(b => !isBillPaid(b)).slice(0, 3);
   
-  const getOverdueText = (dueDay: number, dueDate?: string) => {
-      const today = new Date();
-      let targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), dueDay);
-      
-      if (dueDate) {
-          targetDate = new Date(dueDate);
-      } else if (dueDay === 0) {
-          return null; 
-      }
+  const getBillDueDateText = (bill: Bill) => {
+    if (isBillPaid(bill)) return 'Paid';
 
-      targetDate.setHours(23, 59, 59, 999);
-      if (today > targetDate) {
-          return `Overdue since ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-      }
-      return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const targetDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay);
+    targetDueDate.setHours(0, 0, 0, 0);
+
+    if (today > targetDueDate) {
+        return `Overdue since ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+
+    return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   };
 
-  const getDueDateText = (day: number, dueDateStr?: string) => {
-     if (dueDateStr) {
-         return `Due ${new Date(dueDateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-     }
-     if (day === 0) return 'No Due Date';
-     
-     const overdue = getOverdueText(day);
-     if (overdue) return overdue;
+  const getLoanDueDateText = (loan: Loan) => {
+    if (loan.status === 'PAID') return 'Settled';
+    if (loan.dueDay === 0) return 'No Due Date';
 
-     const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-     return `Due ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let targetDueDate: Date;
+
+    if (loan.endDate && loan.recurrence === 'ONE_TIME') {
+        targetDueDate = new Date(loan.endDate);
+    } else {
+        targetDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
+    }
+
+    targetDueDate.setHours(0, 0, 0, 0);
+
+    if (today > targetDueDate) {
+        return `Overdue since ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+
+    return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   };
   
   const getCCDueText = (day?: number) => {
@@ -113,7 +123,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const renderBillItem = (sub: Bill) => {
     const paid = isBillPaid(sub);
-    const overdue = !paid && getOverdueText(sub.dueDay);
+    const dueDateText = getBillDueDateText(sub);
+    const isOverdue = dueDateText.includes('Overdue');
     const isSub = sub.type === 'SUBSCRIPTION';
     
     return (
@@ -123,8 +134,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
         <div className="flex-1 min-w-0">
              <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{sub.name}</h4>
-             <p className={`text-[10px] font-medium ${paid ? 'text-green-500' : (overdue ? 'text-red-500' : 'text-gray-400')}`}>
-                {paid ? 'Paid' : getDueDateText(sub.dueDay)}
+             <p className={`text-[10px] font-medium ${paid ? 'text-green-500' : (isOverdue ? 'text-red-500' : 'text-gray-400')}`}>
+                {dueDateText}
             </p>
         </div>
         <div className="flex flex-col items-end ml-2">
@@ -145,7 +156,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const renderLoanItem = (loan: Loan) => {
     const isPaid = loan.status === 'PAID';
-    const overdue = !isPaid && ((loan.dueDate && new Date() > new Date(loan.dueDate)) || (!loan.dueDate && getOverdueText(loan.dueDay)));
+    const dueDateText = getLoanDueDateText(loan);
+    const isOverdue = dueDateText.includes('Overdue');
 
     return (
         <div key={loan.id} onClick={() => onEditLoan(loan)} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer active:scale-[0.99] transition-transform">
@@ -154,8 +166,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
             <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{loan.name}</h4>
-                <p className={`text-[10px] font-medium ${isPaid ? 'text-green-500' : (overdue ? 'text-red-500' : 'text-gray-400')}`}>
-                     {isPaid ? 'Settled' : getDueDateText(loan.dueDay, loan.dueDate)}
+                <p className={`text-[10px] font-medium ${isPaid ? 'text-green-500' : (isOverdue ? 'text-red-500' : 'text-gray-400')}`}>
+                     {dueDateText}
                 </p>
             </div>
             <div className="flex flex-col items-end ml-2">
@@ -179,12 +191,38 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-  const validLoans = loans.filter(l => {
-      const startDate = new Date(l.startDate);
-      const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      return currentMonthStart >= startMonthStart;
-  });
+  const validLoans = loans.filter(loan => {
+    const start = new Date(loan.startDate);
+    const startMonth = new Date(start.getFullYear(), start.getMonth(), 1);
+
+    const current = new Date(currentDate);
+    const currentMonth = new Date(current.getFullYear(), current.getMonth(), 1);
+
+    if (startMonth > currentMonth) return false;
+
+    // Indefinite (No Due Day) loans are always valid from their start date
+    if (loan.dueDay === 0) {
+        if (loan.status === 'PAID') {
+            const paidDate = loan.lastPaidDate ? new Date(loan.lastPaidDate) : new Date();
+            const paidMonth = new Date(paidDate.getFullYear(), paidDate.getMonth(), 1);
+            return current <= paidMonth;
+        }
+        return true;
+    }
+
+    // For one-time loans, check if the calculated due date falls in the current month.
+    if (loan.recurrence === 'ONE_TIME' && loan.duration && loan.durationUnit) {
+        const dueDate = new Date(start);
+        if (loan.durationUnit === 'DAYS') dueDate.setDate(start.getDate() + loan.duration);
+        else if (loan.durationUnit === 'MONTHS') dueDate.setMonth(start.getMonth() + loan.duration);
+        else if (loan.durationUnit === 'YEARS') dueDate.setFullYear(start.getFullYear() + loan.duration);
+
+        return dueDate.getFullYear() === current.getFullYear() && dueDate.getMonth() === current.getMonth();
+    }
+
+    // For recurring loans, they are valid every month after start.
+    return true;
+});
 
   const SectionHeader = ({ title, icon, onAdd, onViewAll }: { title: string, icon: React.ReactNode, onAdd?: () => void, onViewAll?: () => void }) => (
     <div className="flex justify-between items-center mb-3">
@@ -216,27 +254,40 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     <div className="flex-1 overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
 
       {/* Credit Cards */}
-      <section>
-        <SectionHeader title="Credit Cards" icon={<CreditCard className="w-4 h-4" />} />
-        <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
-            {creditCards.length > 0 ? creditCards.map(cc => (
-                <div key={cc.id} className="relative flex-shrink-0">
+<section>
+    <SectionHeader title="Credit Cards" icon={<CreditCard className="w-4 h-4" />} />
+    <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+        {creditCards.length > 0 ? creditCards.map(cc => {
+            const currentBalance = (cc.creditLimit || 0) - cc.balance;
+            const walletWithBalance = { ...cc, balance: currentBalance };
+
+            return (
+                <div key={cc.id} className="relative flex-shrink-0 group">
                     <WalletCard
-                        wallet={cc}
+                        wallet={walletWithBalance}
                         currencySymbol={currencySymbol}
                         onClick={(w) => onWalletClick && onWalletClick(w)}
                     />
-                    <div className="absolute top-3 right-3 bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm z-20 pointer-events-none font-bold">
-                        {getCCDueText(cc.statementDay)}
+                    <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+                        <span className="bg-black/20 text-white text-[9px] px-1.5 py-0.5 rounded-md backdrop-blur-sm font-bold">
+                            {getCCDueText(cc.statementDay)}
+                        </span>
+                        <button
+                            onClick={() => onPayCC(cc)}
+                            className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity active:scale-90"
+                        >
+                           <CreditCard className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
-            )) : (
-                <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
-                    No credit cards linked.
-                </div>
-            )}
-        </div>
-      </section>
+            )
+        }) : (
+            <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                No credit cards linked.
+            </div>
+        )}
+    </div>
+</section>
 
       {/* Subscriptions & Bills */}
       <section>

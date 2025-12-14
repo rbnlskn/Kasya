@@ -3,9 +3,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
-import { AppState, ThemeMode } from '../types';
+import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
 import { CURRENCIES } from '../data/currencies';
-import { exportFile, saveToDocuments } from '../services/exportService';
+import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
 
 interface SettingsViewProps {
   data: AppState;
@@ -27,55 +27,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
     App.getInfo().then(info => setAppVersion(info.version));
   }, []);
 
-  const getFormattedDate = () => {
-      const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      return `mf-${yyyy}-${mm}-${dd}-${hh}${min}`;
+  const handleBackup = async () => {
+    await exportBackup(data);
+    setShowBackupSheet(false);
   };
 
-  const handleExport = async (type: 'CSV' | 'JSON' | 'TEMPLATE', method: 'SHARE' | 'SAVE' = 'SHARE') => {
-    try {
-      let fileContent = '';
-      let fileName = '';
-      let mimeType = '';
-      const dateStr = getFormattedDate();
-
-      if (type === 'JSON') {
-        fileContent = JSON.stringify(data, null, 2);
-        fileName = `Moneyfest_Backup_${dateStr}.json`;
-        mimeType = 'application/json';
-      } else if (type === 'CSV' || type === 'TEMPLATE') {
-        const headers = ['Date', 'Type', 'Amount', 'Fee', 'Category', 'Wallet', 'To Wallet', 'Description'];
-        let rows: string[] = [];
-        
-        if (type === 'CSV') {
-            rows = data.transactions.map(t => {
-            const catName = data.categories.find(c => c.id === t.categoryId)?.name || '';
-            const walletName = data.wallets.find(w => w.id === t.walletId)?.name || '';
-            const toWalletName = t.transferToWalletId ? data.wallets.find(w => w.id === t.transferToWalletId)?.name || '' : '';
-            const safeDesc = (t.description || '').replace(/"/g, '""');
-            return [`"${t.date}"`, `"${t.type}"`, t.amount, t.fee || 0, `"${catName}"`, `"${walletName}"`, `"${toWalletName}"`, `"${safeDesc}"`].join(',');
-            });
-        }
-        
-        fileContent = [headers.join(','), ...rows].join('\n');
-        fileName = type === 'TEMPLATE' ? 'moneyfest-import-template.csv' : `Moneyfest_Export_${dateStr}.csv`;
-        mimeType = 'text/csv';
-      }
-
-      if (method === 'SAVE') await saveToDocuments(fileContent, fileName);
-      else await exportFile(fileContent, fileName, mimeType);
-      
-      setShowBackupSheet(false);
-    } catch (e) {
-      console.error("Export failed", e);
-      alert("Failed to export data.");
-    }
-  };
+  const handleTemplateDownload = async () => {
+    await downloadTransactionTemplate();
+    setShowBackupSheet(false);
+  }
 
   const handleImportClick = () => fileInputRef.current?.click();
 
@@ -93,12 +53,44 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                 alert('Data imported successfully!');
              } else { throw new Error('Invalid JSON structure'); }
         } else if (file.name.endsWith('.csv')) {
-            alert("Full CSV Import logic is pending. Please use JSON backup for full restoration.");
+            const lines = result.split('\n').slice(1); // Skip header
+            const newTransactions: Transaction[] = [];
+            lines.forEach((line, index) => {
+                if (!line.trim()) return;
+                const [date, time, type, amount, walletName, categoryName, description] = line.split(',');
+
+                const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === walletName.trim().toLowerCase());
+                const category = data.categories.find(c => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase());
+
+                if (!wallet || !category) {
+                    console.warn(`Skipping line ${index + 2}: Wallet or Category not found.`);
+                    return;
+                }
+
+                newTransactions.push({
+                    id: `tx_csv_${Date.now()}_${index}`,
+                    date: new Date(`${date} ${time}`).toISOString(),
+                    type: type.toUpperCase() as TransactionType,
+                    amount: parseFloat(amount),
+                    walletId: wallet.id,
+                    categoryId: category.id,
+                    description: description,
+                    createdAt: Date.now() + index,
+                });
+            });
+
+            if (newTransactions.length > 0) {
+                const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions] };
+                onImport(updatedData);
+                alert(`${newTransactions.length} transactions imported successfully!`);
+            } else {
+                alert('No new transactions were imported. Please check the CSV file format.');
+            }
         }
       } catch (err) { alert('Failed to import data. Please ensure the file is a valid backup.'); }
     };
     reader.readAsText(file);
-    e.target.value = ''; 
+    e.target.value = '';
   };
   
   const handleFullReset = () => {
@@ -169,10 +161,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                 </div>
                 
                 {[
-                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Share Backup (JSON)", desc: "Best for full restoration", action: () => handleExport('JSON', 'SHARE') },
-                    { icon: <Save className="w-6 h-6 text-indigo-500" />, title: "Save to File (JSON)", desc: "Save directly to Documents", action: () => handleExport('JSON', 'SAVE') },
-                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Share Export (CSV)", desc: "Readable in Excel/Sheets", action: () => handleExport('CSV', 'SHARE') },
-                    { icon: <FileType className="w-6 h-6 text-blue-500" />, title: "Download Template", desc: "Empty CSV for migration", action: () => handleExport('TEMPLATE', 'SHARE') }
+                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Downloads/Kasya", action: handleBackup },
+                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template", desc: "Save CSV template to Downloads/Kasya", action: handleTemplateDownload }
                 ].map((opt, i) => (
                     <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-transparent hover:border-border group">
                         <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>

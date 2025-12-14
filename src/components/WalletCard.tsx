@@ -7,11 +7,9 @@ interface WalletCardProps {
   wallet: Wallet;
   onClick?: (wallet: Wallet) => void;
   currencySymbol: string;
-  bgColor?: string;
-  textColor?: string;
 }
 
-export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
+export const getWalletIcon = (type: string, className: string = "w-full h-full") => {
     switch (type) {
         case WalletType.CASH: return <WalletIcon className={className} />;
         case WalletType.BANK: return <Landmark className={className} />;
@@ -23,35 +21,28 @@ export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
     }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, bgColor, textColor }) => {
-  const finalBgColor = bgColor || wallet.color;
-  const finalTextColor = textColor || wallet.textColor;
-
-  const style: React.CSSProperties = {};
-  if (bgColor) style.backgroundColor = bgColor;
-  if (textColor) style.color = textColor;
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol }) => {
+  const finalBgColor = wallet.color || 'bg-gray-900';
+  const finalTextColor = wallet.textColor || 'text-white';
 
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${!bgColor ? finalBgColor : ''} ${!textColor ? finalTextColor : ''} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
-      style={style}
+      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${finalBgColor} ${finalTextColor} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
     >
-      <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-      <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-white/5 rounded-full pointer-events-none"></div>
+      <div className="absolute -bottom-8 -right-8 w-24 h-24 text-white/10 pointer-events-none">
+        {getWalletIcon(wallet.type)}
+      </div>
 
       <div className="flex flex-col h-full relative z-10">
         <div className="flex justify-between items-start">
             <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">
-                  {wallet.type === WalletType.CREDIT_CARD ? 'Available Limit' : 'Balance'}
+                  {wallet.type === WalletType.CREDIT_CARD ? 'Current Balance' : 'Balance'}
                 </span>
                 <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
             </div>
-            <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-xl">
-              {getWalletIcon(wallet.type, "w-6 h-6 opacity-90")}
-            </div>
+            <p className="font-mono text-xs tracking-widest opacity-50">****</p>
         </div>
 
         <div className="flex-1 flex items-end">
