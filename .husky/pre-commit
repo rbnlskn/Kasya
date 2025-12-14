@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+set -e
+
+echo "Running auto-increment..."
+node scripts/auto-increment.cjs
+node scripts/sync-version.cjs
+git add package.json src/constants.ts android/app/build.gradle
