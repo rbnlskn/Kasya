@@ -101,8 +101,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
   return (
     <>
-    <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none p-4 pb-safe">
-      <div className="absolute inset-0 bg-black/40 transition-opacity pointer-events-auto" onClick={onClose}></div>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pb-safe">
+      <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={onClose}></div>
 
       <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
         <div className="flex justify-between items-center mb-6">
