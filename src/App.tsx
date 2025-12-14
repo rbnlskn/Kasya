@@ -310,10 +310,12 @@ const App: React.FC = () => {
                 updatedLoans = updatedLoans.map(l => {
                     if (l.id === selectedLoanId) {
                         const newPaidAmount = (l.paidAmount || 0) + txData.amount;
+                        const isPaid = newPaidAmount >= l.totalAmount;
                         return {
                             ...l,
                             paidAmount: newPaidAmount,
-                            status: newPaidAmount >= l.totalAmount ? 'PAID' : 'UNPAID'
+                            status: isPaid ? 'PAID' : 'UNPAID',
+                            lastPaidDate: isPaid ? newTx.date : l.lastPaidDate
                         };
                     }
                     return l;

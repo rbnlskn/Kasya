@@ -17,7 +17,7 @@ const createKasyaFolder = async () => {
     try {
         await Filesystem.mkdir({
             path: FOLDER_NAME,
-            directory: Directory.Downloads,
+            directory: Directory.Documents,
             recursive: true
         });
     } catch(e) {
@@ -41,11 +41,11 @@ export const exportBackup = async (data: AppState) => {
     await Filesystem.writeFile({
         path: path,
         data: JSON.stringify(data, null, 2),
-        directory: Directory.Downloads,
+        directory: Directory.Documents,
         encoding: Encoding.UTF8,
     });
 
-    alert(`Backup saved successfully to Downloads/Kasya/${fileName}`);
+    alert(`Backup saved successfully to Documents/Kasya/${fileName}`);
 
   } catch (error) {
     console.error('Backup failed:', error);
@@ -69,11 +69,11 @@ export const downloadTransactionTemplate = async () => {
         await Filesystem.writeFile({
             path: path,
             data: header,
-            directory: Directory.Downloads,
+            directory: Directory.Documents,
             encoding: Encoding.UTF8,
         });
 
-        alert(`Template saved successfully to Downloads/Kasya/${fileName}`);
+        alert(`Template saved successfully to Documents/Kasya/${fileName}`);
 
     } catch (error) {
         console.error('Template download failed:', error);

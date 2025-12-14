@@ -100,6 +100,7 @@ export interface Loan {
   endDate?: string; // ISO String
   duration?: number;
   durationUnit?: 'DAYS' | 'MONTHS' | 'YEARS';
+  lastPaidDate?: string; // ISO String of last payment
 }
 
 export interface AppState {
