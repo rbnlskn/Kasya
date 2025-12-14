@@ -213,6 +213,21 @@ const App: React.FC = () => {
     return CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
   }, [data.currency]);
 
+  const loanStatusMap = useMemo(() => {
+    const map: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
+    data.loans.forEach(loan => {
+      const payments = data.transactions.filter(t => t.loanId === loan.id);
+      const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
+      const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+      map[loan.id] = {
+        paidAmount,
+        status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
+        lastPaidDate: lastPayment?.date,
+      };
+    });
+    return map;
+  }, [data.loans, data.transactions]);
+
   const sortTransactions = (txs: Transaction[]) => {
       return [...txs].sort((a,b) => {
           const dateB = new Date(b.date).getTime();
@@ -305,29 +320,12 @@ const App: React.FC = () => {
                 updatedBills = updatedBills.map(b => b.id === selectedBillId ? { ...b, lastPaidDate: newTx.date } : b);
             }
     
-            let updatedLoans = [...prev.loans];
-            if (selectedLoanId) {
-                updatedLoans = updatedLoans.map(l => {
-                    if (l.id === selectedLoanId) {
-                        const newPaidAmount = (l.paidAmount || 0) + txData.amount;
-                        const isPaid = newPaidAmount >= l.totalAmount;
-                        return {
-                            ...l,
-                            paidAmount: newPaidAmount,
-                            status: isPaid ? 'PAID' : 'UNPAID',
-                            lastPaidDate: isPaid ? newTx.date : l.lastPaidDate
-                        };
-                    }
-                    return l;
-                });
-            }
             const updatedWallets = applyBalanceChange(prev.wallets, newTx);
             return { 
                 ...prev, 
                 transactions: sortTransactions([newTx, ...prev.transactions]), 
                 wallets: updatedWallets,
                 bills: updatedBills,
-                loans: updatedLoans
             };
         });
     }
@@ -361,22 +359,11 @@ const App: React.FC = () => {
       if (tx.billId) {
           updatedBills = updatedBills.map(b => b.id === tx.billId ? { ...b, lastPaidDate: undefined } : b);
       }
-      let updatedLoans = [...data.loans];
-      if (tx.loanId) {
-          updatedLoans = updatedLoans.map(l => {
-              if (l.id === tx.loanId) {
-                  const newPaid = Math.max(0, l.paidAmount - tx.amount);
-                  return { ...l, paidAmount: newPaid, status: newPaid >= l.totalAmount ? 'PAID' : 'UNPAID' };
-              }
-              return l;
-          });
-      }
       setData(prev => ({ 
           ...prev, 
           transactions: prev.transactions.filter(t => t.id !== id),
           wallets: updatedWallets,
           bills: updatedBills,
-          loans: updatedLoans
       }));
       window.history.back();
   };
@@ -482,12 +469,14 @@ const App: React.FC = () => {
       handleOpenModal('TX_FORM');
   };
 
-  const handlePayLoan = (loan: Loan) => {
+  const handlePayLoan = (loan: Loan, amount?: number) => {
       setSelectedLoanId(loan.id);
-      const remaining = loan.totalAmount - (loan.paidAmount || 0);
+      const paidAmount = loanStatusMap[loan.id]?.paidAmount || 0;
+      const remaining = loan.totalAmount - paidAmount;
+      const paymentAmount = amount || remaining;
       const isPayable = loan.type === 'PAYABLE';
       const loanCategory = data.categories.find(c => c.name.toLowerCase().includes('loan')) || data.categories[0];
-      setPresetTransaction({ amount: remaining, type: isPayable ? TransactionType.EXPENSE : TransactionType.INCOME, description: loan.name, categoryId: loanCategory.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: paymentAmount, type: isPayable ? TransactionType.EXPENSE : TransactionType.INCOME, description: loan.name, categoryId: loanCategory.id, date: new Date().toISOString() });
       setTransactionModalTitle(isPayable ? "Record Payment" : "Record Collection");
       handleOpenModal('TX_FORM');
   };
@@ -625,6 +614,7 @@ const App: React.FC = () => {
                 currencySymbol={currentCurrency.symbol}
                 bills={data.bills}
                 loans={data.loans}
+                loanStatusMap={loanStatusMap}
                 categories={data.categories}
                 onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}
                 onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }}

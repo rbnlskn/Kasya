@@ -179,8 +179,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
-                                <div className="w-8 h-8 icon-container" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
-                                    {getCategoryIcon(selectedCategory)}
+                                <div className="w-8 h-8" style={{ backgroundColor: getCategory(selectedCategory)?.color, borderRadius: '0.75rem' }}>
+                                    <div className="icon-container">{getCategoryIcon(selectedCategory)}</div>
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
                              </>
@@ -199,8 +199,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
-                            <div className={`w-8 h-8 icon-container ${getWallet(selectedWallet)?.color || 'bg-gray-100'} ${getWallet(selectedWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
-                                {getWalletIcon(getWallet(selectedWallet)?.type || '')}
+                            <div className={`w-8 h-8 shadow-sm ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`} style={{borderRadius: '0.75rem'}}>
+                                <div className={`icon-container ${getWallet(selectedWallet)?.textColor || 'text-gray-500'}`}>
+                                    {getWalletIcon(getWallet(selectedWallet)?.type || '')}
+                                </div>
                             </div>
                             <span className="text-sm font-bold text-text-primary">{getWalletName(selectedWallet)}</span>
                         </>
@@ -220,8 +222,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
-                                <div className={`w-8 h-8 icon-container ${getWallet(selectedToWallet)?.color || 'bg-gray-100'} ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'} shadow-sm`}>
-                                    {getWalletIcon(getWallet(selectedToWallet)?.type || '')}
+                                <div className={`w-8 h-8 shadow-sm ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`} style={{borderRadius: '0.75rem'}}>
+                                    <div className={`icon-container ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'}`}>
+                                        {getWalletIcon(getWallet(selectedToWallet)?.type || '')}
+                                    </div>
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>
                             </>
@@ -275,7 +279,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                         <div className="grid grid-cols-4 gap-2">
                             {categories.map(c => (
                                 <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
-                                    <div className={`w-10 h-10 icon-container text-xl mb-1.5 shadow-sm`} style={{backgroundColor: c.color}}>{c.icon}</div>
+                                    <div className="w-10 h-10 text-xl mb-1.5 shadow-sm" style={{backgroundColor: c.color, borderRadius: '0.75rem'}}><div className="icon-container">{c.icon}</div></div>
                                     <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                                 </button>
                             ))}
@@ -287,8 +291,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                             {wallets.map(w => (
                                 <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 icon-container ${w.color} ${w.textColor} shadow-sm`}>
-                                            {getWalletIcon(w.type)}
+                                        <div className={`w-10 h-10 ${w.color} ${w.textColor} shadow-sm`} style={{borderRadius: '0.75rem'}}>
+                                          <div className="icon-container">{getWalletIcon(w.type)}</div>
                                         </div>
                                         <div className="text-left">
                                             <div className="font-bold text-sm text-text-primary">{w.name}</div>

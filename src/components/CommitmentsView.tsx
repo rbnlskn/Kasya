@@ -9,18 +9,19 @@ interface CommitmentsViewProps {
   currencySymbol: string;
   bills: Bill[];
   loans: Loan[];
+  loanStatusMap: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }>;
   categories: Category[];
   onAddBill: () => void;
   onEditBill: (bill: Bill) => void;
   onPayBill: (bill: Bill) => void;
   onAddLoan: () => void;
   onEditLoan: (loan: Loan) => void;
-  onPayLoan: (loan: Loan) => void;
+  onPayLoan: (loan: Loan, amount?: number) => void;
   onPayCC: (wallet: Wallet) => void;
   onWalletClick?: (wallet: Wallet) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_LOANS'>('NONE');
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
@@ -92,11 +93,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const getLoanDueDateText = (loan: Loan) => {
-    if (loan.status === 'PAID') return 'Settled';
+    if (loanStatusMap[loan.id]?.status === 'PAID') return 'Settled';
     if (loan.dueDay === 0) return 'No Due Date';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(loan.startDate);
+    let firstDueDate = new Date(startDate);
+    firstDueDate.setDate(loan.dueDay);
+    if (firstDueDate < startDate) {
+      firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
 
     let targetDueDate: Date;
 
@@ -155,9 +163,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   )};
 
   const renderLoanItem = (loan: Loan) => {
-    const isPaid = loan.status === 'PAID';
+    const { paidAmount, status } = loanStatusMap[loan.id] || { paidAmount: 0, status: 'UNPAID' };
+    const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
     const isOverdue = dueDateText.includes('Overdue');
+    const paymentAmount = loan.installmentAmount ? loan.installmentAmount : loan.totalAmount - paidAmount;
 
     return (
         <div key={loan.id} onClick={() => onEditLoan(loan)} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer active:scale-[0.99] transition-transform">
@@ -172,14 +182,14 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
             <div className="flex flex-col items-end ml-2">
                 <span className={`block font-bold text-sm text-gray-800 text-right ${isPaid ? 'opacity-50' : ''}`}>
-                     <span className="text-gray-400 font-medium text-xs">{currencySymbol}{(loan.paidAmount || 0).toLocaleString()}</span>
+                     <span className="text-gray-400 font-medium text-xs">{currencySymbol}{paidAmount.toLocaleString()}</span>
                      <span className="mx-0.5 text-gray-300">/</span>
-                     <span>{currencySymbol}{loan.totalAmount.toLocaleString()}</span>
+                     <span>{currencySymbol}{paymentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </span>
                 
                 {!isPaid && (
                      <button 
-                        onClick={(e) => { e.stopPropagation(); onPayLoan(loan); }}
+                        onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
                         className="text-xs bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-100 mt-1"
                     >
                         {loan.type === 'PAYABLE' ? 'Pay' : 'Collect'}
@@ -192,10 +202,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const isLoanDueInMonth = (loan: Loan, checkDate: Date): boolean => {
+    const loanStatus = loanStatusMap[loan.id];
     // If paid, only show in the month it was paid.
-    if (loan.status === 'PAID') {
-      if (!loan.lastPaidDate) return false;
-      const paidDate = new Date(loan.lastPaidDate);
+    if (loanStatus?.status === 'PAID') {
+      if (!loanStatus.lastPaidDate) return false;
+      const paidDate = new Date(loanStatus.lastPaidDate);
       return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
     }
 
@@ -216,7 +227,14 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     }
 
     if (loan.recurrence === 'ONE_TIME') {
-        return firstDueDate.getFullYear() === checkDate.getFullYear() && firstDueDate.getMonth() === checkDate.getMonth();
+        const endDate = loan.endDate ? new Date(loan.endDate) : firstDueDate;
+        const checkTime = checkDate.getTime();
+        // Set to the very start of the day to include the start date
+        const startTime = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+        // Set to the very end of the day to include the end date
+        const endTime = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59, 999).getTime();
+
+        return checkTime >= startTime && checkTime <= endTime;
     }
 
     const duration = loan.duration || 1200; // 100 years fallback
@@ -331,8 +349,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
         <SectionHeader title="Loans & Debts" icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
         <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {validLoans.filter(l => l.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
-             {validLoans.filter(l => l.status !== 'PAID').length === 0 && (
+            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 3).map(l => renderLoanItem(l))}
+             {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
                 <div className="text-center text-sm text-gray-400 py-6">No active loans.</div>
             )}
         </div>
@@ -406,13 +424,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
                     {loanFilter === 'ACTIVE' ? (
                         <>
-                            {validLoans.filter(l => l.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
-                            {validLoans.filter(l => l.status !== 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(l => renderLoanItem(l))}
                         </>
                     ) : (
                         <>
-                            {validLoans.filter(l => l.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
-                            {validLoans.filter(l => l.status === 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map(l => renderLoanItem(l))}
                         </>
                     )}
                 </div>

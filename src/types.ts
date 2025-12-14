@@ -87,19 +87,18 @@ export interface Loan {
   id: string;
   name: string;
   totalAmount: number;
-  paidAmount: number; // Track partial payments
   interest?: number; // Interest amount
   fee?: number; // Fee amount (recorded for reference/transaction)
   type: LoanType;
-  status: 'PAID' | 'UNPAID';
   dueDay: number; // 0 for no due date (legacy/recurring)
   dueDate?: string; // ISO String (for calculated duration end date)
-  recurrence: RecurrenceFrequency; 
+  recurrence: RecurrenceFrequency;
   icon: string;
   startDate: string; // ISO String
   endDate?: string; // ISO String
   duration?: number;
   durationUnit?: 'DAYS' | 'MONTHS' | 'YEARS';
+  installmentAmount?: number;
   lastPaidDate?: string; // ISO String of last payment
 }
 
