@@ -1,23 +1,17 @@
 import { useState, useEffect } from 'react';
 
 export const useCurrencyInput = (initialValue: number | string = '') => {
-  const format = (value: string | number) => {
-    const stringValue = value.toString();
-    if (!stringValue) return '';
-
-    let [integer, decimal] = stringValue.replace(/[^\d.]/g, '').split('.');
-
+  const format = (value: string) => {
+    if (!value) return '';
+    let [integer, decimal] = value.replace(/[^\d.]/g, '').split('.');
     integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
-    if (decimal !== undefined) {
+    if (decimal) {
       decimal = decimal.substring(0, 2);
-      return `${integer}.${decimal}`;
     }
-
-    return integer;
+    return decimal === undefined ? integer : `${integer}${decimal ? '.' : ''}${decimal || ''}`;
   };
 
-  const [formattedValue, setFormattedValue] = useState(format(initialValue));
+  const [formattedValue, setFormattedValue] = useState(format(initialValue.toString()));
 
   useEffect(() => {
     setFormattedValue(format(initialValue.toString()));

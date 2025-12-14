@@ -5,8 +5,6 @@ import { Category, Wallet, TransactionType, Transaction } from '../types';
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
-import { useCurrencyInput } from '../hooks/useCurrencyInput';
-import { formatCurrency } from '../utils/number';
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -22,8 +20,8 @@ interface TransactionFormModalProps {
 }
 
 const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title, isExiting }) => {
-  const { value: amount, rawValue: amountRaw, onChange: handleAmountChange, setValue: setAmount } = useCurrencyInput(initialTransaction?.amount || '');
-  const { value: fee, rawValue: feeRaw, onChange: handleFeeChange, setValue: setFee } = useCurrencyInput(initialTransaction?.fee || '');
+  const [amount, setAmount] = useState('');
+  const [fee, setFee] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
@@ -55,17 +53,21 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       }
       setSelectorView('NONE');
     }
-  }, [isOpen, initialTransaction, setAmount, setFee]);
+  }, [isOpen, initialTransaction]);
 
   if (!isOpen && !isExiting) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid()) return;
+    const amountVal = parseFloat(amount);
+    if (isNaN(amountVal) || amountVal <= 0) return;
+    if (!selectedWallet) return;
+    if (type !== TransactionType.TRANSFER && !selectedCategory) return;
+    if (type === TransactionType.TRANSFER && !selectedToWallet) return;
     
     onSave({
-      amount: amountRaw,
-      fee: feeRaw,
+      amount: amountVal,
+      fee: parseFloat(fee) || 0,
       type,
       categoryId: type === TransactionType.TRANSFER ? 'cat_transfer' : selectedCategory,
       walletId: selectedWallet,
@@ -89,11 +91,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const getCategoryIcon = (id: string) => getCategory(id)?.icon || null;
 
   const isFormValid = () => {
-      if (amountRaw <= 0) return false;
+      if (!amount || parseFloat(amount) <= 0) return false;
       if (!selectedWallet) return false;
       if (type !== TransactionType.TRANSFER && !selectedCategory) return false;
       if (type === TransactionType.TRANSFER && !selectedToWallet) return false;
-      if (type === TransactionType.TRANSFER && selectedWallet === selectedToWallet) return false;
       return true;
   };
 
@@ -125,9 +126,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
-                type="text"
+                type="number"
                 value={amount}
-                onChange={handleAmountChange}
+                step="0.01"
+                onChange={(e) => setAmount(e.target.value)}
                 className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 placeholder="0.00"
                 inputMode="decimal"
@@ -142,9 +144,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
                   <input 
-                    type="text"
+                    type="number"
                     value={fee}
-                    onChange={handleFeeChange}
+                    onChange={(e) => setFee(e.target.value)}
                     className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                     placeholder="0.00"
                     inputMode="decimal"
@@ -294,7 +296,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                                         </div>
                                         <div className="text-left">
                                             <div className="font-bold text-sm text-text-primary">{w.name}</div>
-                                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{formatCurrency(w.balance)}</div>
+                                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
                                         </div>
                                     </div>
                                     {(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}
