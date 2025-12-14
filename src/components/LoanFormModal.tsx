@@ -91,14 +91,16 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         endDate = date.toISOString();
     }
 
+    const installmentAmount = (duration && parseInt(duration, 10) > 0)
+      ? totalAmount / parseInt(duration, 10)
+      : undefined;
+
     onSave({
       name,
       totalAmount,
-      paidAmount: initialLoan ? initialLoan.paidAmount : 0,
       interest: parseFloat(interest) || 0,
       fee: parseFloat(fee) || 0,
       type,
-      status: 'UNPAID',
       dueDay: Number(dueDay) || 0,
       recurrence: occurrence,
       icon: '💰', // Hardcoded icon
@@ -106,6 +108,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
       endDate, // Can be undefined
       duration: parseInt(duration) || undefined,
       durationUnit: duration ? durationUnit : undefined,
+      installmentAmount,
     }, initialLoan?.id, createTransaction ? selectedWalletId : undefined);
     onClose();
   };
