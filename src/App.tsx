@@ -542,7 +542,7 @@ const App: React.FC = () => {
                             <button onClick={() => handleOpenOverlay('ALL_WALLETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-                            <button onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-[200px] rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
+                            <button onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-32 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
                                 <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
                             </button>
                             {data.wallets.map((w) => (
