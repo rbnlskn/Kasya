@@ -7,11 +7,9 @@ interface WalletCardProps {
   wallet: Wallet;
   onClick?: (wallet: Wallet) => void;
   currencySymbol: string;
-  bgColor?: string;
-  textColor?: string;
 }
 
-export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
+export const getWalletIcon = (type: string, className: string = "w-full h-full") => {
     switch (type) {
         case WalletType.CASH: return <WalletIcon className={className} />;
         case WalletType.BANK: return <Landmark className={className} />;
@@ -23,42 +21,36 @@ export const getWalletIcon = (type: string, className: string = "w-5 h-5") => {
     }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, bgColor, textColor }) => {
-  const finalBgColor = bgColor || wallet.color || 'bg-gray-900';
-  const finalTextColor = textColor || wallet.textColor || 'text-green-300';
-
-  const style: React.CSSProperties = {};
-  if (bgColor) style.backgroundColor = bgColor;
-  else if (!wallet.color?.startsWith('bg-')) style.backgroundColor = '#111827';
-
-  if (textColor) style.color = textColor;
-  else if (!wallet.textColor?.startsWith('text-')) style.color = '#6EE7B7';
-
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol }) => {
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`flex-shrink-0 w-52 h-32 rounded-2xl p-4 relative ${!bgColor ? finalBgColor : ''} ${!textColor ? finalTextColor : ''} shadow-lg shadow-gray-200/50 transition-all active:scale-95 duration-200 cursor-pointer group overflow-hidden border border-white/10`}
-      style={style}
+      className="w-[340px] h-[200px] bg-black rounded-3xl p-6 relative flex flex-col justify-between overflow-hidden shadow-lg transition-all active:scale-95 duration-200 cursor-pointer group"
+      style={{
+          boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+          color: '#7AF5B8', // Mint Green
+          fontFamily: "'Outfit', sans-serif"
+      }}
     >
-      <div className="absolute -bottom-12 -right-8 w-32 h-32 text-white/10 pointer-events-none">
-        <CreditCard className="w-full h-full" strokeWidth={1.5} />
+      <div className="absolute top-5 right-[-80px] w-[280px] h-[280px] bg-[#1a1a1a] rounded-full z-0 overflow-hidden">
+        <div className="absolute top-2.5 left-10 w-[150px] h-[150px] text-white/20 opacity-20 filter grayscale pointer-events-none">
+          {getWalletIcon(wallet.type)}
+        </div>
       </div>
 
-      <div className="flex flex-col h-full relative z-10">
-        <div className="flex justify-between items-start">
-            <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider opacity-70 block leading-tight">
-                  {wallet.type === WalletType.CREDIT_CARD ? 'Current Balance' : 'Balance'}
-                </span>
-                <p className="font-semibold text-sm truncate opacity-80 max-w-[120px]">{wallet.name}</p>
-            </div>
-            <p className="font-mono text-xs tracking-widest opacity-50">****</p>
+      <div className="relative z-10 flex justify-between items-start">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-light uppercase tracking-wider opacity-90">
+            {wallet.type === WalletType.CREDIT_CARD ? 'Current Balance' : 'Balance'}
+          </span>
+          <span className="text-xl font-bold">{wallet.name}</span>
         </div>
+        <div className="text-2xl tracking-widest opacity-80" style={{lineHeight: '10px'}}>&bull;&bull;&bull;&bull;</div>
+      </div>
 
-        <div className="flex-1 flex items-end">
-            <p className="text-2xl font-bold tracking-tight leading-tight">
-                {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
+      <div className="relative z-10">
+        <div className="text-4xl font-bold tracking-tight">
+          {currencySymbol}{wallet.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
     </div>

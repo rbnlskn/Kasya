@@ -64,11 +64,16 @@ export const downloadTransactionTemplate = async () => {
 
         const fileName = 'Kasya-Transaction-Template.csv';
         const path = `${FOLDER_NAME}/${fileName}`;
-        const header = "Date (YYYY-MM-DD),Time,Type (Income/Expense/Transfer),Amount,Wallet,Category,Description\n";
+        const csvContent = [
+            "Date,Time,Type,Amount,Wallet,Category,Description",
+            "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
+            "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
+            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
+        ].join('\n');
 
         await Filesystem.writeFile({
             path: path,
-            data: header,
+            data: csvContent,
             directory: Directory.Documents,
             encoding: Encoding.UTF8,
         });
