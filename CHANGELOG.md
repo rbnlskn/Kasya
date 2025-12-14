@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/rbnlskn/Kasya/compare/v1.5.6...v1.6.0) (2025-12-14)
+
+
+### Features
+
+* **ui:** Redesign wallet cards, fix UI bugs, and improve data import ([#94](https://github.com/rbnlskn/Kasya/issues/94)) ([2ddcc27](https://github.com/rbnlskn/Kasya/commit/2ddcc277571f479722e549ee19090f634078527c))
+
 ### [1.5.6](https://github.com/rbnlskn/Kasya/compare/v1.5.4...v1.5.6) (2025-12-14)
 
 ### [1.5.4](https://github.com/rbnlskn/Kasya/compare/v1.5.3...v1.5.4) (2025-12-13)
