@@ -474,9 +474,10 @@ const App: React.FC = () => {
   const handleDeleteLoan = (id: string) => setData(prev => ({ ...prev, loans: prev.loans.filter(l => l.id !== id) }));
 
   const handlePayBill = (bill: Bill) => {
-      const billCategory = data.categories.find(c => c.name.toLowerCase().includes('bill')) || data.categories[0];
+      const categoryName = bill.type === 'SUBSCRIPTION' ? 'subscription' : 'bill';
+      const category = data.categories.find(c => c.name.toLowerCase().includes(categoryName)) || data.categories.find(c => c.name.toLowerCase().includes('bill')) || data.categories[0];
       setSelectedBillId(bill.id);
-      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: billCategory.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };
@@ -542,8 +543,8 @@ const App: React.FC = () => {
                             <button onClick={() => handleOpenOverlay('ALL_WALLETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
                          </div>
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-                            <button onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-20 h-32 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
-                                <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
+                            <button data-testid="add-wallet-button" onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-[150px] rounded-3xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors group bg-white active:scale-95">
+                                <Plus className="w-8 h-8 group-active:scale-90 transition-transform" />
                             </button>
                             {data.wallets.map((w) => (
                                 <WalletCard
@@ -551,6 +552,7 @@ const App: React.FC = () => {
                                     wallet={w}
                                     onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
                                     currencySymbol={currentCurrency.symbol}
+                                    scale={0.75}
                                 />
                             ))}
                          </div>
