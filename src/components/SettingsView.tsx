@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
-import { AppState, ThemeMode } from '../types';
+import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
 import { CURRENCIES } from '../data/currencies';
 import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
 
@@ -53,12 +53,44 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                 alert('Data imported successfully!');
              } else { throw new Error('Invalid JSON structure'); }
         } else if (file.name.endsWith('.csv')) {
-            alert("Full CSV Import logic is pending. Please use JSON backup for full restoration.");
+            const lines = result.split('\n').slice(1); // Skip header
+            const newTransactions: Transaction[] = [];
+            lines.forEach((line, index) => {
+                if (!line.trim()) return;
+                const [date, time, type, amount, walletName, categoryName, description] = line.split(',');
+
+                const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === walletName.trim().toLowerCase());
+                const category = data.categories.find(c => c.name.trim().toLowerCase() === categoryName.trim().toLowerCase());
+
+                if (!wallet || !category) {
+                    console.warn(`Skipping line ${index + 2}: Wallet or Category not found.`);
+                    return;
+                }
+
+                newTransactions.push({
+                    id: `tx_csv_${Date.now()}_${index}`,
+                    date: new Date(`${date} ${time}`).toISOString(),
+                    type: type.toUpperCase() as TransactionType,
+                    amount: parseFloat(amount),
+                    walletId: wallet.id,
+                    categoryId: category.id,
+                    description: description,
+                    createdAt: Date.now() + index,
+                });
+            });
+
+            if (newTransactions.length > 0) {
+                const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions] };
+                onImport(updatedData);
+                alert(`${newTransactions.length} transactions imported successfully!`);
+            } else {
+                alert('No new transactions were imported. Please check the CSV file format.');
+            }
         }
       } catch (err) { alert('Failed to import data. Please ensure the file is a valid backup.'); }
     };
     reader.readAsText(file);
-    e.target.value = ''; 
+    e.target.value = '';
   };
   
   const handleFullReset = () => {

@@ -193,12 +193,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const validLoans = loans.filter(loan => {
     const start = new Date(loan.startDate);
-    start.setHours(0,0,0,0);
-    const current = new Date(currentDate);
-    current.setHours(0,0,0,0);
-    current.setDate(1);
+    const startMonth = new Date(start.getFullYear(), start.getMonth(), 1);
 
-    if (start > current) return false;
+    const current = new Date(currentDate);
+    const currentMonth = new Date(current.getFullYear(), current.getMonth(), 1);
+
+    if (startMonth > currentMonth) return false;
 
     // Indefinite (No Due Day) loans are always valid from their start date
     if (loan.dueDay === 0) {

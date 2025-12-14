@@ -429,7 +429,7 @@ const App: React.FC = () => {
   const handleDeleteBill = (id: string) => {
     setData(prev => ({
         ...prev,
-        bills: prev.bills.map(b => b.id === id ? { ...b, endDate: new Date().toISOString() } : b)
+        bills: prev.bills.filter(b => b.id !== id)
     }));
   };
   
@@ -564,7 +564,6 @@ const App: React.FC = () => {
     <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
         <button onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} className="flex-shrink-0 w-16 h-20 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
             <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
-            <span className="text-[10px] font-bold">Add</span>
         </button>
         {data.budgets.map((b) => (
             <BudgetRing

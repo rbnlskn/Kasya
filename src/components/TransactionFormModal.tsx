@@ -199,7 +199,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
-                            <div className={`w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
+                            <div className={`w-10 h-10 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
                                 <div className={getWallet(selectedWallet)?.textColor || 'text-gray-500'}>
                                     {getWalletIcon(getWallet(selectedWallet)?.type || '', "w-5 h-5")}
                                 </div>
@@ -222,7 +222,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
-                                <div className={`w-8 h-8 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
+                                <div className={`w-10 h-10 rounded-lg shadow-sm flex items-center justify-center ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
                                     <div className={getWallet(selectedToWallet)?.textColor || 'text-gray-500'}>
                                         {getWalletIcon(getWallet(selectedToWallet)?.type || '', "w-5 h-5")}
                                     </div>
