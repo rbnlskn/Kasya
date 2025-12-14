@@ -188,7 +188,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const isOverdue = dueDateText.includes('Overdue');
     const paymentAmount = loan.installmentAmount || 0;
 
-    const totalInstallments = loan.duration;
+    const totalInstallments = loan.duration || 0;
     const paidInstallments = paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0;
     const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
 
