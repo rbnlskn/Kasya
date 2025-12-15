@@ -14,195 +14,13 @@ permissions:
   contents: read
 
 jobs:
-  setup-context:
-    name: Setup Batch Context
-    if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ready'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Process Batch Issue
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.JULES_PAT }}
-          script: |
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const actor = context.actor;
-
-            console.log(`Processing 'ready' label on issue #${issue_number}`);
-
-            // 1. Remove 'backlog' and 'ready' labels
-            const labelsToRemove = ['backlog', 'ready'];
-            for (const label of labelsToRemove) {
-              try {
-                await github.rest.issues.removeLabel({ owner, repo, issue_number, name: label });
-                console.log(`Removed label: ${label}`);
-              } catch (e) {
-                console.log(`Label ${label} not found or error removing.`);
-              }
-            }
-
-            // 2. Assign Batch Issue to Actor
-            try {
-              await github.rest.issues.addAssignees({
-                owner, repo, issue_number, assignees: [actor]
-              });
-              console.log(`Assigned issue to ${actor}`);
-            } catch (e) {
-              console.log(`Error assigning issue: ${e.message}`);
-            }
-
-            // 3. Identify Sub-issues
-            const { data: batchIssue } = await github.rest.issues.get({ owner, repo, issue_number });
-            const body = batchIssue.body || "";
-            // Regex to find #123
-            const issueMatches = body.match(/#(\d+)/g) || [];
-            const subIssueIds = [...new Set(issueMatches
-              .map(s => parseInt(s.replace('#', ''), 10))
-              .filter(id => id !== issue_number)
-            )];
-
-            console.log(`Found sub-issues: ${subIssueIds.join(', ')}`);
-
-            // 4. Process Sub-issues
-            let contextSection = "\n\n# Consolidated Context\n";
-
-            for (const id of subIssueIds) {
-              try {
-                // Remove 'backlog', Add 'in progress'
-                try {
-                  await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: 'backlog' });
-                } catch (e) {}
-
-                await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['in progress'] });
-
-                // Assign to Actor
-                await github.rest.issues.addAssignees({ owner, repo, issue_number: id, assignees: [actor] });
-
-                // Fetch for Context
-                const { data: sub } = await github.rest.issues.get({ owner, repo, issue_number: id });
-                contextSection += `\n## Issue #${id}: ${sub.title}\n${sub.body || ''}\n`;
-                console.log(`Processed sub-issue #${id}`);
-              } catch (error) {
-                console.log(`Error processing sub-issue #${id}: ${error.message}`);
-              }
-            }
-
-            // 5. Append Context to Batch Issue
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['context'] });
-
-            await github.rest.issues.update({
-              owner, repo, issue_number,
-              body: body + contextSection
-            });
-            console.log("Appended Consolidated Context");
-
-            // 6. Add 'in progress' and 'jules' labels
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in progress', 'jules'] });
-            console.log("Added 'in progress' and 'jules' labels");
-
-            // 7. Request Plan
-            await github.rest.issues.createComment({
-              owner, repo, issue_number,
-              body: "Batch ready. Jules please post the plan."
-            });
-
-  review-transition:
-    name: Transition to Review
-    if: github.event_name == 'issue_comment'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check PR Comment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.JULES_PAT }}
-          script: |
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-            const commentBody = context.payload.comment.body.toLowerCase();
-
-            const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number });
-            const hasInProgress = issue.labels.some(l => l.name === 'in progress');
-
-            if (!hasInProgress) return;
-
-            const isPR = commentBody.includes('pull request') || commentBody.includes('/pull/');
-
-            if (isPR) {
-               console.log("PR detected. Transitioning to 'in review'.");
-               try {
-                 await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'in progress' });
-               } catch(e) {}
-               await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in review'] });
-            }
-
-  completion:
-    name: Complete Issues
-    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Close Linked Issues
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.JULES_PAT }}
-          script: |
-            const { owner, repo } = context.repo;
-            const pr = context.payload.pull_request;
-            const prBody = pr.body || "";
-
-            // 1. Parse Breakdown Section
-            const updates = {};
-            const breakdownMatch = prBody.match(/## Breakdown\s+([\s\S]*)/i);
-            if (breakdownMatch) {
-              const breakdownText = breakdownMatch[1];
-              // Regex to find "### Issue #<id>" blocks. Captures: 1=ID, 2=Content
-              const regex = /### Issue #(\d+)\s+([\s\S]*?)(?=(?:### Issue #|$))/gi;
-              let match;
-              while ((match = regex.exec(breakdownText)) !== null) {
-                  const id = parseInt(match[1], 10);
-                  const content = match[2].trim();
-                  updates[id] = content;
-              }
-            }
-            console.log("Parsed Updates:", JSON.stringify(updates));
-
-            // 2. Identify Linked Issues
-            const issueMatches = prBody.match(/#(\d+)/g) || [];
-            const linkedIssueIds = [...new Set(issueMatches.map(s => parseInt(s.replace('#', ''), 10)))];
-
-            console.log(`Found linked issues in PR: ${linkedIssueIds.join(', ')}`);
-
-            // 3. Process Each Issue
-            for (const id of linkedIssueIds) {
-               try {
-                 // Post Comment if Update exists
-                 if (updates[id]) {
-                    await github.rest.issues.createComment({
-                      owner, repo, issue_number: id,
-                      body: `**Update from Jules:**\n${updates[id]}`
-                    });
-                    console.log(`Posted update comment on issue #${id}`);
-                 }
-
-                 // Remove status labels
-                 const labelsToRemove = ['in review', 'in progress', 'planning', 'jules', 'context'];
-                 for (const label of labelsToRemove) {
-                    try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: label }); } catch(e){}
-                 }
-
-                 // Close without adding 'completed' label
-                 await github.rest.issues.update({ owner, repo, issue_number: id, state: 'closed' });
-                 console.log(`Closed issue #${id}`);
-               } catch(e) {
-                 console.log(`Error closing issue #${id}: ${e.message}`);
-               }
-            }
-
-  reset-issue-state:
+  # 1. Reset State for New/Reopened Issues
+  reset-state:
     name: Reset Issue State
     if: github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'reopened')
     runs-on: ubuntu-latest
     steps:
-      - name: Reset Labels
+      - name: Apply Backlog Label
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.JULES_PAT }}
@@ -211,7 +29,7 @@ jobs:
             const issue_number = context.issue.number;
 
             // Remove status labels
-            const labelsToRemove = ['completed', 'in progress', 'in review', 'jules', 'planning', 'context'];
+            const labelsToRemove = ['in progress', 'in review', 'jules', 'planning', 'context', 'ready', 'completed'];
             for (const label of labelsToRemove) {
               try {
                 await github.rest.issues.removeLabel({ owner, repo, issue_number, name: label });
@@ -219,16 +37,134 @@ jobs:
             }
 
             // Add 'backlog'
-            try {
-              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['backlog'] });
-            } catch (e) {}
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['backlog'] });
+            console.log(`Reset issue #${issue_number} to backlog.`);
 
+  # 2. Start Workflow (Ready -> Context)
+  start-workflow:
+    name: Start Workflow
+    if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'ready'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize Batch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const actor = context.actor;
+
+            console.log(`Starting workflow for #${issue_number}`);
+
+            // Remove 'backlog' and 'ready'
+            try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'backlog' }); } catch(e){}
+            try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'ready' }); } catch(e){}
+
+            // Assign Actor
+            try {
+              await github.rest.issues.addAssignees({ owner, repo, issue_number, assignees: [actor] });
+            } catch(e) {}
+
+            // Add 'context' to trigger next step
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['context'] });
+            console.log("Added 'context' label.");
+
+  # 3. Generate Context (Context -> Jules)
+  generate-context:
+    name: Generate Context
+    if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'context'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process Batch and Sub-issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const actor = context.actor;
+
+            // 1. Identify Sub-issues
+            const { data: batchIssue } = await github.rest.issues.get({ owner, repo, issue_number });
+            const body = batchIssue.body || "";
+            const issueMatches = body.match(/#(\d+)/g) || [];
+            const subIssueIds = [...new Set(issueMatches
+              .map(s => parseInt(s.replace('#', ''), 10))
+              .filter(id => id !== issue_number)
+            )];
+
+            console.log(`Found sub-issues: ${subIssueIds.join(', ')}`);
+
+            // 2. Process Sub-issues & Build Context
+            let contextSection = "\n\n# Consolidated Context\n";
+            for (const id of subIssueIds) {
+              try {
+                // Update Sub-issue State
+                try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: 'backlog' }); } catch(e){}
+                await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['in progress'] });
+                await github.rest.issues.addAssignees({ owner, repo, issue_number: id, assignees: [actor] });
+
+                // Fetch Details
+                const { data: sub } = await github.rest.issues.get({ owner, repo, issue_number: id });
+                contextSection += `\n## Issue #${id}: ${sub.title}\n${sub.body || ''}\n`;
+              } catch (e) {
+                console.log(`Error processing sub-issue #${id}: ${e.message}`);
+              }
+            }
+
+            // 3. Update Batch Issue Body
+            if (subIssueIds.length > 0) {
+               await github.rest.issues.update({
+                 owner, repo, issue_number,
+                 body: body + contextSection
+               });
+            }
+
+            // 4. Transition Labels (Remove 'context', Add 'jules', 'in progress')
+            try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'context' }); } catch(e){}
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['jules', 'in progress'] });
+
+            // 5. Trigger Jules
+            await github.rest.issues.createComment({
+              owner, repo, issue_number,
+              body: "Batch ready. Jules please post the plan."
+            });
+
+  # 4. Review Transition (In Progress -> In Review)
+  review-transition:
+    name: Transition to Review
+    if: github.event_name == 'issue_comment' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for PR Comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const commentBody = context.payload.comment.body.toLowerCase();
+
+            // Check if issue is 'in progress'
+            const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number });
+            const hasInProgress = issue.labels.some(l => l.name === 'in progress');
+            if (!hasInProgress) return;
+
+            // Check keywords
+            if (commentBody.includes('pull request') || commentBody.includes('/pull/')) {
+               console.log("PR detected. Transitioning to 'in review'.");
+               try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'in progress' }); } catch(e){}
+               await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in review'] });
+            }
+
+  # 5. Assign PR
   assign-pr:
     name: Assign PR
     if: github.event_name == 'pull_request' && github.event.action == 'opened'
     runs-on: ubuntu-latest
     steps:
-      - name: Assign and Request Review
+      - name: Assign and Label
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.JULES_PAT }}
@@ -237,30 +173,76 @@ jobs:
             const pull_number = context.issue.number;
             const targetUser = 'rbnlskn';
 
-            // Assign
+            await github.rest.issues.addAssignees({ owner, repo, issue_number: pull_number, assignees: [targetUser] });
+            await github.rest.issues.addLabels({ owner, repo, issue_number: pull_number, labels: ['in progress'] });
+
+            // Mark Ready for Review
             try {
-              await github.rest.issues.addAssignees({
-                owner, repo, issue_number: pull_number, assignees: [targetUser]
-              });
-            } catch (e) {
-              console.log(`Error assigning PR: ${e.message}`);
+              await github.rest.pulls.update({ owner, repo, pull_number, draft: false });
+            } catch(e) {}
+
+  # 6. Completion (On Merge)
+  completion:
+    name: Complete Issues
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process Breakdown and Close Issues
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const prBody = pr.body || "";
+
+            // 1. Parse Breakdown for Sub-issues
+            const updates = {};
+            const breakdownMatch = prBody.match(/## Breakdown\s+([\s\S]*)/i);
+            if (breakdownMatch) {
+              const breakdownText = breakdownMatch[1];
+              const regex = /### Issue #(\d+)\s+([\s\S]*?)(?=(?:### Issue #|$))/gi;
+              let match;
+              while ((match = regex.exec(breakdownText)) !== null) {
+                  updates[parseInt(match[1], 10)] = match[2].trim();
+              }
             }
 
-            // Mark as Ready for Review (Undraft)
-            try {
-              await github.rest.pulls.update({
-                owner, repo, pull_number, draft: false
-              });
-              console.log("Marked PR as ready for review.");
-            } catch (e) {
-              console.log(`Error updating PR status: ${e.message}`);
+            // 2. Identify All Linked Issues (Sub-issues + Batch Issue)
+            // Look for "Fixes #123", "Closes #123", or just "#123"
+            const issueMatches = prBody.match(/#(\d+)/g) || [];
+            const allLinkedIds = [...new Set(issueMatches.map(s => parseInt(s.replace('#', ''), 10)))];
+
+            console.log(`Processing Linked Issues: ${allLinkedIds.join(', ')}`);
+
+            for (const id of allLinkedIds) {
+               try {
+                 // Post Update Comment (only if specific breakdown exists)
+                 if (updates[id]) {
+                    await github.rest.issues.createComment({
+                      owner, repo, issue_number: id,
+                      body: `**Update from Jules:**\n${updates[id]}`
+                    });
+                 }
+
+                 // Remove Status Labels
+                 const labelsToRemove = ['in review', 'in progress', 'planning', 'jules', 'context'];
+                 for (const label of labelsToRemove) {
+                    try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: label }); } catch(e){}
+                 }
+
+                 // Close Issue
+                 await github.rest.issues.update({ owner, repo, issue_number: id, state: 'closed' });
+                 console.log(`Closed issue #${id}`);
+               } catch(e) {
+                 console.log(`Error processing issue #${id}: ${e.message}`);
+               }
             }
 
-            // Request Review
-            try {
-              await github.rest.pulls.requestReviewers({
-                owner, repo, pull_number, reviewers: [targetUser]
-              });
-            } catch (e) {
-              console.log(`Error requesting review: ${e.message}`);
+            // 3. Clean up PR Labels
+            const prNumber = pr.number;
+            const labelsToRemovePR = ['in progress', 'in review', 'planning', 'jules', 'context'];
+            for (const label of labelsToRemovePR) {
+               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: prNumber, name: label }); } catch(e){}
             }
+            console.log(`Cleaned up labels for PR #${prNumber}`);

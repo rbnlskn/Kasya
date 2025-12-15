@@ -16,15 +16,16 @@ You must check the labels on the Issue before acting.
 2.  **Plan:** Post a comment detailing exactly what you intend to do (files to touch, logic to change).
 3.  **Execute:** Write the code to solve the sub-issues immediately. Do NOT wait for approval.
 4.  **Versioning:**
-    -   Increment `version` in `package.json` (PATCH for bugs, MINOR for features).
-    -   Update `APP_VERSION` in `src/constants.ts` to match.
-    -   Add a new entry to the `CHANGELOG` array in `src/constants.ts`:
+    -   **Start of Batch:** Manually increment the **MINOR** version in `package.json` (e.g., `1.0.0` -> `1.1.0`). Reset the PATCH version to `0`.
+    -   **During Development:** The `pre-commit` hook will automatically increment the **PATCH** version (e.g., `1.1.0` -> `1.1.1`) on every commit. Do not increment manually after the start.
+    -   **Changelog:** Add a new entry to the `CHANGELOG` array in `src/constants.ts` for the MINOR version you just set.
         ```typescript
         { version: 'x.x.x', date: 'YYYY-MM-DD', changes: ['Description of change'] }
         ```
 5.  **PR:** Open a Pull Request.
     -   **Important:** Link the Batch Issue in the PR description (e.g., "Fixes #123").
     -   Post a comment on the Batch Issue with the link to the PR (e.g., "PR Created: #456") or the text "pull request" to trigger the next phase.
+    -   **Communication:** Jules must reply to **ALL** user comments on the PR, not just addressing code changes.
 
 ## 3. Pull Request Standards
 When opening a Pull Request, you MUST follow this description format to ensure automation works correctly:
