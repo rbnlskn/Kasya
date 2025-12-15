@@ -238,3 +238,11 @@ jobs:
                  console.log(`Error processing issue #${id}: ${e.message}`);
                }
             }
+
+            // 3. Clean up PR Labels
+            const prNumber = pr.number;
+            const labelsToRemovePR = ['in progress', 'in review', 'planning', 'jules', 'context'];
+            for (const label of labelsToRemovePR) {
+               try { await github.rest.issues.removeLabel({ owner, repo, issue_number: prNumber, name: label }); } catch(e){}
+            }
+            console.log(`Cleaned up labels for PR #${prNumber}`);
