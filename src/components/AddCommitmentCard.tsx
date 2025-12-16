@@ -5,16 +5,19 @@ import { Plus } from 'lucide-react';
 interface AddCommitmentCardProps {
   onClick: () => void;
   label?: string;
+  height?: number;
 }
 
 const AddCommitmentCard: React.FC<AddCommitmentCardProps> = ({
   onClick,
-  label = 'Add New'
+  label = 'Add New',
+  height = 120
 }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-3xl p-4 shadow-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full flex-shrink-0 h-[120px]"
+      className="bg-white rounded-3xl p-4 shadow-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full flex-shrink-0"
+      style={{ height: `${height}px` }}
     >
       <div className="text-center text-gray-400">
         <Plus className="w-8 h-8 mx-auto" />
