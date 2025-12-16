@@ -6,6 +6,7 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
+  cardHeight?: number;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -13,6 +14,7 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 3,
   placeholder,
+  cardHeight = 90, // Default height
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const visibleItems = items.slice(0, maxVisible);
@@ -26,9 +28,8 @@ export const CommitmentStack = <T extends { id: string }>({
     setActiveIndex(index);
   };
 
-  const baseCardHeight = 90; // The height of one card
   const cardSpacing = 12; // The visible vertical distance between stacked cards
-  const containerHeight = baseCardHeight + (Math.min(visibleItems.length, maxVisible) - 1) * cardSpacing;
+  const containerHeight = cardHeight + (Math.min(visibleItems.length, maxVisible) - 1) * cardSpacing;
 
   return (
     <div className="relative" style={{ height: `${containerHeight}px` }}>

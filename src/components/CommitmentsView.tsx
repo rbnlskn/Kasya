@@ -6,6 +6,7 @@ import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
 import { formatCurrency } from '../utils/number';
+import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 
 interface CommitmentsViewProps {
@@ -365,26 +366,26 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           onAdd={onAddBill}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
-        <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 min-h-[190px]">
-          {upcomingBills.length > 0 ? upcomingBills.map(bill => (
-            <div className="w-[85vw] max-w-sm flex-shrink-0">
-              <CommitmentCard
-                key={bill.id}
-                item={bill}
-                category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'))}
-                dueDateText={getBillDueDateText(bill)}
-                currencySymbol={currencySymbol}
-                onPay={() => onPayBill(bill)}
-                onEdit={() => onEditBill(bill)}
-                paidInstallments={isBillPaid(bill) ? 1 : 0}
-              />
-            </div>
-          )) : (
-            <div className="w-full text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
-            </div>
+        <CommitmentStack
+          items={upcomingBills}
+          renderItem={(bill) => (
+            <CommitmentCard
+              item={bill}
+              category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'))}
+              dueDateText={getBillDueDateText(bill)}
+              currencySymbol={currencySymbol}
+              onPay={() => onPayBill(bill)}
+              onEdit={() => onEditBill(bill)}
+              paidInstallments={isBillPaid(bill) ? 1 : 0}
+            />
           )}
-        </div>
+          cardHeight={185}
+          placeholder={
+            <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+              All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
+            </div>
+          }
+        />
       </section>
 
       {/* Loans */}
@@ -395,33 +396,34 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               onAdd={onAddLoan}
               onViewAll={() => setOverlay('ALL_LOANS')}
             />
-            <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 min-h-[190px]">
-              {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length > 0 ? validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(loan => {
+            <CommitmentStack
+              items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
+              renderItem={(loan) => {
                 const { paidAmount } = loanStatusMap[loan.id] || { paidAmount: 0 };
                 const totalInstallments = loan.duration || 0;
                 const installmentAmount = loan.installmentAmount || 0;
                 const paidInstallments = Math.min(totalInstallments, installmentAmount > 0 ? Math.round(paidAmount / installmentAmount) : 0);
                 return (
-                  <div className="w-[85vw] max-w-sm flex-shrink-0" key={loan.id}>
-                    <CommitmentCard
-                      item={loan}
-                      category={categories.find(c => c.id === loan.categoryId)}
-                      paidAmount={paidAmount}
-                      totalInstallments={totalInstallments}
-                      paidInstallments={paidInstallments}
-                      dueDateText={getLoanDueDateText(loan)}
-                      currencySymbol={currencySymbol}
-                      onPay={() => onPayLoan(loan, loan.installmentAmount)}
-                      onEdit={() => onEditLoan(loan)}
-                    />
-                  </div>
+                  <CommitmentCard
+                    item={loan}
+                    category={categories.find(c => c.id === loan.categoryId)}
+                    paidAmount={paidAmount}
+                    totalInstallments={totalInstallments}
+                    paidInstallments={paidInstallments}
+                    dueDateText={getLoanDueDateText(loan)}
+                    currencySymbol={currencySymbol}
+                    onPay={() => onPayLoan(loan, loan.installmentAmount)}
+                    onEdit={() => onEditLoan(loan)}
+                  />
                 )
-              }) : (
+              }}
+              cardHeight={185}
+              placeholder={
                 <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
-                    No active loans.
+                  No active loans.
                 </div>
-              )}
-            </div>
+              }
+            />
         </section>
     </div>
 
