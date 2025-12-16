@@ -22,6 +22,7 @@ import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
 import AddCard from './components/AddCard';
+import AddBudgetCard from './components/AddBudgetCard';
 import { Plus, BarChart3, Loader2, Zap } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -555,31 +556,28 @@ const App: React.FC = () => {
                          </div>
                      </section>
 
-<section>
-    <SectionHeader
-      title="BUDGETS"
-      onViewAll={() => handleOpenOverlay('ALL_BUDGETS')}
-    />
-    <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-        {data.budgets.map((b) => (
-            <BudgetRing
-                key={b.id}
-                budget={b}
-                category={data.categories.find(c => c.id === b.categoryId)}
-                spent={spendingMap[b.id] || 0}
-                currencySymbol={currentCurrency.symbol}
-                onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
-            />
-        ))}
-         <div className="flex-shrink-0">
-             <AddCard
-                onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
-                label="Add Budget"
-                scale={0.75}
-            />
-        </div>
-    </div>
-</section>
+                    <section>
+                        <SectionHeader
+                          title="BUDGETS"
+                          onViewAll={() => handleOpenOverlay('ALL_BUDGETS')}
+                        />
+                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                            {data.budgets.map((b) => (
+                                <BudgetRing
+                                    key={b.id}
+                                    budget={b}
+                                    category={data.categories.find(c => c.id === b.categoryId)}
+                                    spent={spendingMap[b.id] || 0}
+                                    currencySymbol={currentCurrency.symbol}
+                                    onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
+                                />
+                            ))}
+                            <AddBudgetCard
+                                onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
+                                label="Add Budget"
+                            />
+                        </div>
+                    </section>
 
 <section>
     <SectionHeader

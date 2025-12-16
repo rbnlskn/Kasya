@@ -5,7 +5,6 @@ import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
-import AddCard from './AddCard';
 import AddCommitmentCard from './AddCommitmentCard';
 import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
@@ -45,6 +44,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       
       return aDist - bDist;
   });
+
+  const totalCreditCardDebt = creditCards.reduce((total, cc) => total + ((cc.creditLimit || 0) - cc.balance), 0);
 
   const handleDateNav = (direction: 'PREV' | 'NEXT') => {
     const newDate = new Date(currentDate);
@@ -297,7 +298,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                       </div>
                   )
               })}
-              <AddCard onClick={onAddCreditCard} label="Add Card" scale={0.75} />
           </div>
       </section>
 
@@ -371,7 +371,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
           <button onClick={onAddCreditCard} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-4 pb-24 space-y-4">
+
+        <div className="px-6 py-4">
+          <div className="bg-white rounded-2xl p-4 text-center shadow-sm border">
+            <p className="text-xs text-gray-400">Total Pending Balance</p>
+            <p className="text-2xl font-black text-gray-800">{currencySymbol}{formatCurrency(totalCreditCardDebt)}</p>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-4">
           {creditCards.map(cc => {
               const currentBalance = (cc.creditLimit || 0) - cc.balance;
               const walletWithBalance = { ...cc, balance: currentBalance };
