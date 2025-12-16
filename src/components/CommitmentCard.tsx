@@ -55,7 +55,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
         <div className="flex flex-col items-end ml-2">
-          <span className={`block font-bold text-md text-gray-800`}>{currencySymbol}{formatCurrency(isLoan ? (item as Loan).installmentAmount : (item as Bill).amount)}</span>
+          <span className={`block font-bold text-md text-gray-800`}>{currencySymbol}{formatCurrency((isLoan ? (item as Loan).installmentAmount : (item as Bill).amount) || 0)}</span>
           <button
             onClick={(e) => { e.stopPropagation(); onPay(); }}
             className={`text-xs font-bold px-4 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
