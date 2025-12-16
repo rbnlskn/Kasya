@@ -1,5 +1,5 @@
 
-import React, 'useState } from 'react';
+import React, { useState } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
