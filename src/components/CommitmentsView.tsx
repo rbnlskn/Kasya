@@ -155,30 +155,32 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const renderBillItem = (sub: Bill) => {
     const paid = isBillPaid(sub);
-    const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), sub.dueDay);
-    const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'));
+    const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
 
     return (
-      <div key={sub.id} onClick={() => onEditBill(sub)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
+      <div key={sub.id} onClick={() => onEditBill(sub)} className="p-4 cursor-pointer">
         <div className="flex items-center">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: paid ? '#D1FAE5' : category?.color }}>
-                {category?.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-                 <h4 className="font-bold text-gray-800 text-base leading-tight truncate">{sub.name}</h4>
-                 <p className="text-sm text-gray-400">{dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-            </div>
-            <div className="flex flex-col items-end ml-2">
-                 <span className={`block font-bold text-lg text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>
-                {!paid && (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onPayBill(sub); }}
-                        className="text-sm bg-blue-500 text-white font-bold px-4 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-600 mt-1"
-                    >
-                        Pay
-                    </button>
-                )}
-            </div>
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
+            style={{ backgroundColor: paid ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+          >
+            {category?.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${paid ? 'line-through' : ''}`}>{sub.name}</h4>
+            <p className="text-xs text-gray-400">{getBillDueDateText(sub)}</p>
+          </div>
+          <div className="flex flex-col items-end ml-2">
+            <span className={`block font-bold text-sm text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>
+            {!paid && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onPayBill(sub); }}
+                className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
+              >
+                Pay
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -189,42 +191,33 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
     const paymentAmount = loan.installmentAmount || 0;
-
-    const totalInstallments = loan.duration || 0;
-    const paidInstallments = Math.min(totalInstallments, paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0);
-    const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
-
     const isLending = loan.categoryId === 'cat_lending';
     const category = categories.find(c => c.id === loan.categoryId);
 
     return (
-      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
+      <div key={loan.id} onClick={() => onEditLoan(loan)} className="p-4 cursor-pointer">
         <div className="flex items-center">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: category?.color }}>
-                {category?.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-                 <h4 className="font-bold text-gray-800 text-base leading-tight truncate">{loan.name}</h4>
-                 <div className="flex items-center">
-                    <p className="text-sm text-gray-400">{dueDateText}</p>
-                    <span className="text-xs font-bold text-gray-400 mx-2">•</span>
-                    <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{String(paidInstallments).padStart(2, '0')}/{String(totalInstallments).padStart(2, '0')}</span>
-                 </div>
-                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
-                 </div>
-            </div>
-            <div className="flex flex-col items-end ml-2">
-                <span className={`block font-bold text-lg text-gray-800 ${isPaid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(loan.totalAmount - paidAmount)}</span>
-                {!isPaid && (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
-                        className={`text-sm font-bold px-4 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}
-                    >
-                        {isLending ? 'Collect' : 'Pay'}
-                    </button>
-                )}
-            </div>
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
+            style={{ backgroundColor: isPaid ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+          >
+            {category?.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${isPaid ? 'line-through' : ''}`}>{loan.name}</h4>
+            <p className="text-xs text-gray-400">{dueDateText}</p>
+          </div>
+          <div className="flex flex-col items-end ml-2">
+            <span className={`block font-bold text-sm text-gray-800 ${isPaid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(loan.installmentAmount || 0)}</span>
+            {!isPaid && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
+                className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
+              >
+                {isLending ? 'Collect' : 'Pay'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
