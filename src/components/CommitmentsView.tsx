@@ -399,7 +399,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length > 0 ? validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(loan => {
                 const { paidAmount } = loanStatusMap[loan.id] || { paidAmount: 0 };
                 const totalInstallments = loan.duration || 0;
-                const paidInstallments = Math.min(totalInstallments, loan.installmentAmount > 0 ? Math.round(paidAmount / loan.installmentAmount) : 0);
+                const installmentAmount = loan.installmentAmount || 0;
+                const paidInstallments = Math.min(totalInstallments, installmentAmount > 0 ? Math.round(paidAmount / installmentAmount) : 0);
                 return (
                   <div className="w-[85vw] max-w-sm flex-shrink-0" key={loan.id}>
                     <CommitmentCard

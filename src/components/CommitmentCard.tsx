@@ -28,9 +28,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 }) => {
   const isLoan = 'installmentAmount' in item;
   const isLending = isLoan && (item as Loan).categoryId === 'cat_lending';
+  const amount = isLoan ? (item as Loan).totalAmount : (item as Bill).amount;
 
   const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
-  const remainingBalance = item.amount - paidAmount;
+  const remainingBalance = amount - paidAmount;
 
   const accentColor = isLending ? 'bg-green-500' : 'bg-blue-500';
   const trackColor = paidInstallments > 0 ? accentColor : 'bg-gray-300';
@@ -60,7 +61,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
       <div className="mt-auto">
         <p className="text-right text-sm text-gray-500 font-medium">
-          <span className="font-bold text-gray-800">{currencySymbol}{formatCurrency(paidAmount)}</span> / {currencySymbol}{formatCurrency(item.amount)}
+          <span className="font-bold text-gray-800">{currencySymbol}{formatCurrency(paidAmount)}</span> / {currencySymbol}{formatCurrency(amount)}
         </p>
         <div className="flex items-center gap-3 mt-2">
           <div className="w-full bg-gray-200 rounded-full h-2">
