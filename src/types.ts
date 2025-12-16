@@ -56,6 +56,7 @@ export interface Transaction {
   // Linking to commitments
   billId?: string;
   commitmentId?: string;
+  loanId?: string;
 }
 
 export interface Category {
@@ -93,6 +94,7 @@ export interface Loan {
   principal: number;
   interest: number; // Total interest amount, not rate
   fee: number; // One-time fee
+  totalAmount: number;
   categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
   dueDay: number; // 1-31
   recurrence: RecurrenceFrequency;

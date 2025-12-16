@@ -218,13 +218,15 @@ const App: React.FC = () => {
   }, [data.currency]);
 
   const loanStatusMap = useMemo(() => {
-    const map: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
+    const map: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
     data.loans.forEach(loan => {
       const payments = data.transactions.filter(t => t.loanId === loan.id);
       const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
+      const paymentsMade = payments.length;
       const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
       map[loan.id] = {
         paidAmount,
+        paymentsMade,
         status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
         lastPaidDate: lastPayment?.date,
       };
@@ -632,6 +634,7 @@ const App: React.FC = () => {
                 currencySymbol={currentCurrency.symbol}
                 bills={data.bills}
                 loans={data.loans}
+                transactions={data.transactions}
                 loanStatusMap={loanStatusMap}
                 categories={data.categories}
                 onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}

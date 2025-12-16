@@ -79,7 +79,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         const fee = feeInput.rawValue;
         const totalDuration = parseInt(duration, 10) || 0;
 
-        const totalObligation = principal + interest;
+        const totalObligation = principal + interest + fee;
         const installmentAmount = (totalDuration > 0)
             ? Math.ceil((totalObligation / totalDuration) * 100) / 100
             : 0;
@@ -90,6 +90,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
             principal,
             interest,
             fee,
+            totalAmount: totalObligation,
             categoryId: mode === LoanType.LOAN ? 'cat_loans' : 'cat_lending',
             dueDay: Number(dueDay) || 0,
             recurrence: occurrence,
