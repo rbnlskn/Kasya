@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
-import { Wallet, WalletType, Bill, Loan, Category } from '../types';
+import { Wallet, WalletType, Bill, Loan, Category, Transaction } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
@@ -9,13 +9,15 @@ import AddCommitmentCard from './AddCommitmentCard';
 import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
+import CommitmentDetailsModal from './CommitmentDetailsModal';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
   currencySymbol: string;
   bills: Bill[];
   loans: Loan[];
-  loanStatusMap: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }>;
+  transactions: Transaction[];
+  loanStatusMap: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }>;
   categories: Category[];
   onAddBill: () => void;
   onEditBill: (bill: Bill) => void;
@@ -28,8 +30,9 @@ interface CommitmentsViewProps {
   onAddCreditCard: () => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick, onAddCreditCard }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, transactions, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick, onAddCreditCard }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_LOANS' | 'ALL_CREDIT_CARDS'>('NONE');
+  const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'LOAN', item: Bill | Loan } | null>(null);
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -201,47 +204,46 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     const checkMonth = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
 
-    const endDate = loan.endDate ? new Date(loan.endDate) : null;
-    if (endDate && checkMonth > new Date(endDate.getFullYear(), endDate.getMonth(), 1)) {
-        return false;
-    }
-
+    // If settled, only show in the month it was paid off.
     if (loanStatus?.status === 'PAID') {
         if (!loanStatus.lastPaidDate) return false;
         const paidDate = new Date(loanStatus.lastPaidDate);
         return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
     }
-    if (startMonth > checkMonth) return false;
 
-    if (loanStatus?.lastPaidDate) {
-        const lastPaidDate = new Date(loanStatus.lastPaidDate);
-        if (lastPaidDate.getFullYear() === checkDate.getFullYear() && lastPaidDate.getMonth() === checkDate.getMonth()) {
-            return true;
-        }
-    }
-
-    let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), loan.dueDay || 1);
-    if (firstDueDate <= startDate) {
-        firstDueDate.setMonth(firstDueDate.getMonth() + 1);
-    }
-    const firstDueMonth = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
-
-    if (checkMonth < firstDueMonth && checkMonth.getTime() !== startMonth.getTime()) {
+    // Don't show before it starts.
+    if (checkMonth < startMonth) {
         return false;
     }
 
-    if (loan.recurrence !== 'ONE_TIME') {
-        const yearsDiff = checkDate.getFullYear() - firstDueDate.getFullYear();
-        const monthsDiff = yearsDiff * 12 + (checkDate.getMonth() - firstDueDate.getMonth());
-        if (monthsDiff < 0) return false;
-        switch (loan.recurrence) {
-            case 'MONTHLY': return true;
-            case 'YEARLY': return checkDate.getMonth() === firstDueDate.getMonth();
-            case 'WEEKLY': return true;
-            default: return false;
+    // If it has a fixed duration, check if we are past the end date.
+    if (loan.duration > 0 && loan.recurrence !== 'ONE_TIME') {
+        const endDate = new Date(loan.startDate);
+        if (loan.recurrence === 'MONTHLY') {
+            endDate.setMonth(endDate.getMonth() + loan.duration);
+        } else if (loan.recurrence === 'YEARLY') {
+            endDate.setFullYear(endDate.getFullYear() + loan.duration);
+        } else if (loan.recurrence === 'WEEKLY') {
+            endDate.setDate(endDate.getDate() + loan.duration * 7);
+        }
+        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        if (checkMonth > endMonth) {
+            return false;
         }
     }
-    return checkMonth.getTime() === firstDueMonth.getTime() || (checkMonth.getTime() === startMonth.getTime() && firstDueDate.getMonth() === startDate.getMonth());
+
+    // For one-time loans, only show in the month of the first due date.
+    if (loan.recurrence === 'ONE_TIME') {
+        let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), loan.dueDay);
+        if (firstDueDate <= startDate) {
+            firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+        }
+        const dueMonth = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
+        return checkMonth.getTime() === dueMonth.getTime();
+    }
+
+    // Otherwise, it's an active, ongoing loan for this month.
+    return true;
   };
 
   const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));
@@ -307,24 +309,26 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
-        <CommitmentStack
-          items={upcomingBills.slice(0, 2)}
-          renderItem={(bill) => (
-            <CommitmentCard
+        <div data-testid="commitment-stack-bills" className="h-[120px]">
+          <CommitmentStack
+            items={upcomingBills}
+            renderItem={(bill) => (
+              <CommitmentCard
               item={bill}
               category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+              paidAmount={isBillPaid(bill) ? bill.amount : 0}
+              paymentsMade={isBillPaid(bill) ? 1 : 0}
               dueDateText={getBillDueDateText(bill)}
               currencySymbol={currencySymbol}
               onPay={() => onPayBill(bill)}
-              onEdit={() => onEditBill(bill)}
-              paidInstallments={isBillPaid(bill) ? 1 : 0}
+              onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
             />
           )}
-          cardHeight={120}
           placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
+            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" type="bill" />
           }
         />
+        </div>
       </section>
 
       <section>
@@ -333,34 +337,47 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length}
             onViewAll={() => setOverlay('ALL_LOANS')}
           />
+        <div data-testid="commitment-stack-loans" className="h-[170px]">
           <CommitmentStack
-            items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 2)}
+            items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
             renderItem={(loan) => {
-              const { paidAmount } = loanStatusMap[loan.id] || { paidAmount: 0 };
-              const totalInstallments = loan.duration || 0;
-              const installmentAmount = loan.installmentAmount || 0;
-              const paidInstallments = Math.min(totalInstallments, installmentAmount > 0 ? Math.round(paidAmount / installmentAmount) : 0);
+              const { paidAmount, paymentsMade } = loanStatusMap[loan.id] || { paidAmount: 0, paymentsMade: 0 };
               return (
                 <CommitmentCard
                   item={loan}
                   category={categories.find(c => c.id === loan.categoryId)}
                   paidAmount={paidAmount}
-                  totalInstallments={totalInstallments}
-                  paidInstallments={paidInstallments}
+                  paymentsMade={paymentsMade}
                   dueDateText={getLoanDueDateText(loan)}
                   currencySymbol={currencySymbol}
                   onPay={() => onPayLoan(loan, loan.installmentAmount)}
-                  onEdit={() => onEditLoan(loan)}
+                  onViewDetails={() => setDetailsModal({ type: 'LOAN', item: loan })}
                 />
               )
             }}
-            cardHeight={120}
             placeholder={
-              <AddCommitmentCard onClick={onAddLoan} label="Add Loan or Debt" />
+              <AddCommitmentCard onClick={onAddLoan} label="Add Loan or Debt" type="loan" />
             }
           />
+        </div>
       </section>
     </div>
+
+    {detailsModal?.type === 'LOAN' && (
+        <CommitmentDetailsModal
+            isOpen={!!detailsModal}
+            onClose={() => setDetailsModal(null)}
+            commitment={detailsModal.item as Loan}
+            transactions={transactions.filter(t => t.commitmentId === detailsModal.item.id)}
+            wallets={wallets}
+            categories={categories}
+            currencySymbol={currencySymbol}
+            onEdit={() => {
+                onEditLoan(detailsModal.item as Loan);
+                setDetailsModal(null);
+            }}
+        />
+    )}
 
     {overlay === 'ALL_CREDIT_CARDS' && (
       <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">

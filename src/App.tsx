@@ -218,13 +218,15 @@ const App: React.FC = () => {
   }, [data.currency]);
 
   const loanStatusMap = useMemo(() => {
-    const map: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
+    const map: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
     data.loans.forEach(loan => {
       const payments = data.transactions.filter(t => t.loanId === loan.id);
       const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
+      const paymentsMade = payments.length;
       const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
       map[loan.id] = {
         paidAmount,
+        paymentsMade,
         status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
         lastPaidDate: lastPayment?.date,
       };
@@ -316,9 +318,9 @@ const App: React.FC = () => {
                 id: `tx_${newTimestamp}_${Math.random().toString(36).substr(2, 9)}`,
                 createdAt: newTimestamp,
                 billId: selectedBillId || undefined,
-                loanId: selectedLoanId || undefined 
+                loanId: selectedLoanId || undefined
             };
-            
+
             let updatedBills = [...prev.bills];
             if (selectedBillId) {
                 updatedBills = updatedBills.map(b => b.id === selectedBillId ? { ...b, lastPaidDate: newTx.date } : b);
@@ -441,7 +443,7 @@ const App: React.FC = () => {
            if (txAmount > 0) {
                const tx: Omit<Transaction, 'id'> = {
                    amount: txAmount,
-                   type: isPayable ? TransactionType.INCOME : TransactionType.EXPENSE, 
+                   type: isPayable ? TransactionType.INCOME : TransactionType.EXPENSE,
                    categoryId: 'cat_loans',
                    walletId: initialTransactionWalletId,
                    date: new Date().toISOString(),
@@ -540,19 +542,22 @@ const App: React.FC = () => {
                          />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.wallets.map((w) => (
-                                <WalletCard
-                                    key={w.id}
-                                    wallet={w}
-                                    onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
-                                    currencySymbol={currentCurrency.symbol}
+                                <div key={w.id} className="w-[255px] h-[150px] flex-shrink-0">
+                                    <WalletCard
+                                        wallet={w}
+                                        onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
+                                        currencySymbol={currentCurrency.symbol}
+                                        scale={0.75}
+                                    />
+                                </div>
+                            ))}
+                            <div className="w-[255px] h-[150px] flex-shrink-0">
+                                 <AddCard
+                                    onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
+                                    label="Add Wallet"
                                     scale={0.75}
                                 />
-                            ))}
-                             <AddCard
-                                onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
-                                label="Add Wallet"
-                                scale={0.75}
-                            />
+                            </div>
                          </div>
                      </section>
 
@@ -563,19 +568,22 @@ const App: React.FC = () => {
                         />
                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.budgets.map((b) => (
-                                <BudgetRing
-                                    key={b.id}
-                                    budget={b}
-                                    category={data.categories.find(c => c.id === b.categoryId)}
-                                    spent={spendingMap[b.id] || 0}
-                                    currencySymbol={currentCurrency.symbol}
-                                    onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
-                                />
+                                <div key={b.id} className="w-40 h-20 flex-shrink-0">
+                                    <BudgetRing
+                                        budget={b}
+                                        category={data.categories.find(c => c.id === b.categoryId)}
+                                        spent={spendingMap[b.id] || 0}
+                                        currencySymbol={currentCurrency.symbol}
+                                        onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
+                                    />
+                                </div>
                             ))}
-                            <AddBudgetCard
-                                onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
-                                label="Add Budget"
-                            />
+                            <div className="w-40 h-20 flex-shrink-0">
+                                <AddBudgetCard
+                                    onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
+                                    label="Add Budget"
+                                />
+                            </div>
                         </div>
                     </section>
 
@@ -626,6 +634,7 @@ const App: React.FC = () => {
                 currencySymbol={currentCurrency.symbol}
                 bills={data.bills}
                 loans={data.loans}
+                transactions={data.transactions}
                 loanStatusMap={loanStatusMap}
                 categories={data.categories}
                 onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}

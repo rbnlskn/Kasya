@@ -6,23 +6,19 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
-  cardHeight?: number;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
   items,
   renderItem,
-  maxVisible = 3,
+  maxVisible = 2,
   placeholder,
-  cardHeight = 120, // Default height
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
-  const visibleItems = items.slice(0, maxVisible);
 
-  if (visibleItems.length === 0) {
-    return <>{placeholder}</>;
-  }
+  const displayItems = items.slice(0, maxVisible);
+  const stackItems = [...displayItems, { id: 'placeholder', isPlaceholder: true }];
 
   const handleCardClick = (index: number) => {
     setActiveIndex(index);
@@ -38,54 +34,45 @@ export const CommitmentStack = <T extends { id: string }>({
 
     if (Math.abs(deltaY) > 50) { // Swipe threshold
       if (deltaY > 0) { // Swipe down
-        setActiveIndex(prev => (prev - 1 + visibleItems.length) % visibleItems.length);
+        setActiveIndex(prev => (prev - 1 + stackItems.length) % stackItems.length);
       } else { // Swipe up
-        setActiveIndex(prev => (prev + 1) % visibleItems.length);
+        setActiveIndex(prev => (prev + 1) % stackItems.length);
       }
     }
   };
 
-  const cardSpacing = 12; // The visible vertical distance between stacked cards
-  const containerHeight = cardHeight + (Math.min(visibleItems.length, maxVisible) - 1) * cardSpacing;
+  const cardSpacing = 12;
 
   return (
     <div
       className="relative"
-      style={{ height: `${containerHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {visibleItems.map((item, index) => {
-        const position = (index - activeIndex + visibleItems.length) % visibleItems.length;
+      {stackItems.map((item, index) => {
+        const position = (index - activeIndex + stackItems.length) % stackItems.length;
         const isTopCard = index === activeIndex;
 
-        if (position >= maxVisible) {
-          return null;
-        }
-
         const style = {
-          zIndex: visibleItems.length - position,
+          zIndex: stackItems.length - position,
           transform: `scale(${1 - position * 0.04}) translateY(${position * cardSpacing}px)`,
-          opacity: position >= 2 ? 0 : 1,
+          opacity: position >= (maxVisible + 1) ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
-          pointerEvents: isTopCard ? ('auto' as const) : ('none' as const),
+          pointerEvents: isTopCard ? 'auto' : 'none',
         };
 
         return (
           <div
             key={item.id}
             className="absolute w-full"
-            style={style}
+            style={style as React.CSSProperties}
           >
-            {renderItem(item)}
+            {(item as any).isPlaceholder ? placeholder : renderItem(item as T)}
             {!isTopCard && (
               <div
                 className="absolute inset-0 w-full h-full cursor-pointer"
                 style={{ zIndex: 99 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCardClick(index);
-                }}
+                onClick={(e) => { e.stopPropagation(); handleCardClick(index); }}
               />
             )}
           </div>

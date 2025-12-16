@@ -6,7 +6,6 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
     const stringValue = value.toString();
     if (!stringValue) return '';
 
-    // Allow entering a decimal point
     if (stringValue.endsWith('.')) {
         const justNumber = stringValue.replace(/[^\d]/g, '');
         return justNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.';
@@ -24,14 +23,14 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
     return integer;
   };
 
-  const [formattedValue, setFormattedValue] = useState(format(initialValue));
+  const [formattedValue, setFormattedValue] = useState(() => initialValue ? formatCurrency(initialValue) : '');
+  const rawValue = parseFloat(formattedValue.replace(/,/g, '')) || 0;
 
   useEffect(() => {
-    // On mount, if there's an initial value, format it fully.
-    if (initialValue) {
-        setFormattedValue(formatCurrency(initialValue));
-    } else {
-        setFormattedValue('');
+    const numericInitial = parseFloat(String(initialValue).replace(/,/g, '')) || 0;
+
+    if (numericInitial !== rawValue) {
+        setFormattedValue(initialValue ? formatCurrency(initialValue) : '');
     }
   }, [initialValue]);
 
@@ -40,25 +39,24 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
   };
 
   const handleBlur = () => {
-      if (formattedValue) {
+      if (formattedValue || rawValue > 0) {
           setFormattedValue(formatCurrency(rawValue));
       }
   };
 
-  const rawValue = parseFloat(formattedValue.replace(/,/g, '')) || 0;
+  const setValue = (val: string | number) => {
+      if(val) {
+        setFormattedValue(formatCurrency(val));
+      } else {
+        setFormattedValue('');
+      }
+  };
 
   return {
     value: formattedValue,
     rawValue,
     onChange: handleChange,
     onBlur: handleBlur,
-    setValue: (val: string | number) => {
-        // When setting the value programmatically, apply full currency format
-        if(val) {
-          setFormattedValue(formatCurrency(val));
-        } else {
-          setFormattedValue('');
-        }
-    },
+    setValue,
   };
 };
