@@ -309,7 +309,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
-        <div data-testid="commitment-stack-bills">
+        <div data-testid="commitment-stack-bills" className="h-[120px]">
           <CommitmentStack
             items={upcomingBills}
             renderItem={(bill) => (
@@ -324,9 +324,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
             />
           )}
-          cardHeight={120}
           placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" height={120} />
+            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" type="bill" />
           }
         />
         </div>
@@ -338,7 +337,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length}
             onViewAll={() => setOverlay('ALL_LOANS')}
           />
-        <div data-testid="commitment-stack-loans">
+        <div data-testid="commitment-stack-loans" className="h-[170px]">
           <CommitmentStack
             items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
             renderItem={(loan) => {
@@ -356,9 +355,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 />
               )
             }}
-            cardHeight={120}
             placeholder={
-              <AddCommitmentCard onClick={onAddLoan} label="Add Loan or Debt" height={120} />
+              <AddCommitmentCard onClick={onAddLoan} label="Add Loan or Debt" type="loan" />
             }
           />
         </div>

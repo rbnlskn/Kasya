@@ -9,11 +9,15 @@ interface AddBudgetCardProps {
 
 const AddBudgetCard: React.FC<AddBudgetCardProps> = ({ onClick, label }) => {
   return (
-    <div data-testid="budget-ring-add-button" className="flex-shrink-0 w-24 h-24 flex flex-col items-center justify-center cursor-pointer group" onClick={onClick}>
-        <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center transition-colors group-hover:bg-gray-50 group-hover:border-gray-400">
-            <Plus className="w-6 h-6 text-gray-400 transition-transform group-hover:scale-110" />
-        </div>
-        <p className="text-xs font-semibold text-gray-400 mt-2 text-center transition-colors group-hover:text-gray-600">{label}</p>
+    <div
+      data-testid="budget-ring-add-button"
+      className="flex-shrink-0 w-40 h-20 bg-white border-2 border-dashed border-gray-300 rounded-2xl p-3 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors group"
+      onClick={onClick}
+    >
+      <div className="text-center text-gray-400">
+        <Plus className="w-6 h-6 mx-auto" />
+        <p className="text-xs font-semibold mt-1">{label}</p>
+      </div>
     </div>
   );
 };
