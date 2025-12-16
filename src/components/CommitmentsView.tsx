@@ -4,6 +4,8 @@ import { Calendar, CreditCard, PiggyBank, Plus, ChevronRight, ChevronLeft } from
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
 import { formatCurrency } from '../utils/number';
+import { CommitmentStack } from './CommitmentStack';
+import { CommitmentList } from './CommitmentList';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -27,7 +29,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [activeCard, setActiveCard] = useState<string | null>(null);
 
   // Sort credit cards by Statement Day
   const creditCards = wallets.filter(w => w.type === WalletType.CREDIT_CARD).sort((a,b) => {
@@ -149,22 +150,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       return `Due ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }
 
-  const renderBillItem = (sub: Bill, isLast: boolean) => {
+  const renderBillItem = (sub: Bill) => {
     const paid = isBillPaid(sub);
     const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), sub.dueDay);
-    
-    const isActive = activeCard === sub.id;
-    const cardStyle = {
-      zIndex: isActive ? 10 : sortedBills.indexOf(sub),
-      marginBottom: isLast ? 0 : '-80px',
-      transform: `scale(${isActive ? 1 : 1 - (sortedBills.indexOf(sub) * 0.05)})`,
-      transformOrigin: 'top center',
-    };
-
     const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'));
 
     return (
-      <div key={sub.id} style={cardStyle} onClick={() => setActiveCard(sub.id)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-all duration-300">
+      <div key={sub.id} onClick={() => onEditBill(sub)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
         <div className="flex items-center">
             <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: paid ? '#D1FAE5' : category?.color }}>
                 {category?.icon}
@@ -189,7 +181,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-  const renderLoanItem = (loan: Loan, isLast: boolean) => {
+  const renderLoanItem = (loan: Loan) => {
     const { paidAmount, status } = loanStatusMap[loan.id] || { paidAmount: 0, status: 'UNPAID' };
     const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
@@ -202,16 +194,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const isLending = loan.categoryId === 'cat_lending';
     const category = categories.find(c => c.id === loan.categoryId);
 
-    const isActive = activeCard === loan.id;
-    const cardStyle = {
-      zIndex: isActive ? 10 : validLoans.indexOf(loan),
-      marginBottom: isLast ? 0 : '-80px',
-      transform: `scale(${isActive ? 1 : 1 - (validLoans.indexOf(loan) * 0.05)})`,
-      transformOrigin: 'top center',
-    };
-
     return (
-      <div key={loan.id} style={cardStyle} onClick={() => setActiveCard(loan.id)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-all duration-300">
+      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
         <div className="flex items-center">
             <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: category?.color }}>
                 {category?.icon}
@@ -384,28 +368,29 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       {/* Subscriptions & Bills */}
       <section>
         <SectionHeader title="Bills & Subscriptions" count={upcomingBills.length} icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
-        <div className="overflow-y-auto no-scrollbar" style={{ height: `${upcomingBills.length * 100}px`}}>
-            <div className="flex flex-col">
-                {upcomingBills.length > 0 ? upcomingBills.map((b, index) => renderBillItem(b, index === upcomingBills.length - 1)) : (
-                    <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!</div>
-                )}
-            </div>
-        </div>
+        <CommitmentStack
+            items={upcomingBills}
+            renderItem={renderBillItem}
+            placeholder={
+                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
+                </div>
+            }
+        />
       </section>
 
       {/* Loans */}
         <section>
             <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-            <div className="overflow-y-auto no-scrollbar" style={{ height: `${validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length * 100}px`}}>
-                <div className="flex flex-col">
-                    {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map((l, index) => renderLoanItem(l, index === validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length - 1))}
-                    {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
-                        <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
-                            No active loans.
-                        </div>
-                    )}
-                </div>
-            </div>
+            <CommitmentStack
+                items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
+                renderItem={renderLoanItem}
+                placeholder={
+                    <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                        No active loans.
+                    </div>
+                }
+            />
         </section>
     </div>
 
@@ -433,19 +418,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                 <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-                    {billFilter === 'PENDING' ? (
-                        <>
-                            {sortedBills.filter(b => !isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">Nothing pending for this month</div>}
-                            {sortedBills.filter(b => !isBillPaid(b)).map((b, index) => renderBillItem(b, index === sortedBills.filter(b => !isBillPaid(b)).length - 1))}
-                        </>
-                    ) : (
-                        <>
-                            {sortedBills.filter(b => isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">No payment history for this month</div>}
-                            {sortedBills.filter(b => isBillPaid(b)).map((b, index) => renderBillItem(b, index === sortedBills.filter(b => isBillPaid(b)).length - 1))}
-                        </>
-                    )}
-                 </div>
+                {billFilter === 'PENDING' ? (
+                    <CommitmentList
+                        items={sortedBills.filter(b => !isBillPaid(b))}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
+                    />
+                ) : (
+                    <CommitmentList
+                        items={sortedBills.filter(b => isBillPaid(b))}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No payment history for this month</div>}
+                    />
+                )}
             </div>
         </div>
     )}
@@ -473,19 +458,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-                    {loanFilter === 'ACTIVE' ? (
-                        <>
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map((l, index) => renderLoanItem(l, index === validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length - 1))}
-                        </>
-                    ) : (
-                        <>
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map((l, index) => renderLoanItem(l, index === validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length - 1))}
-                        </>
-                    )}
-                </div>
+                {loanFilter === 'ACTIVE' ? (
+                    <CommitmentList
+                        items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
+                        renderItem={renderLoanItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active loans</div>}
+                    />
+                ) : (
+                    <CommitmentList
+                        items={validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID')}
+                        renderItem={renderLoanItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled loans</div>}
+                    />
+                )}
             </div>
         </div>
     )}
