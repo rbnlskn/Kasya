@@ -4,6 +4,8 @@ import { Calendar, CreditCard, PiggyBank, Plus, ChevronRight, ChevronLeft } from
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
 import { formatCurrency } from '../utils/number';
+import { CommitmentStack } from './CommitmentStack';
+import { CommitmentList } from './CommitmentList';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -150,83 +152,77 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const renderBillItem = (sub: Bill) => {
     const paid = isBillPaid(sub);
-    const dueDateText = getBillDueDateText(sub);
-    const isOverdue = dueDateText.includes('Overdue');
-    const isSub = sub.type === 'SUBSCRIPTION';
-    
+    const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), sub.dueDay);
+    const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'));
+
     return (
-    <div key={sub.id} onClick={() => onEditBill(sub)} className="flex items-center p-3 hover:bg-gray-50 rounded-lg cursor-pointer active:scale-[0.99] transition-transform">
-        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4 ${paid ? 'bg-green-50 text-green-500' : (isSub ? 'bg-blue-50 text-blue-500' : 'bg-yellow-50 text-yellow-600')}`}>
-            {sub.icon}
+      <div key={sub.id} onClick={() => onEditBill(sub)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
+        <div className="flex items-center">
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: paid ? '#D1FAE5' : category?.color }}>
+                {category?.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+                 <h4 className="font-bold text-gray-800 text-base leading-tight truncate">{sub.name}</h4>
+                 <p className="text-sm text-gray-400">{dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+            </div>
+            <div className="flex flex-col items-end ml-2">
+                 <span className={`block font-bold text-lg text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>
+                {!paid && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onPayBill(sub); }}
+                        className="text-sm bg-blue-500 text-white font-bold px-4 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-600 mt-1"
+                    >
+                        Pay
+                    </button>
+                )}
+            </div>
         </div>
-        <div className="flex-1 min-w-0">
-             <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{sub.name}</h4>
-             <p className={`text-[10px] font-medium ${paid ? 'text-green-500' : (isOverdue ? 'text-red-500' : 'text-gray-400')}`}>
-                {dueDateText}
-            </p>
-        </div>
-        <div className="flex flex-col items-end ml-2">
-             <span className={`block font-bold text-sm text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>
-            {!paid ? (
-                <button 
-                    onClick={(e) => { e.stopPropagation(); onPayBill(sub); }} 
-                    className="text-xs bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-100 mt-1"
-                >
-                    Pay
-                </button>
-            ) : (
-                <span className="text-[10px] text-green-500 font-bold mt-1">Done</span>
-            )}
-        </div>
-    </div>
-  )};
+      </div>
+    );
+  };
 
   const renderLoanItem = (loan: Loan) => {
     const { paidAmount, status } = loanStatusMap[loan.id] || { paidAmount: 0, status: 'UNPAID' };
     const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
-    const isOverdue = dueDateText.includes('Overdue');
     const paymentAmount = loan.installmentAmount || 0;
 
     const totalInstallments = loan.duration || 0;
-    const paidInstallments = paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0;
+    const paidInstallments = Math.min(totalInstallments, paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0);
     const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
 
+    const isLending = loan.categoryId === 'cat_lending';
+    const category = categories.find(c => c.id === loan.categoryId);
+
     return (
-      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform">
-        <div className="flex items-center justify-between mb-3">
+      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200">
+        <div className="flex items-center">
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: category?.color }}>
+                {category?.icon}
+            </div>
             <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate flex items-center">
-                    {loan.name}
-                    <span className={`text-[9px] font-bold ml-2 px-1.5 py-0.5 rounded ${isPaid ? 'bg-green-100 text-green-600' : (isOverdue ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500')}`}>
-                        {dueDateText}
-                    </span>
-                </h4>
+                 <h4 className="font-bold text-gray-800 text-base leading-tight truncate">{loan.name}</h4>
+                 <div className="flex items-center">
+                    <p className="text-sm text-gray-400">{dueDateText}</p>
+                    <span className="text-xs font-bold text-gray-400 mx-2">•</span>
+                    <span className="text-xs font-bold text-gray-400 whitespace-nowrap">{String(paidInstallments).padStart(2, '0')}/{String(totalInstallments).padStart(2, '0')}</span>
+                 </div>
+                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                    <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
+                 </div>
             </div>
-            {!isPaid && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
-                    className="text-xs bg-primary/10 text-primary-hover font-bold px-4 py-2 rounded-lg active:scale-95 transition-transform hover:bg-primary/20"
-                >
-                    {loan.type === 'PAYABLE' ? 'Pay' : 'Collect'}
-                </button>
-            )}
-        </div>
-
-        <div className="flex items-end justify-between mb-3">
-            <span className={`block font-black text-2xl tracking-tight ${isPaid ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                {currencySymbol}{formatCurrency(paymentAmount)}
-            </span>
-        </div>
-
-        {totalInstallments > 0 && !isPaid && (
-            <div className="flex items-center gap-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
-                </div>
-                <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap">{paidInstallments}/{totalInstallments} payments</span>
+            <div className="flex flex-col items-end ml-2">
+                <span className={`block font-bold text-lg text-gray-800 ${isPaid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(loan.totalAmount - paidAmount)}</span>
+                {!isPaid && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
+                        className={`text-sm font-bold px-4 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}
+                    >
+                        {isLending ? 'Collect' : 'Pay'}
+                    </button>
+                )}
             </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -372,23 +368,30 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       {/* Subscriptions & Bills */}
       <section>
         <SectionHeader title="Bills & Subscriptions" count={upcomingBills.length} icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
-        <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {upcomingBills.length > 0 ? upcomingBills.slice(0,2).map(b => renderBillItem(b)) : (
-                <div className="text-center text-sm text-gray-400 py-6">All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!</div>
-            )}
-        </div>
+        <CommitmentStack
+            items={upcomingBills}
+            renderItem={renderBillItem}
+            placeholder={
+                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
+                </div>
+            }
+        />
       </section>
 
       {/* Loans */}
-      <section>
-        <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-        <div className="space-y-2">
-            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 2).map(l => renderLoanItem(l))}
-             {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
-                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">No active loans.</div>
-            )}
-        </div>
-      </section>
+        <section>
+            <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
+            <CommitmentStack
+                items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
+                renderItem={renderLoanItem}
+                placeholder={
+                    <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                        No active loans.
+                    </div>
+                }
+            />
+        </section>
     </div>
 
     {/* OVERLAYS */}
@@ -415,19 +418,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                 <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-                    {billFilter === 'PENDING' ? (
-                        <>
-                            {sortedBills.filter(b => !isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">Nothing pending for this month</div>}
-                            {sortedBills.filter(b => !isBillPaid(b)).map(b => renderBillItem(b))}
-                        </>
-                    ) : (
-                        <>
-                            {sortedBills.filter(b => isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">No payment history for this month</div>}
-                            {sortedBills.filter(b => isBillPaid(b)).map(b => renderBillItem(b))}
-                        </>
-                    )}
-                 </div>
+                {billFilter === 'PENDING' ? (
+                    <CommitmentList
+                        items={sortedBills.filter(b => !isBillPaid(b))}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
+                    />
+                ) : (
+                    <CommitmentList
+                        items={sortedBills.filter(b => isBillPaid(b))}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No payment history for this month</div>}
+                    />
+                )}
             </div>
         </div>
     )}
@@ -455,19 +458,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                <div className="bg-white rounded-2xl p-2 shadow-sm border border-gray-100 divide-y divide-gray-50">
-                    {loanFilter === 'ACTIVE' ? (
-                        <>
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(l => renderLoanItem(l))}
-                        </>
-                    ) : (
-                        <>
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map(l => renderLoanItem(l))}
-                        </>
-                    )}
-                </div>
+                {loanFilter === 'ACTIVE' ? (
+                    <CommitmentList
+                        items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
+                        renderItem={renderLoanItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active loans</div>}
+                    />
+                ) : (
+                    <CommitmentList
+                        items={validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID')}
+                        renderItem={renderLoanItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled loans</div>}
+                    />
+                )}
             </div>
         </div>
     )}

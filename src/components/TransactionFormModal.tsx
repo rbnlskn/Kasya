@@ -5,6 +5,7 @@ import { Category, Wallet, TransactionType, Transaction } from '../types';
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface TransactionFormModalProps {
   isOpen: boolean;
@@ -20,8 +21,8 @@ interface TransactionFormModalProps {
 }
 
 const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title, isExiting }) => {
-  const [amount, setAmount] = useState('');
-  const [fee, setFee] = useState('');
+  const amountInput = useCurrencyInput('');
+  const feeInput = useCurrencyInput('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
@@ -33,8 +34,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   useEffect(() => {
     if (isOpen) {
       if (initialTransaction) {
-        setAmount(initialTransaction.amount.toString());
-        setFee(initialTransaction.fee?.toString() || '');
+        amountInput.setValue(initialTransaction.amount);
+        feeInput.setValue(initialTransaction.fee || '');
         setDescription(initialTransaction.description || '');
         setSelectedCategory(initialTransaction.categoryId);
         setSelectedWallet(initialTransaction.walletId);
@@ -42,8 +43,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
         setType(initialTransaction.type);
         setDateVal(new Date(initialTransaction.date));
       } else {
-        setAmount('');
-        setFee('');
+        amountInput.setValue('');
+        feeInput.setValue('');
         setDescription('');
         setSelectedCategory(''); 
         setSelectedWallet(''); 
@@ -59,15 +60,14 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amountVal = parseFloat(amount);
-    if (isNaN(amountVal) || amountVal <= 0) return;
+    if (amountInput.rawValue <= 0) return;
     if (!selectedWallet) return;
     if (type !== TransactionType.TRANSFER && !selectedCategory) return;
     if (type === TransactionType.TRANSFER && !selectedToWallet) return;
     
     onSave({
-      amount: amountVal,
-      fee: parseFloat(fee) || 0,
+      amount: amountInput.rawValue,
+      fee: feeInput.rawValue || 0,
       type,
       categoryId: type === TransactionType.TRANSFER ? 'cat_transfer' : selectedCategory,
       walletId: selectedWallet,
@@ -91,7 +91,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const getCategoryIcon = (id: string) => getCategory(id)?.icon || null;
 
   const isFormValid = () => {
-      if (!amount || parseFloat(amount) <= 0) return false;
+      if (amountInput.rawValue <= 0) return false;
       if (!selectedWallet) return false;
       if (type !== TransactionType.TRANSFER && !selectedCategory) return false;
       if (type === TransactionType.TRANSFER && !selectedToWallet) return false;
@@ -126,10 +126,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
-                type="number"
-                value={amount}
-                step="0.01"
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                {...amountInput}
                 className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 placeholder="0.00"
                 inputMode="decimal"
@@ -144,9 +142,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold">{currencySymbol}</span>
                   <input 
-                    type="number"
-                    value={fee}
-                    onChange={(e) => setFee(e.target.value)}
+                    type="text"
+                    {...feeInput}
                     className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                     placeholder="0.00"
                     inputMode="decimal"

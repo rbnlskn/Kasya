@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronDown, Trash2, Check } from 'lucide-react';
 import { Budget, Category, BudgetPeriod } from '../types';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface BudgetFormModalProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface BudgetFormModalProps {
 
 const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSave, categories, initialBudget, currencySymbol, onDelete, isExiting }) => {
   const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
+  const amountInput = useCurrencyInput('');
   const [categoryId, setCategoryId] = useState('');
   const [period, setPeriod] = useState<BudgetPeriod>('MONTHLY');
   const [selectorOpen, setSelectorOpen] = useState(false);
@@ -25,12 +26,12 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
     if (isOpen) {
       if (initialBudget) {
         setName(initialBudget.name);
-        setAmount(initialBudget.limit.toFixed(2));
+        amountInput.setValue(initialBudget.limit);
         setCategoryId(initialBudget.categoryId);
         setPeriod(initialBudget.period);
       } else {
         setName('');
-        setAmount('');
+        amountInput.setValue('');
         setCategoryId('');
         setPeriod('MONTHLY');
       }
@@ -42,10 +43,9 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const amountVal = parseFloat(amount);
-    if (!name || amountVal <= 0 || !categoryId) return;
+    if (!name || amountInput.rawValue <= 0 || !categoryId) return;
     const selectedCategory = categories.find(c => c.id === categoryId);
-    onSave({ name, limit: amountVal, categoryId, period, description: '', icon: selectedCategory?.icon || '💰', color: selectedCategory?.color || '' }, initialBudget?.id);
+    onSave({ name, limit: amountInput.rawValue, categoryId, period, description: '', icon: selectedCategory?.icon || '💰', color: selectedCategory?.color || '' }, initialBudget?.id);
     onClose();
   };
 
@@ -101,12 +101,12 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
             <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
+                <span className="absolute left-4 top-1/2 -translate-y-1-2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
-          <button type="submit" disabled={!name || !amount || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
+          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
         </form>
       </div>
     </div>

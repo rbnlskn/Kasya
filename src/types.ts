@@ -81,15 +81,13 @@ export interface Bill {
   endDate?: string; // ISO String
 }
 
-export type LoanType = 'PAYABLE' | 'RECEIVABLE'; // I Owe vs They Owe
-
 export interface Loan {
   id: string;
   name: string;
   totalAmount: number;
   interest?: number; // Interest amount
   fee?: number; // Fee amount (recorded for reference/transaction)
-  type: LoanType;
+  categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
   dueDay: number; // 0 for no due date (legacy/recurring)
   dueDate?: string; // ISO String (for calculated duration end date)
   recurrence: RecurrenceFrequency;

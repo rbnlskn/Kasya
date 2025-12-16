@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, ArrowDownLeft, ArrowUpRight, Calendar, ChevronDown } from 'lucide-react';
-import { Loan, LoanType, RecurrenceFrequency, Wallet } from '../types';
+import { X, Trash2, Calendar, ChevronDown, Check } from 'lucide-react';
+import { Loan, RecurrenceFrequency, Wallet, Category } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
@@ -13,15 +13,16 @@ interface LoanFormModalProps {
   initialLoan?: Loan;
   currencySymbol: string;
   wallets: Wallet[];
+  categories: Category[];
   isExiting?: boolean;
 }
 
-const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialLoan, currencySymbol, wallets, isExiting }) => {
+const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialLoan, currencySymbol, wallets, categories, isExiting }) => {
   const [name, setName] = useState('');
   const principalAmountInput = useCurrencyInput('');
   const interestInput = useCurrencyInput('');
   const feeInput = useCurrencyInput('');
-  const [type, setType] = useState<LoanType>('PAYABLE');
+  const [categoryId, setCategoryId] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
   const [dueDay, setDueDay] = useState<number | ''>('');
@@ -31,7 +32,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
   const [createTransaction, setCreateTransaction] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
 
-  const [selectorView, setSelectorView] = useState<'NONE' | 'OCCURRENCE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'WALLET'>('NONE');
+  const [selectorView, setSelectorView] = useState<'NONE' | 'CATEGORY' | 'OCCURRENCE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'WALLET'>('NONE');
 
   useEffect(() => {
     if (isOpen) {
@@ -40,7 +41,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         principalAmountInput.setValue(initialLoan.totalAmount.toString());
         interestInput.setValue(initialLoan.interest?.toString() || '');
         feeInput.setValue(initialLoan.fee?.toString() || '');
-        setType(initialLoan.type);
+        setCategoryId(initialLoan.categoryId);
         setStartDate(initialLoan.startDate ? new Date(initialLoan.startDate) : new Date());
         setOccurrence(initialLoan.recurrence);
         setDueDay(initialLoan.dueDay || '');
@@ -53,7 +54,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         principalAmountInput.setValue('');
         interestInput.setValue('');
         feeInput.setValue('');
-        setType('PAYABLE');
+        setCategoryId('cat_loans');
         setStartDate(new Date());
         setOccurrence('');
         setDueDay('');
@@ -69,42 +70,42 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !principalAmountInput.rawValue || !occurrence) return;
+    if (!name || principalAmountInput.rawValue <= 0 || !occurrence || !categoryId) return;
 
-    const totalAmount = initialLoan
-      ? principalAmountInput.rawValue
-      : (principalAmountInput.rawValue || 0) + (interestInput.rawValue || 0);
+    const principal = principalAmountInput.rawValue;
+    const interest = interestInput.rawValue;
+    const totalAmount = principal + interest;
+    const totalDuration = parseInt(duration, 10);
+
+    const installmentAmount = (totalDuration > 0)
+      ? (totalAmount) / totalDuration
+      : totalAmount;
 
     let endDate: string | undefined = undefined;
-    if (duration && parseInt(duration) > 0) {
+    if (duration && totalDuration > 0) {
         const date = new Date(startDate);
         if (durationUnit === 'DAYS') {
-            date.setDate(date.getDate() + parseInt(duration));
+            date.setDate(date.getDate() + totalDuration);
         } else if (durationUnit === 'MONTHS') {
-            // Correctly project forward, e.g., Jan 31 + 1 month = Feb 28/29
-            date.setMonth(date.getMonth() + parseInt(duration));
+            date.setMonth(date.getMonth() + totalDuration);
         } else if (durationUnit === 'YEARS') {
-            date.setFullYear(date.getFullYear() + parseInt(duration));
+            date.setFullYear(date.getFullYear() + totalDuration);
         }
         endDate = date.toISOString();
     }
 
-    const installmentAmount = (duration && parseInt(duration, 10) > 0)
-      ? totalAmount / parseInt(duration, 10)
-      : undefined;
-
     onSave({
       name,
-      totalAmount,
-      interest: interestInput.rawValue || 0,
-      fee: feeInput.rawValue || 0,
-      type,
+      totalAmount: totalAmount,
+      interest: interest,
+      fee: feeInput.rawValue,
+      categoryId,
       dueDay: Number(dueDay) || 0,
       recurrence: occurrence,
-      icon: '💰', // Hardcoded icon
+      icon: '💰', // This will be handled by category view logic later
       startDate: new Date(startDate).toISOString(),
-      endDate, // Can be undefined
-      duration: parseInt(duration) || undefined,
+      endDate,
+      duration: totalDuration || undefined,
       durationUnit: duration ? durationUnit : undefined,
       installmentAmount,
     }, initialLoan?.id, createTransaction ? selectedWalletId : undefined);
@@ -117,6 +118,9 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
       onClose();
     }
   };
+
+  const loanCategories = categories.filter(c => c.id === 'cat_loans' || c.id === 'cat_lending');
+  const loanCategory = categories.find(c => c.id === categoryId);
 
   const incomeAmount = (principalAmountInput.rawValue || 0) - (feeInput.rawValue || 0);
 
@@ -135,11 +139,11 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex bg-slate-100 p-1 rounded-2xl">
-            <button type="button" onClick={() => setType('PAYABLE')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'PAYABLE' ? 'bg-surface shadow text-red-500 scale-[1.02]' : 'text-text-secondary'}`}>
-                <ArrowDownLeft className="w-4 h-4"/> I Owe
+            <button type="button" onClick={() => setCategoryId('cat_loans')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${categoryId === 'cat_loans' ? 'bg-surface shadow text-red-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                I Owe
             </button>
-            <button type="button" onClick={() => setType('RECEIVABLE')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'RECEIVABLE' ? 'bg-surface shadow text-green-500 scale-[1.02]' : 'text-text-secondary'}`}>
-                <ArrowUpRight className="w-4 h-4"/> They Owe
+            <button type="button" onClick={() => setCategoryId('cat_lending')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${categoryId === 'cat_lending' ? 'bg-surface shadow text-green-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                They Owe
             </button>
           </div>
 
@@ -227,7 +231,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                             <ChevronDown className="w-4 h-4 text-text-secondary"/>
                           </button>
                           <p className="text-xs text-primary/60 mt-1.5 leading-tight">
-                              Creates an <span className="font-bold">{type === 'PAYABLE' ? 'Income' : 'Expense'}</span> of <span className="font-bold">{currencySymbol}{incomeAmount.toLocaleString()}</span> (Principal - Fee).
+                              Creates an <span className="font-bold">{categoryId === 'cat_loans' ? 'Income' : 'Expense'}</span> of <span className="font-bold">{currencySymbol}{incomeAmount.toLocaleString()}</span> (Principal - Fee).
                           </p>
                       </div>
                   )}
