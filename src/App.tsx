@@ -431,9 +431,9 @@ const App: React.FC = () => {
           newLoanId = `loan_${Date.now()}`;
           loansList.push({ ...loanData, id: newLoanId });
       }
-      setData(prev => ({ ...prev, loans: loansList }));
-      if (initialTransactionWalletId && !id && newLoanId && loanData.type === 'PAYABLE') {
-           const isPayable = loanData.type === 'PAYABLE'; 
+
+      if (initialTransactionWalletId && !id && newLoanId) {
+           const isPayable = loanData.categoryId === 'cat_loans';
            const principal = loanData.totalAmount - (loanData.interest || 0);
            const txAmount = principal - (loanData.fee || 0);
            if (txAmount > 0) {
@@ -472,15 +472,20 @@ const App: React.FC = () => {
   };
 
   const handlePayLoan = (loan: Loan, amount?: number) => {
-      setSelectedLoanId(loan.id);
-      const paidAmount = loanStatusMap[loan.id]?.paidAmount || 0;
-      const remaining = loan.totalAmount - paidAmount;
-      const paymentAmount = amount || remaining;
-      const isPayable = loan.type === 'PAYABLE';
-      const loanCategory = data.categories.find(c => c.name.toLowerCase().includes('loan')) || data.categories[0];
-      setPresetTransaction({ amount: paymentAmount, type: isPayable ? TransactionType.EXPENSE : TransactionType.INCOME, description: loan.name, categoryId: loanCategory.id, date: new Date().toISOString() });
-      setTransactionModalTitle(isPayable ? "Record Payment" : "Record Collection");
-      handleOpenModal('TX_FORM');
+    setSelectedLoanId(loan.id);
+    const paidAmount = loanStatusMap[loan.id]?.paidAmount || 0;
+    const remaining = loan.totalAmount - paidAmount;
+    const paymentAmount = amount || remaining;
+    const isLending = loan.categoryId === 'cat_lending';
+    setPresetTransaction({
+        amount: paymentAmount,
+        type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
+        description: `Payment ${isLending ? 'from' : 'to'} ${loan.name}`,
+        categoryId: loan.categoryId,
+        date: new Date().toISOString()
+    });
+    setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
+    handleOpenModal('TX_FORM');
   };
 
   const handlePayCC = (wallet: Wallet) => {
@@ -787,6 +792,7 @@ const App: React.FC = () => {
           initialLoan={editingLoan}
           currencySymbol={currentCurrency.symbol}
           wallets={data.wallets}
+          categories={data.categories}
           isExiting={isModalExiting}
         />
       )}

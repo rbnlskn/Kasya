@@ -32,7 +32,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
   const [createTransaction, setCreateTransaction] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
 
-  const [selectorView, setSelectorView] = useState<'NONE' | 'OCCURRENCE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'WALLET'>('NONE');
+  const [selectorView, setSelectorView] = useState<'NONE' | 'CATEGORY' | 'OCCURRENCE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'WALLET'>('NONE');
 
   useEffect(() => {
     if (isOpen) {
