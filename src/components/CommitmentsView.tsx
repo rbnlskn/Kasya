@@ -161,11 +161,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       transformOrigin: 'top center',
     };
 
+    const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'));
+
     return (
       <div key={sub.id} style={cardStyle} onClick={() => setActiveCard(sub.id)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-all duration-300">
         <div className="flex items-center">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4 ${paid ? 'bg-green-50 text-green-500' : 'bg-blue-50 text-blue-500'}`}>
-                {sub.icon}
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: paid ? '#D1FAE5' : category?.color }}>
+                {category?.icon}
             </div>
             <div className="flex-1 min-w-0">
                  <h4 className="font-bold text-gray-800 text-base leading-tight truncate">{sub.name}</h4>
@@ -211,7 +213,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return (
       <div key={loan.id} style={cardStyle} onClick={() => setActiveCard(loan.id)} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-all duration-300">
         <div className="flex items-center">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4 bg-gray-100`}>
+            <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-4`} style={{ backgroundColor: category?.color }}>
                 {category?.icon}
             </div>
             <div className="flex-1 min-w-0">

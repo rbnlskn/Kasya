@@ -138,13 +138,14 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Type</label>
-              <div onClick={() => setSelectorView('CATEGORY')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                  <span className={`text-sm font-bold ${loanCategory ? 'text-text-primary' : 'text-text-secondary/80'}`}>{loanCategory ? loanCategory.name : 'Select Type...'}</span>
-                  <ChevronDown className="w-4 h-4 text-text-secondary"/>
-              </div>
-            </div>
+          <div className="flex bg-slate-100 p-1 rounded-2xl">
+            <button type="button" onClick={() => setCategoryId('cat_loans')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${categoryId === 'cat_loans' ? 'bg-surface shadow text-red-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                I Owe
+            </button>
+            <button type="button" onClick={() => setCategoryId('cat_lending')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${categoryId === 'cat_lending' ? 'bg-surface shadow text-green-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                They Owe
+            </button>
+          </div>
 
           <div>
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name</label>
@@ -254,18 +255,6 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                 }}
                 onClose={() => setSelectorView('NONE')}
             />
-          )}
-          {selectorView === 'CATEGORY' && (
-             <div>
-               <h3 className="font-bold text-lg text-text-primary mb-4">Select Type</h3>
-               <div className="space-y-2">
-                 {loanCategories.map(c => (
-                   <button key={c.id} onClick={() => { setCategoryId(c.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${categoryId === c.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                      {c.name}
-                   </button>
-                 ))}
-               </div>
-             </div>
           )}
           {selectorView === 'OCCURRENCE' && (
             <div>
