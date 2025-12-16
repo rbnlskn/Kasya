@@ -5,6 +5,7 @@ import { Wallet, WalletType } from '../types';
 import { WALLET_TEMPLATES } from '../data/templates';
 import DayPicker from './DayPicker';
 import WalletCard, { getWalletIcon } from './WalletCard';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface WalletFormModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ const isColorLight = (hexColor: string): boolean => {
 const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialWallet, currencySymbol, isExiting }) => {
   const [name, setName] = useState('');
   const [type, setType] = useState<string>('');
-  const [balance, setBalance] = useState('');
+  const balanceInput = useCurrencyInput('');
   // Hardcoded default for simplicity, matching the teal default or new blue
   const DEFAULT_PRIMARY = '#2563EB';
   const DEFAULT_DANGER = '#ef4444';
@@ -61,7 +62,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       if (initialWallet) {
         setName(initialWallet.name);
         setType(initialWallet.type);
-        setBalance(initialWallet.balance.toFixed(2));
+        balanceInput.setValue(initialWallet.balance);
         setStatementDay(initialWallet.statementDay || 1);
         
         const bgMatch = initialWallet.color.match(/bg-\[(#[0-9A-Fa-f]{6})\]/);
@@ -71,7 +72,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       } else {
         setName('');
         setType(''); 
-        setBalance(''); 
+        balanceInput.setValue('');
         setStatementDay(1);
         setCustomBg(DEFAULT_PRIMARY);
         setCustomText('#FFFFFF');
@@ -85,7 +86,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !type) return;
-    const currentBalance = parseFloat(balance) || 0;
+    const currentBalance = balanceInput.rawValue;
     
     const finalBg = `bg-[${customBg}]`;
     const finalText = `text-[${customText}]`;
@@ -144,8 +145,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       setName(t.name === 'Cash' ? 'Cash' : t.name);
   };
 
-  const currentBalanceVal = parseFloat(balance) || 0;
-  const balanceDiff = (currentBalanceVal) - (initialWallet ? initialWallet.balance : 0);
+  const balanceDiff = (balanceInput.rawValue) - (initialWallet ? initialWallet.balance : 0);
   const hasBalanceChanged = initialWallet && Math.abs(balanceDiff) > 0.01;
   const isCreditCard = type === WalletType.CREDIT_CARD;
 
@@ -153,11 +153,11 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       id: initialWallet?.id || 'new',
       name: name || 'Wallet Name',
       type: type || '...',
-      balance: currentBalanceVal,
+      balance: balanceInput.rawValue,
       color: customBg,
       textColor: customText,
       currency: 'PHP',
-  }), [name, type, balance, currentBalanceVal, customBg, customText]);
+  }), [name, type, balanceInput.rawValue, customBg, customText]);
 
 
   return (
@@ -236,13 +236,11 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 
-                type="number" 
-                value={balance} 
-                onChange={e => setBalance(e.target.value)}
+                type="text"
+                {...balanceInput}
                 className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 required 
                 inputMode="decimal"
-                step="0.01"
               />
             </div>
           </div>

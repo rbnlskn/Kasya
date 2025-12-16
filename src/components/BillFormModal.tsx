@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Trash2, FileText, Repeat, Calendar, ChevronDown } from 'lucide-react';
 import { Bill, RecurrenceFrequency } from '../types';
 import DayPicker from './DayPicker';
+import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface BillFormModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ interface BillFormModalProps {
 const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialBill, currencySymbol, isExiting }) => {
   const [type, setType] = useState<'BILL' | 'SUBSCRIPTION'>('BILL');
   const [name, setName] = useState('');
-  const [amount, setAmount] = useState('');
+  const amountInput = useCurrencyInput('');
   const [dueDay, setDueDay] = useState<number | ''>('');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
@@ -29,14 +30,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       if (initialBill) {
         setType(initialBill.type || 'BILL');
         setName(initialBill.name);
-        setAmount(initialBill.amount.toString());
+        amountInput.setValue(initialBill.amount);
         setDueDay(initialBill.dueDay);
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setOccurrence(initialBill.recurrence);
       } else {
         setType('BILL');
         setName('');
-        setAmount('');
+        amountInput.setValue('');
         setDueDay('');
         setStartDate(new Date());
         setOccurrence('');
@@ -52,11 +53,11 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !amount || !dueDay || !occurrence) return;
+    if (!name || amountInput.rawValue <= 0 || !dueDay || !occurrence) return;
 
     onSave({
       name,
-      amount: parseFloat(amount),
+      amount: amountInput.rawValue,
       dueDay: dueDay,
       recurrence: occurrence,
       icon,
@@ -107,7 +108,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Amount</label>
     <div className="relative group">
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-        <input type="number" value={amount} onChange={e => setAmount(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" step="0.01" />
+        <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
     </div>
 </div>
 

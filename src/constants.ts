@@ -35,6 +35,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_6', name: 'Bills', icon: '⚡', color: '#FEF3C7' },
   { id: 'cat_7', name: 'Entertainment', icon: '🎮', color: '#F3E8FF' },
   { id: 'cat_loans', name: 'Loans', icon: '💷', color: '#FCE7F3' },
+  { id: 'cat_lending', name: 'Lending', icon: '💴', color: '#D1FAE5' },
   { id: 'cat_subs', name: 'Subscriptions', icon: '💬', color: '#DBEAFE' },
 ];
 

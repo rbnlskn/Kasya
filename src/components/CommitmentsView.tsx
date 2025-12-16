@@ -185,48 +185,49 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const { paidAmount, status } = loanStatusMap[loan.id] || { paidAmount: 0, status: 'UNPAID' };
     const isPaid = status === 'PAID';
     const dueDateText = getLoanDueDateText(loan);
-    const isOverdue = dueDateText.includes('Overdue');
     const paymentAmount = loan.installmentAmount || 0;
 
     const totalInstallments = loan.duration || 0;
-    const paidInstallments = paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0;
+    const paidInstallments = Math.min(totalInstallments, paymentAmount > 0 ? Math.round(paidAmount / paymentAmount) : 0);
     const progress = totalInstallments > 0 ? (paidInstallments / totalInstallments) * 100 : 0;
 
+    const isLending = loan.categoryId === 'cat_lending';
+    const category = categories.find(c => c.id === loan.categoryId);
+    const cardBg = isLending ? 'bg-[#0F4C75]' : 'bg-gray-800';
+
     return (
-      <div key={loan.id} onClick={() => onEditLoan(loan)} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform">
-        <div className="flex items-center justify-between mb-3">
-            <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate flex items-center">
-                    {loan.name}
-                    <span className={`text-[9px] font-bold ml-2 px-1.5 py-0.5 rounded ${isPaid ? 'bg-green-100 text-green-600' : (isOverdue ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500')}`}>
-                        {dueDateText}
-                    </span>
-                </h4>
+      <div key={loan.id} onClick={() => onEditLoan(loan)} className={`relative w-[320px] h-[170px] rounded-3xl p-5 flex flex-col justify-between text-white overflow-hidden shadow-lg ${cardBg} cursor-pointer active:scale-[0.98] transition-transform`}>
+        <div className="absolute -bottom-4 -right-4 text-8xl opacity-10 filter grayscale">{category?.icon}</div>
+
+        <div className="z-10">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-xs uppercase font-bold opacity-70">{isLending ? 'Collecting' : 'Paying'}</p>
+              <h3 className="font-bold text-lg">{loan.name}</h3>
+            </div>
+            <p className="text-xs font-bold bg-white/10 px-2 py-1 rounded-full">{dueDateText}</p>
+          </div>
+        </div>
+
+        <div className="z-10">
+          <h2 className="text-3xl font-black tracking-tight mb-2">{currencySymbol}{formatCurrency(paymentAmount)}</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex-1 flex items-center gap-2">
+              <div className="w-full bg-white/20 rounded-full h-1.5">
+                <div className="bg-white h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
+              </div>
+              <span className="text-[11px] font-bold opacity-70 whitespace-nowrap">{String(paidInstallments).padStart(2, '0')}/{String(totalInstallments).padStart(2, '0')}</span>
             </div>
             {!isPaid && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
-                    className="text-xs bg-primary/10 text-primary-hover font-bold px-4 py-2 rounded-lg active:scale-95 transition-transform hover:bg-primary/20"
-                >
-                    {loan.type === 'PAYABLE' ? 'Pay' : 'Collect'}
-                </button>
+               <button
+                  onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
+                  className={`text-xs font-bold ml-4 px-4 py-1.5 rounded-full active:scale-95 transition-transform ${isLending ? 'bg-green-500' : 'bg-blue-500'}`}
+               >
+                 {isLending ? 'Collect' : 'Pay'}
+               </button>
             )}
+          </div>
         </div>
-
-        <div className="flex items-end justify-between mb-3">
-            <span className={`block font-black text-2xl tracking-tight ${isPaid ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                {currencySymbol}{formatCurrency(paymentAmount)}
-            </span>
-        </div>
-
-        {totalInstallments > 0 && !isPaid && (
-            <div className="flex items-center gap-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className="bg-primary h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
-                </div>
-                <span className="text-[10px] font-bold text-gray-400 whitespace-nowrap">{paidInstallments}/{totalInstallments} payments</span>
-            </div>
-        )}
       </div>
     );
   };
@@ -382,10 +383,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       {/* Loans */}
       <section>
         <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-        <div className="space-y-2">
-            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 2).map(l => renderLoanItem(l))}
+        <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(l => renderLoanItem(l))}
              {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && (
-                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">No active loans.</div>
+                <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                    No active loans.
+                </div>
             )}
         </div>
       </section>
