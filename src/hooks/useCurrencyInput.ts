@@ -6,7 +6,6 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
     const stringValue = value.toString();
     if (!stringValue) return '';
 
-    // Allow entering a decimal point
     if (stringValue.endsWith('.')) {
         const justNumber = stringValue.replace(/[^\d]/g, '');
         return justNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '.';
@@ -24,16 +23,20 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
     return integer;
   };
 
-  const [formattedValue, setFormattedValue] = useState(format(initialValue));
+  const [formattedValue, setFormattedValue] = useState(() => initialValue ? formatCurrency(initialValue) : '');
 
   useEffect(() => {
-    // On mount, if there's an initial value, format it fully.
-    if (initialValue) {
+    const numericInitial = parseFloat(String(initialValue).replace(/,/g, '')) || 0;
+    const currentRaw = parseFloat(formattedValue.replace(/,/g, '')) || 0;
+
+    if (numericInitial !== currentRaw) {
+      if (initialValue) {
         setFormattedValue(formatCurrency(initialValue));
-    } else {
+      } else {
         setFormattedValue('');
+      }
     }
-  }, [initialValue]);
+  }, [initialValue, formattedValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormattedValue(format(e.target.value));
@@ -53,7 +56,6 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
     onChange: handleChange,
     onBlur: handleBlur,
     setValue: (val: string | number) => {
-        // When setting the value programmatically, apply full currency format
         if(val) {
           setFormattedValue(formatCurrency(val));
         } else {
