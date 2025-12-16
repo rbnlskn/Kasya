@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
-import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan } from './types';
+import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan, LoanType } from './types';
 import BudgetRing from './components/BudgetRing';
 import TransactionItem from './components/TransactionItem';
 import WalletCard from './components/WalletCard';
@@ -320,9 +320,9 @@ const App: React.FC = () => {
                 id: `tx_${newTimestamp}_${Math.random().toString(36).substr(2, 9)}`,
                 createdAt: newTimestamp,
                 billId: selectedBillId || undefined,
-                loanId: selectedLoanId || undefined 
+                commitmentId: selectedLoanId || undefined
             };
-            
+
             let updatedBills = [...prev.bills];
             if (selectedBillId) {
                 updatedBills = updatedBills.map(b => b.id === selectedBillId ? { ...b, lastPaidDate: newTx.date } : b);

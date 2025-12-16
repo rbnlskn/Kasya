@@ -91,7 +91,7 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
     const feeInput = useCurrencyInput(formState.fee);
 
     const updateState = <K extends keyof typeof formState>(key: K, value: (typeof formState)[K]) => {
-        setFormState(prev => ({ ...prev, [key]: value }));
+        setFormState((prev: any) => ({ ...prev, [key]: value }));
     };
 
     useEffect(() => {
