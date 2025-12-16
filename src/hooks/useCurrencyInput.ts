@@ -24,43 +24,39 @@ export const useCurrencyInput = (initialValue: number | string = '') => {
   };
 
   const [formattedValue, setFormattedValue] = useState(() => initialValue ? formatCurrency(initialValue) : '');
+  const rawValue = parseFloat(formattedValue.replace(/,/g, '')) || 0;
 
   useEffect(() => {
     const numericInitial = parseFloat(String(initialValue).replace(/,/g, '')) || 0;
-    const currentRaw = parseFloat(formattedValue.replace(/,/g, '')) || 0;
 
-    if (numericInitial !== currentRaw) {
-      if (initialValue) {
-        setFormattedValue(formatCurrency(initialValue));
-      } else {
-        setFormattedValue('');
-      }
+    if (numericInitial !== rawValue) {
+        setFormattedValue(initialValue ? formatCurrency(initialValue) : '');
     }
-  }, [initialValue, formattedValue]);
+  }, [initialValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormattedValue(format(e.target.value));
   };
 
   const handleBlur = () => {
-      if (formattedValue) {
+      if (formattedValue || rawValue > 0) {
           setFormattedValue(formatCurrency(rawValue));
       }
   };
 
-  const rawValue = parseFloat(formattedValue.replace(/,/g, '')) || 0;
+  const setValue = (val: string | number) => {
+      if(val) {
+        setFormattedValue(formatCurrency(val));
+      } else {
+        setFormattedValue('');
+      }
+  };
 
   return {
     value: formattedValue,
     rawValue,
     onChange: handleChange,
     onBlur: handleBlur,
-    setValue: (val: string | number) => {
-        if(val) {
-          setFormattedValue(formatCurrency(val));
-        } else {
-          setFormattedValue('');
-        }
-    },
+    setValue,
   };
 };
