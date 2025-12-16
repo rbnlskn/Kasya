@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Calendar, CreditCard, PiggyBank, Plus, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Loan, Category } from '../types';
 import WalletCard from './WalletCard';
+import SectionHeader from './SectionHeader';
+import CommitmentCard from './CommitmentCard';
 import { formatCurrency } from '../utils/number';
-import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 
 interface CommitmentsViewProps {
@@ -22,9 +23,10 @@ interface CommitmentsViewProps {
   onPayLoan: (loan: Loan, amount?: number) => void;
   onPayCC: (wallet: Wallet) => void;
   onWalletClick?: (wallet: Wallet) => void;
+  onAddCreditCard: () => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick, onAddCreditCard }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_LOANS'>('NONE');
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
@@ -299,20 +301,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));
 
-  const SectionHeader = ({ title, count, icon, onAdd, onViewAll }: { title: string, count: number, icon: React.ReactNode, onAdd?: () => void, onViewAll?: () => void }) => (
-    <div className="flex justify-between items-center mb-3">
-        <h3 className="text-base font-extrabold text-gray-800 tracking-tight flex items-center">
-            <span className="text-gray-400 mr-2">{icon}</span>
-            {title}
-            {count > 0 && <span className="text-xs font-bold text-gray-400 ml-2">({count})</span>}
-        </h3>
-        <div className="flex items-center space-x-3">
-            {onViewAll && <button onClick={onViewAll} className="text-[10px] text-gray-500 font-bold uppercase tracking-wide hover:text-primary">VIEW ALL</button>}
-            {onAdd && <button data-testid={`add-${title.toLowerCase().replace(/ & /g, '-')}-button`} onClick={onAdd} className="w-8 h-8 flex items-center justify-center bg-primary/5 text-primary rounded-xl hover:bg-primary/10 active:scale-95 transition-transform"><Plus className="w-5 h-5"/></button>}
-        </div>
-    </div>
-  );
-
   return (
     <>
     <div className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
@@ -332,7 +320,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       {/* Credit Cards */}
 <section>
-    <SectionHeader title="Credit Cards" count={creditCards.length} icon={<CreditCard className="w-4 h-4" />} />
+    <SectionHeader
+      title="CREDIT CARDS"
+      count={creditCards.length}
+      onAdd={onAddCreditCard}
+    />
     <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
         {creditCards.length > 0 ? creditCards.map(cc => {
             const currentBalance = (cc.creditLimit || 0) - cc.balance;
@@ -367,30 +359,68 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       {/* Subscriptions & Bills */}
       <section>
-        <SectionHeader title="Bills & Subscriptions" count={upcomingBills.length} icon={<Calendar className="w-4 h-4" />} onAdd={onAddBill} onViewAll={() => setOverlay('ALL_BILLS')} />
-        <CommitmentStack
-            items={upcomingBills}
-            renderItem={renderBillItem}
-            placeholder={
-                <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
-                </div>
-            }
+        <SectionHeader
+          title="BILLS & SUBSCRIPTIONS"
+          count={upcomingBills.length}
+          onAdd={onAddBill}
+          onViewAll={() => setOverlay('ALL_BILLS')}
         />
+        <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 min-h-[190px]">
+          {upcomingBills.length > 0 ? upcomingBills.map(bill => (
+            <div className="w-[85vw] max-w-sm flex-shrink-0">
+              <CommitmentCard
+                key={bill.id}
+                item={bill}
+                category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'))}
+                dueDateText={getBillDueDateText(bill)}
+                currencySymbol={currencySymbol}
+                onPay={() => onPayBill(bill)}
+                onEdit={() => onEditBill(bill)}
+                paidInstallments={isBillPaid(bill) ? 1 : 0}
+              />
+            </div>
+          )) : (
+            <div className="w-full text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Loans */}
         <section>
-            <SectionHeader title="Loans & Debts" count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length} icon={<PiggyBank className="w-4 h-4" />} onAdd={onAddLoan} onViewAll={() => setOverlay('ALL_LOANS')} />
-            <CommitmentStack
-                items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
-                renderItem={renderLoanItem}
-                placeholder={
-                    <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
-                        No active loans.
-                    </div>
-                }
+            <SectionHeader
+              title="LOANS & DEBTS"
+              count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length}
+              onAdd={onAddLoan}
+              onViewAll={() => setOverlay('ALL_LOANS')}
             />
+            <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4 min-h-[190px]">
+              {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length > 0 ? validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(loan => {
+                const { paidAmount } = loanStatusMap[loan.id] || { paidAmount: 0 };
+                const totalInstallments = loan.duration || 0;
+                const paidInstallments = Math.min(totalInstallments, loan.installmentAmount > 0 ? Math.round(paidAmount / loan.installmentAmount) : 0);
+                return (
+                  <div className="w-[85vw] max-w-sm flex-shrink-0" key={loan.id}>
+                    <CommitmentCard
+                      item={loan}
+                      category={categories.find(c => c.id === loan.categoryId)}
+                      paidAmount={paidAmount}
+                      totalInstallments={totalInstallments}
+                      paidInstallments={paidInstallments}
+                      dueDateText={getLoanDueDateText(loan)}
+                      currencySymbol={currencySymbol}
+                      onPay={() => onPayLoan(loan, loan.installmentAmount)}
+                      onEdit={() => onEditLoan(loan)}
+                    />
+                  </div>
+                )
+              }) : (
+                <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
+                    No active loans.
+                </div>
+              )}
+            </div>
         </section>
     </div>
 

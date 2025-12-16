@@ -21,6 +21,7 @@ import BillFormModal from './components/BillFormModal';
 import LoanFormModal from './components/LoanFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
+import SectionHeader from './components/SectionHeader';
 import { Plus, BarChart3, Loader2, Zap } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -532,14 +533,12 @@ const App: React.FC = () => {
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
                  <div className="grid grid-cols-1 gap-4 content-start">
                      <section>
-                         <div className="flex justify-between items-end mb-2 px-1">
-                            <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Wallets</h2>
-                            <button onClick={() => handleOpenOverlay('ALL_WALLETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
-                         </div>
+                         <SectionHeader
+                           title="WALLETS"
+                           onViewAll={() => handleOpenOverlay('ALL_WALLETS')}
+                           onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
+                         />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-                            <button data-testid="add-wallet-button" onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} className="flex-shrink-0 w-16 h-[150px] rounded-3xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors group bg-white active:scale-95">
-                                <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
-                            </button>
                             {data.wallets.map((w) => (
                                 <WalletCard
                                     key={w.id}
@@ -553,14 +552,12 @@ const App: React.FC = () => {
                      </section>
 
 <section>
-    <div className="flex justify-between items-end mb-2 px-1">
-        <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Budgets</h2>
-        <button onClick={() => handleOpenOverlay('ALL_BUDGETS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
-    </div>
+    <SectionHeader
+      title="BUDGETS"
+      onViewAll={() => handleOpenOverlay('ALL_BUDGETS')}
+      onAdd={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
+    />
     <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-        <button onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} className="flex-shrink-0 w-16 h-20 rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1 group bg-white active:scale-95">
-            <Plus className="w-6 h-6 group-active:scale-90 transition-transform" />
-        </button>
         {data.budgets.map((b) => (
             <BudgetRing
                 key={b.id}
@@ -575,10 +572,10 @@ const App: React.FC = () => {
 </section>
 
 <section>
-    <div className="flex justify-between items-center mb-2 px-1">
-        <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">Recents</h2>
-        <button onClick={() => handleOpenOverlay('ALL_TRANSACTIONS')} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">View All</button>
-    </div>
+    <SectionHeader
+      title="RECENT TRANSACTIONS"
+      onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')}
+    />
     <div>
         {data.transactions.length === 0 ? (
             <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
@@ -631,6 +628,7 @@ const App: React.FC = () => {
                 onPayLoan={handlePayLoan}
                 onPayCC={handlePayCC}
                 onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }}
+                onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
              />
            </div>
         )}
