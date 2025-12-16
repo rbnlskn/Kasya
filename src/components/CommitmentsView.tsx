@@ -310,7 +310,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
         <CommitmentStack
-          items={upcomingBills.slice(0, 2)}
+          items={upcomingBills}
           renderItem={(bill) => (
             <CommitmentCard
               item={bill}
@@ -337,7 +337,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             onViewAll={() => setOverlay('ALL_LOANS')}
           />
           <CommitmentStack
-            items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').slice(0, 2)}
+            items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
             renderItem={(loan) => {
               const { paidAmount, paymentsMade } = loanStatusMap[loan.id] || { paidAmount: 0, paymentsMade: 0 };
               return (

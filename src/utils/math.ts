@@ -4,10 +4,10 @@ import { Loan, Transaction } from '../types';
 /**
  * Calculates the total obligation for a loan.
  * @param loan The loan object.
- * @returns The total amount to be paid (principal + interest + fee).
+ * @returns The total amount to be paid (principal + interest).
  */
-export const calculateTotalObligation = (loan: Pick<Loan, 'principal' | 'interest' | 'fee'>): number => {
-  return loan.principal + loan.interest + loan.fee;
+export const calculateTotalObligation = (loan: Pick<Loan, 'principal' | 'interest'>): number => {
+  return loan.principal + loan.interest;
 };
 
 /**
@@ -25,7 +25,7 @@ export const calculateDisbursement = (loan: Pick<Loan, 'principal' | 'fee'>): nu
  * @param loan The loan object.
  * @returns The installment amount. Returns 0 if duration is 0.
  */
-export const calculateInstallment = (loan: Pick<Loan, 'principal' | 'interest' | 'fee' | 'duration'>): number => {
+export const calculateInstallment = (loan: Pick<Loan, 'principal' | 'interest' | 'duration'>): number => {
   if (loan.duration <= 0) {
     return 0;
   }

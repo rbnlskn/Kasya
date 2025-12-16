@@ -223,7 +223,7 @@ const App: React.FC = () => {
       const payments = data.transactions.filter(t => t.commitmentId === loan.id && t.description?.startsWith('Payment'));
       const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
       const paymentsMade = payments.length;
-      const totalObligation = loan.principal + loan.interest + loan.fee;
+      const totalObligation = loan.principal + loan.interest;
       const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
 
       map[loan.id] = {
