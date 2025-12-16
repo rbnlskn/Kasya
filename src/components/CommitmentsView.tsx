@@ -371,7 +371,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           renderItem={(bill) => (
             <CommitmentCard
               item={bill}
-              category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_bills'))}
+              category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
               dueDateText={getBillDueDateText(bill)}
               currencySymbol={currencySymbol}
               onPay={() => onPayBill(bill)}

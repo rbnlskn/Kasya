@@ -17,6 +17,7 @@ export const CommitmentStack = <T extends { id: string }>({
   cardHeight = 90, // Default height
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(0);
   const visibleItems = items.slice(0, maxVisible);
 
   if (visibleItems.length === 0) {
@@ -24,15 +25,36 @@ export const CommitmentStack = <T extends { id: string }>({
   }
 
   const handleCardClick = (index: number) => {
-    // When a card is clicked, it becomes the active (top) card.
     setActiveIndex(index);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchEndX - touchStartX;
+
+    if (Math.abs(deltaX) > 50) { // Swipe threshold
+      if (deltaX > 0) { // Swipe right
+        setActiveIndex(prev => (prev - 1 + visibleItems.length) % visibleItems.length);
+      } else { // Swipe left
+        setActiveIndex(prev => (prev + 1) % visibleItems.length);
+      }
+    }
   };
 
   const cardSpacing = 12; // The visible vertical distance between stacked cards
   const containerHeight = cardHeight + (Math.min(visibleItems.length, maxVisible) - 1) * cardSpacing;
 
   return (
-    <div className="relative" style={{ height: `${containerHeight}px` }}>
+    <div
+      className="relative"
+      style={{ height: `${containerHeight}px` }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {visibleItems.map((item, index) => {
         const position = (index - activeIndex + visibleItems.length) % visibleItems.length;
         const isTopCard = index === activeIndex;
