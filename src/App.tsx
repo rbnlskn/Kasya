@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
 import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan } from './types';
@@ -22,6 +21,7 @@ import LoanFormModal from './components/LoanFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
+import AddCard from './components/AddCard';
 import { Plus, BarChart3, Loader2, Zap } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
@@ -536,7 +536,6 @@ const App: React.FC = () => {
                          <SectionHeader
                            title="WALLETS"
                            onViewAll={() => handleOpenOverlay('ALL_WALLETS')}
-                           onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
                          />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.wallets.map((w) => (
@@ -548,6 +547,11 @@ const App: React.FC = () => {
                                     scale={0.75}
                                 />
                             ))}
+                             <AddCard
+                                onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
+                                label="Add Wallet"
+                                scale={0.75}
+                            />
                          </div>
                      </section>
 
@@ -555,7 +559,6 @@ const App: React.FC = () => {
     <SectionHeader
       title="BUDGETS"
       onViewAll={() => handleOpenOverlay('ALL_BUDGETS')}
-      onAdd={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
     />
     <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
         {data.budgets.map((b) => (
@@ -568,6 +571,13 @@ const App: React.FC = () => {
                 onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
             />
         ))}
+         <div className="flex-shrink-0">
+             <AddCard
+                onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
+                label="Add Budget"
+                scale={0.75}
+            />
+        </div>
     </div>
 </section>
 

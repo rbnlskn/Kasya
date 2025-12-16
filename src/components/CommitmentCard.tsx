@@ -55,10 +55,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
         <div className="flex flex-col items-end ml-2">
           <p className="font-bold text-gray-800 text-sm text-right whitespace-nowrap">
-            {currencySymbol}{formatCurrency(paidAmount)}
+            {currencySymbol}{formatCurrency(amount)}
           </p>
           <p className="text-xs text-gray-500 font-medium text-right whitespace-nowrap">
-            / {currencySymbol}{formatCurrency(amount)}
+            / {currencySymbol}{formatCurrency(paidAmount)}
           </p>
         </div>
       </div>
