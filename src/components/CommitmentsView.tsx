@@ -210,7 +210,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
 
         <div className="z-10">
-          <h2 className="text-3xl font-black tracking-tight mb-2">{currencySymbol}{formatCurrency(paymentAmount)}</h2>
+          <h2 className="text-3xl font-black tracking-tight mb-2">{currencySymbol}{formatCurrency(loan.totalAmount - paidAmount)}</h2>
           <div className="flex items-center justify-between">
             <div className="flex-1 flex items-center gap-2">
               <div className="w-full bg-white/20 rounded-full h-1.5">

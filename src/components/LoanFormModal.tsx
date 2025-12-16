@@ -140,20 +140,9 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Type</label>
-              <div onClick={() => setSelectorView('CATEGORY')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
-                  <div className="flex items-center space-x-3">
-                      {loanCategory ? (
-                           <>
-                              <div className="w-8 h-8" style={{ backgroundColor: loanCategory.color, borderRadius: '0.75rem' }}>
-                                  <div className="icon-container">{loanCategory.icon}</div>
-                              </div>
-                              <span className="text-sm font-bold text-text-primary">{loanCategory.name}</span>
-                           </>
-                      ) : (
-                          <span className="text-sm font-medium text-text-secondary pl-2">Select Type...</span>
-                      )}
-                  </div>
-                  <ChevronDown className="w-5 h-5 text-text-secondary" />
+              <div onClick={() => setSelectorView('CATEGORY')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                  <span className={`text-sm font-bold ${loanCategory ? 'text-text-primary' : 'text-text-secondary/80'}`}>{loanCategory ? loanCategory.name : 'Select Type...'}</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary"/>
               </div>
             </div>
 
@@ -271,9 +260,8 @@ const LoanFormModal: React.FC<LoanFormModalProps> = ({ isOpen, onClose, onSave, 
                <h3 className="font-bold text-lg text-text-primary mb-4">Select Type</h3>
                <div className="space-y-2">
                  {loanCategories.map(c => (
-                   <button key={c.id} onClick={() => { setCategoryId(c.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold flex items-center space-x-3 ${categoryId === c.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                      <div className="w-8 h-8 icon-container" style={{backgroundColor: c.color}}>{c.icon}</div>
-                      <span>{c.name}</span>
+                   <button key={c.id} onClick={() => { setCategoryId(c.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${categoryId === c.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                      {c.name}
                    </button>
                  ))}
                </div>

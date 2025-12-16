@@ -473,9 +473,7 @@ const App: React.FC = () => {
 
   const handlePayLoan = (loan: Loan, amount?: number) => {
     setSelectedLoanId(loan.id);
-    const paidAmount = loanStatusMap[loan.id]?.paidAmount || 0;
-    const remaining = loan.totalAmount - paidAmount;
-    const paymentAmount = amount || remaining;
+    const paymentAmount = amount || loan.installmentAmount || 0;
     const isLending = loan.categoryId === 'cat_lending';
     setPresetTransaction({
         amount: paymentAmount,
