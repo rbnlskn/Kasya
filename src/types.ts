@@ -55,7 +55,7 @@ export interface Transaction {
   description?: string;
   // Linking to commitments
   billId?: string;
-  loanId?: string;
+  commitmentId?: string;
 }
 
 export interface Category {
@@ -81,21 +81,24 @@ export interface Bill {
   endDate?: string; // ISO String
 }
 
+export enum LoanType {
+  LOAN = 'LOAN',
+  LENDING = 'LENDING',
+}
+
 export interface Loan {
   id: string;
+  type: LoanType; // To distinguish between borrowing and lending
   name: string;
-  totalAmount: number;
-  interest?: number; // Interest amount
-  fee?: number; // Fee amount (recorded for reference/transaction)
+  principal: number;
+  interest: number; // Total interest amount, not rate
+  fee: number; // One-time fee
   categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
-  dueDay: number; // 0 for no due date (legacy/recurring)
-  dueDate?: string; // ISO String (for calculated duration end date)
+  dueDay: number; // 1-31
   recurrence: RecurrenceFrequency;
   icon: string;
   startDate: string; // ISO String
-  endDate?: string; // ISO String
-  duration?: number;
-  durationUnit?: 'DAYS' | 'MONTHS' | 'YEARS';
+  duration: number; // in units of recurrence, 0 for open-ended
   installmentAmount?: number;
   lastPaidDate?: string; // ISO String of last payment
 }

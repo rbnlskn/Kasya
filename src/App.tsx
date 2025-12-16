@@ -218,14 +218,18 @@ const App: React.FC = () => {
   }, [data.currency]);
 
   const loanStatusMap = useMemo(() => {
-    const map: Record<string, { paidAmount: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
+    const map: Record<string, { paidAmount: number, paymentsMade: number, status: 'PAID' | 'UNPAID', lastPaidDate?: string }> = {};
     data.loans.forEach(loan => {
-      const payments = data.transactions.filter(t => t.loanId === loan.id);
+      const payments = data.transactions.filter(t => t.commitmentId === loan.id && t.description?.startsWith('Payment'));
       const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
+      const paymentsMade = payments.length;
+      const totalObligation = loan.principal + loan.interest + loan.fee;
       const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
       map[loan.id] = {
         paidAmount,
-        status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
+        paymentsMade,
+        status: paidAmount >= totalObligation ? 'PAID' : 'UNPAID',
         lastPaidDate: lastPayment?.date,
       };
     });
@@ -425,44 +429,64 @@ const App: React.FC = () => {
   };
   
   const handleSaveLoan = (loanData: Omit<Loan, 'id'>, id?: string, initialTransactionWalletId?: string) => {
-      let newLoanId = id;
-      let loansList = [...data.loans];
-      if (id) {
-          loansList = loansList.map(l => l.id === id ? { ...l, ...loanData } : l);
-      } else {
-          newLoanId = `loan_${Date.now()}`;
-          loansList.push({ ...loanData, id: newLoanId });
-      }
+    setData(prev => {
+        let newLoanId = id;
+        let updatedLoans = [...prev.loans];
+        let updatedTransactions = [...prev.transactions];
+        let updatedWallets = [...prev.wallets];
 
-      if (initialTransactionWalletId && !id && newLoanId) {
-           const isPayable = loanData.categoryId === 'cat_loans';
-           const principal = loanData.totalAmount - (loanData.interest || 0);
-           const txAmount = principal - (loanData.fee || 0);
-           if (txAmount > 0) {
-               const tx: Omit<Transaction, 'id'> = {
-                   amount: txAmount,
-                   type: isPayable ? TransactionType.INCOME : TransactionType.EXPENSE, 
-                   categoryId: 'cat_loans',
-                   walletId: initialTransactionWalletId,
-                   date: new Date().toISOString(),
-                   description: loanData.name,
-                   loanId: newLoanId
-               };
-               const newTx: Transaction = { ...tx, id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, createdAt: Date.now() };
-               const updatedWallets = data.wallets.map(w => {
-                   if (w.id === tx.walletId) {
-                        let change = tx.amount;
-                        if (tx.type === TransactionType.EXPENSE) change = -change;
+        if (id) {
+            updatedLoans = updatedLoans.map(l => l.id === id ? { ...l, ...loanData } : l);
+        } else {
+            newLoanId = `loan_${Date.now()}`;
+            updatedLoans.push({ ...loanData, id: newLoanId });
+        }
+
+        if (initialTransactionWalletId && !id && newLoanId) {
+            const disbursementAmount = loanData.principal - loanData.fee;
+            if (disbursementAmount > 0) {
+                const tx: Omit<Transaction, 'id'> = {
+                    amount: disbursementAmount,
+                    type: loanData.type === LoanType.LOAN ? TransactionType.INCOME : TransactionType.EXPENSE,
+                    categoryId: loanData.categoryId,
+                    walletId: initialTransactionWalletId,
+                    date: loanData.startDate, // Use start date for disbursement
+                    description: `Disbursement - ${loanData.name}`,
+                    commitmentId: newLoanId
+                };
+                const newTx: Transaction = { ...tx, id: `tx_${Date.now()}`, createdAt: Date.now() };
+                updatedTransactions = sortTransactions([newTx, ...updatedTransactions]);
+
+                updatedWallets = updatedWallets.map(w => {
+                    if (w.id === tx.walletId) {
+                        const change = tx.type === TransactionType.INCOME ? tx.amount : -tx.amount;
                         return { ...w, balance: w.balance + change };
-                   }
-                   return w;
-               });
-               setData(prev => ({ ...prev, loans: loansList, transactions: sortTransactions([newTx, ...prev.transactions]), wallets: updatedWallets }));
-           }
-      }
+                    }
+                    return w;
+                });
+            }
+        }
+
+        return {
+            ...prev,
+            loans: updatedLoans,
+            transactions: updatedTransactions,
+            wallets: updatedWallets
+        };
+    });
   };
 
-  const handleDeleteLoan = (id: string) => setData(prev => ({ ...prev, loans: prev.loans.filter(l => l.id !== id) }));
+  const handleDeleteLoan = (id: string) => {
+    setData(prev => {
+        // Cascading deletion: remove all transactions linked to this loan
+        const updatedTransactions = prev.transactions.filter(t => t.commitmentId !== id);
+        return {
+            ...prev,
+            loans: prev.loans.filter(l => l.id !== id),
+            transactions: updatedTransactions,
+        };
+    });
+  };
 
   const handlePayBill = (bill: Bill) => {
       const categoryName = bill.type === 'SUBSCRIPTION' ? 'subscription' : 'bill';
@@ -474,18 +498,19 @@ const App: React.FC = () => {
   };
 
   const handlePayLoan = (loan: Loan, amount?: number) => {
-    setSelectedLoanId(loan.id);
-    const paymentAmount = amount || loan.installmentAmount || 0;
-    const isLending = loan.categoryId === 'cat_lending';
-    setPresetTransaction({
-        amount: paymentAmount,
-        type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: `Payment ${isLending ? 'from' : 'to'} ${loan.name}`,
-        categoryId: loan.categoryId,
-        date: new Date().toISOString()
-    });
-    setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
-    handleOpenModal('TX_FORM');
+      setSelectedLoanId(loan.id);
+      const paymentAmount = amount || loan.installmentAmount || 0;
+      const isLending = loan.type === LoanType.LENDING;
+
+      setPresetTransaction({
+          amount: paymentAmount,
+          type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
+          description: `Payment - ${loan.name}`,
+          categoryId: loan.categoryId,
+          date: new Date().toISOString()
+      });
+      setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
+      handleOpenModal('TX_FORM');
   };
 
   const handlePayCC = (wallet: Wallet) => {
@@ -626,6 +651,7 @@ const App: React.FC = () => {
                 currencySymbol={currentCurrency.symbol}
                 bills={data.bills}
                 loans={data.loans}
+                transactions={data.transactions}
                 loanStatusMap={loanStatusMap}
                 categories={data.categories}
                 onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}
