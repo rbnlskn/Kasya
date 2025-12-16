@@ -14,7 +14,7 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 3,
   placeholder,
-  cardHeight = 90, // Default height
+  cardHeight = 120, // Default height
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartX, setTouchStartX] = useState(0);

@@ -372,7 +372,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               paidInstallments={isBillPaid(bill) ? 1 : 0}
             />
           )}
-          cardHeight={185}
+          cardHeight={120}
           placeholder={
             <div className="text-center text-sm text-gray-400 py-6 bg-white rounded-2xl shadow-sm border border-gray-100">
               All caught up for {currentDate.toLocaleDateString('en-US', {month: 'long'})}!
@@ -410,7 +410,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   />
                 )
               }}
-              cardHeight={185}
+              cardHeight={120}
               placeholder={
                 <div className="w-full text-center py-6 bg-white border border-dashed border-gray-300 rounded-3xl text-gray-400 text-xs">
                   No active loans.

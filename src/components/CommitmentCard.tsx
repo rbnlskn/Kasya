@@ -38,12 +38,12 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onEdit}
-      className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0"
+      className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-[120px]"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex items-start">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0 mr-3"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3"
             style={{ backgroundColor: category?.color || '#E5E7EB' }}
           >
             {category?.icon}
@@ -54,25 +54,30 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
         <div className="flex flex-col items-end ml-2">
-          <p className="text-xs text-gray-500 font-medium text-right whitespace-nowrap">
-            <span className="font-bold text-gray-800">{currencySymbol}{formatCurrency(paidAmount)}</span> / {currencySymbol}{formatCurrency(amount)}
+          <p className="font-bold text-gray-800 text-sm text-right whitespace-nowrap">
+            {currencySymbol}{formatCurrency(paidAmount)}
           </p>
-          <button
-            onClick={(e) => { e.stopPropagation(); onPay(); }}
-            className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform mt-2 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
-          >
-            {isLending ? 'Collect' : 'Pay'}
-          </button>
+          <p className="text-xs text-gray-500 font-medium text-right whitespace-nowrap">
+            / {currencySymbol}{formatCurrency(amount)}
+          </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mt-3">
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
-          <div className={`${progressFillColor} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
+      <div className="flex items-center gap-4 mt-2">
+        <div className="flex-grow flex items-center gap-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                <div className={`${progressFillColor} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
+            </div>
+            <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
+                {paidInstallments}/{totalInstallments}
+            </span>
         </div>
-        <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-          {paidInstallments}/{totalInstallments}
-        </span>
+        <button
+          onClick={(e) => { e.stopPropagation(); onPay(); }}
+          className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
+        >
+          {isLending ? 'Collect' : 'Pay'}
+        </button>
       </div>
     </div>
   );
