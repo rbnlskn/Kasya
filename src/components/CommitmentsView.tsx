@@ -428,12 +428,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     {billFilter === 'PENDING' ? (
                         <>
                             {sortedBills.filter(b => !isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">Nothing pending for this month</div>}
-                            {sortedBills.filter(b => !isBillPaid(b)).map(b => renderBillItem(b))}
+                            {sortedBills.filter(b => !isBillPaid(b)).map((b, index) => renderBillItem(b, index === sortedBills.filter(b => !isBillPaid(b)).length - 1))}
                         </>
                     ) : (
                         <>
                             {sortedBills.filter(b => isBillPaid(b)).length === 0 && <div className="text-center text-xs text-gray-400 py-8">No payment history for this month</div>}
-                            {sortedBills.filter(b => isBillPaid(b)).map(b => renderBillItem(b))}
+                            {sortedBills.filter(b => isBillPaid(b)).map((b, index) => renderBillItem(b, index === sortedBills.filter(b => isBillPaid(b)).length - 1))}
                         </>
                     )}
                  </div>
@@ -468,12 +468,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     {loanFilter === 'ACTIVE' ? (
                         <>
                             {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No active loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').map((l, index) => renderLoanItem(l, index === validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length - 1))}
                         </>
                     ) : (
                         <>
                             {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length === 0 && <div className="text-center text-xs text-gray-400 py-8">No settled loans</div>}
-                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map(l => renderLoanItem(l))}
+                            {validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').map((l, index) => renderLoanItem(l, index === validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID').length - 1))}
                         </>
                     )}
                 </div>
