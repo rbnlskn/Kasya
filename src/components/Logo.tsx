@@ -3,6 +3,7 @@ import React from 'react';
 const Logo = ({ size = '4rem' }: { size?: string }) => {
   return (
     <h1
+      data-testid="logo"
       className="kasya-logo"
       style={{
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",

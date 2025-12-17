@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { Loan, Transaction, Wallet, Category } from '../types';
+import { Commitment, Transaction, Wallet, Category } from '../types';
 import TransactionItem from './TransactionItem';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation } from '../utils/math';
@@ -9,12 +9,12 @@ import { calculateTotalObligation } from '../utils/math';
 interface CommitmentDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  commitment: Loan;
+  commitment: Commitment;
   transactions: Transaction[];
   wallets: Wallet[];
   categories: Category[];
   currencySymbol: string;
-  onEdit: () => void;
+  onEdit: (commitment: Commitment) => void;
   isExiting?: boolean;
 }
 
@@ -52,7 +52,7 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button type="button" onClick={onEdit} className="text-sm font-bold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg">Edit</button>
+            <button type="button" onClick={() => onEdit(commitment)} className="text-sm font-bold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg">Edit</button>
             <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>

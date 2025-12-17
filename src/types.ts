@@ -56,7 +56,6 @@ export interface Transaction {
   // Linking to commitments
   billId?: string;
   commitmentId?: string;
-  loanId?: string;
 }
 
 export interface Category {
@@ -66,7 +65,7 @@ export interface Category {
   color: string;
 }
 
-export type RecurrenceFrequency = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type RecurrenceFrequency = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'NO_DUE_DATE';
 export type BillType = 'BILL' | 'SUBSCRIPTION';
 
 export interface Bill {
@@ -82,26 +81,25 @@ export interface Bill {
   endDate?: string; // ISO String
 }
 
-export enum LoanType {
+export enum CommitmentType {
   LOAN = 'LOAN',
   LENDING = 'LENDING',
 }
 
-export interface Loan {
+export interface Commitment {
   id: string;
-  type: LoanType; // To distinguish between borrowing and lending
+  type: CommitmentType; // To distinguish between borrowing and lending
   name: string;
   principal: number;
   interest: number; // Total interest amount, not rate
   fee: number; // One-time fee
-  totalAmount: number;
   categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
   dueDay: number; // 1-31
   recurrence: RecurrenceFrequency;
   icon: string;
   startDate: string; // ISO String
   duration: number; // in units of recurrence, 0 for open-ended
-  installmentAmount?: number;
+  durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS'; // for ONE_TIME custom terms
   lastPaidDate?: string; // ISO String of last payment
 }
 
@@ -111,7 +109,7 @@ export interface AppState {
   transactions: Transaction[];
   categories: Category[];
   bills: Bill[];
-  loans: Loan[];
+  commitments: Commitment[];
   currency: string;
   theme?: ThemeMode;
 }

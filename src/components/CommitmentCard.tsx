@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Bill, Loan, Category, LoanType } from '../types';
+import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { formatCurrency } from '../utils/number';
-import { calculateTotalObligation } from '../utils/math';
+import { calculateTotalObligation, calculateInstallment } from '../utils/math';
 
 interface CommitmentCardProps {
-  item: Bill | Loan;
+  item: Bill | Commitment;
   category?: Category;
   paidAmount: number;
   paymentsMade: number;
@@ -25,14 +25,21 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onPay,
   onViewDetails,
 }) => {
-  const isLoan = 'principal' in item;
+  const isCommitment = 'principal' in item;
 
-  if (isLoan) {
-    const loan = item as Loan;
-    const isLending = loan.type === LoanType.LENDING;
-    const totalBalance = calculateTotalObligation(loan);
-    const progress = totalBalance > 0 ? (paidAmount / totalBalance) * 100 : 0;
-    const durationDisplay = loan.duration === 0 ? '∞' : loan.duration;
+  if (isCommitment) {
+    const commitment = item as Commitment;
+    const isLending = commitment.type === CommitmentType.LENDING;
+    const totalObligation = calculateTotalObligation(commitment);
+    const remainingBalance = totalObligation - paidAmount;
+
+    const installmentAmount = calculateInstallment(commitment);
+    const displayAmount = (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE' || installmentAmount === 0)
+      ? remainingBalance
+      : installmentAmount;
+
+    const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
+    const durationDisplay = commitment.recurrence === 'NO_DUE_DATE' ? '∞' : commitment.duration;
 
     const accentColor = isLending ? 'bg-green-500' : 'bg-blue-500';
     const progressFillColor = paidAmount > 0 ? accentColor : 'bg-gray-300';
@@ -45,16 +52,16 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     {category?.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{loan.name}</h4>
-                    <p className="text-xs text-gray-500 font-medium">{dueDateText.replace(':', '')}</p>
+                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
+                    <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
                 </div>
             </div>
             <div className="flex flex-col items-end ml-2 flex-shrink-0">
                 <p className="font-bold text-gray-800 text-sm text-right whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(paidAmount)}
+                    {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
                 </p>
                 <p className="text-xs text-gray-500 font-medium text-right whitespace-nowrap">
-                    / {currencySymbol}{formatCurrency(totalBalance)}
+                    / {currencySymbol}{formatCurrency(paidAmount)}
                 </p>
             </div>
         </div>
@@ -75,6 +82,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   }
 
+  // Bill section remains unchanged
   const bill = item as Bill;
   return (
     <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex items-center justify-between w-full flex-shrink-0">
@@ -84,7 +92,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             </div>
             <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
-                <p className="text-xs text-gray-500 font-medium">{dueDateText.replace(':', '')}</p>
+                <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
             </div>
         </div>
         <div className="flex flex-col items-end ml-2 flex-shrink-0">

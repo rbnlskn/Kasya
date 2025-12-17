@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
-import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan } from './types';
+import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Commitment } from './types';
 import BudgetRing from './components/BudgetRing';
 import TransactionItem from './components/TransactionItem';
 import WalletCard from './components/WalletCard';
@@ -17,7 +17,7 @@ import BudgetFormModal from './components/BudgetFormModal';
 import SettingsView from './components/SettingsView';
 import CommitmentsView from './components/CommitmentsView';
 import BillFormModal from './components/BillFormModal';
-import LoanFormModal from './components/LoanFormModal';
+import CommitmentFormModal from './components/CommitmentFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
@@ -30,10 +30,12 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { COLORS } from './styles/theme.js';
 import { requestInitialPermissions } from './services/permissionService';
+import { CommitmentType } from './types';
+import { calculateDisbursement, calculateInstallment } from './utils/math';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
-type Modal = 'NONE' | 'TX_FORM' | 'WALLET_FORM' | 'BUDGET_FORM' | 'CATEGORY_MANAGER' | 'BILL_FORM' | 'LOAN_FORM';
+type Modal = 'NONE' | 'TX_FORM' | 'WALLET_FORM' | 'BUDGET_FORM' | 'CATEGORY_MANAGER' | 'BILL_FORM' | 'COMMITMENT_FORM';
 
 const TAB_ORDER: Record<Tab, number> = {
   'HOME': 0,
@@ -64,7 +66,7 @@ const App: React.FC = () => {
   const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [selectedBillId, setSelectedBillId] = useState<string | null>(null);
-  const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<string | null>(null);
 
   const [presetTransaction, setPresetTransaction] = useState<Partial<Transaction> | undefined>(undefined);
   const [transactionModalTitle, setTransactionModalTitle] = useState<string | undefined>(undefined);
@@ -153,7 +155,7 @@ const App: React.FC = () => {
             setSelectedBudgetId(null);
           }
           setSelectedBillId(null);
-          setSelectedLoanId(null);
+          setSelectedCommitmentId(null);
           setPresetTransaction(undefined);
           setTransactionModalTitle(undefined);
       }, 200);
@@ -216,23 +218,6 @@ const App: React.FC = () => {
   const currentCurrency = useMemo(() => {
     return CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
   }, [data.currency]);
-
-  const loanStatusMap = useMemo(() => {
-    const map: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
-    data.loans.forEach(loan => {
-      const payments = data.transactions.filter(t => t.loanId === loan.id);
-      const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
-      const paymentsMade = payments.length;
-      const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-      map[loan.id] = {
-        paidAmount,
-        paymentsMade,
-        status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
-        lastPaidDate: lastPayment?.date,
-      };
-    });
-    return map;
-  }, [data.loans, data.transactions]);
 
   const sortTransactions = (txs: Transaction[]) => {
       return [...txs].sort((a,b) => {
@@ -318,7 +303,7 @@ const App: React.FC = () => {
                 id: `tx_${newTimestamp}_${Math.random().toString(36).substr(2, 9)}`,
                 createdAt: newTimestamp,
                 billId: selectedBillId || undefined,
-                loanId: selectedLoanId || undefined
+                commitmentId: selectedCommitmentId || undefined
             };
 
             let updatedBills = [...prev.bills];
@@ -338,7 +323,7 @@ const App: React.FC = () => {
     setPresetTransaction(undefined);
     setTransactionModalTitle(undefined);
     setSelectedBillId(null);
-    setSelectedLoanId(null);
+    setSelectedCommitmentId(null);
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -422,49 +407,53 @@ const App: React.FC = () => {
   const handleDeleteBill = (id: string) => {
     setData(prev => ({
         ...prev,
-        bills: prev.bills.filter(b => b.id !== id)
+        bills: prev.bills.filter(b => b.id !== id),
+        transactions: prev.transactions.filter(t => t.billId !== id)
     }));
   };
   
-  const handleSaveLoan = (loanData: Omit<Loan, 'id'>, id?: string, initialTransactionWalletId?: string) => {
-      let newLoanId = id;
-      let loansList = [...data.loans];
+  const handleSaveCommitment = (commitmentData: Omit<Commitment, 'id'>, id?: string, initialTransactionWalletId?: string) => {
+      let newCommitmentId = id;
+      let commitmentsList = [...data.commitments];
       if (id) {
-          loansList = loansList.map(l => l.id === id ? { ...l, ...loanData } : l);
+          commitmentsList = commitmentsList.map(l => l.id === id ? { ...l, ...commitmentData } : l);
       } else {
-          newLoanId = `loan_${Date.now()}`;
-          loansList.push({ ...loanData, id: newLoanId });
+          newCommitmentId = `commitment_${Date.now()}`;
+          commitmentsList.push({ ...commitmentData, id: newCommitmentId });
       }
 
-      if (initialTransactionWalletId && !id && newLoanId) {
-           const isPayable = loanData.categoryId === 'cat_loans';
-           const principal = loanData.totalAmount - (loanData.interest || 0);
-           const txAmount = principal - (loanData.fee || 0);
+      setData(prev => ({ ...prev, commitments: commitmentsList }));
+
+      if (initialTransactionWalletId && !id && newCommitmentId) {
+           const txAmount = calculateDisbursement(commitmentData);
+
            if (txAmount > 0) {
+               const isLoan = commitmentData.type === CommitmentType.LOAN;
+               const description = isLoan ? 'Loan Disbursement' : 'Lending Disbursement';
+
                const tx: Omit<Transaction, 'id'> = {
                    amount: txAmount,
-                   type: isPayable ? TransactionType.INCOME : TransactionType.EXPENSE,
-                   categoryId: 'cat_loans',
+                   type: isLoan ? TransactionType.INCOME : TransactionType.EXPENSE,
+                   categoryId: commitmentData.categoryId,
                    walletId: initialTransactionWalletId,
                    date: new Date().toISOString(),
-                   description: loanData.name,
-                   loanId: newLoanId
+                   description: `${description} - ${commitmentData.name}`,
+                   commitmentId: newCommitmentId
                };
-               const newTx: Transaction = { ...tx, id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, createdAt: Date.now() };
-               const updatedWallets = data.wallets.map(w => {
-                   if (w.id === tx.walletId) {
-                        let change = tx.amount;
-                        if (tx.type === TransactionType.EXPENSE) change = -change;
-                        return { ...w, balance: w.balance + change };
-                   }
-                   return w;
-               });
-               setData(prev => ({ ...prev, loans: loansList, transactions: sortTransactions([newTx, ...prev.transactions]), wallets: updatedWallets }));
+
+               // Manually call handleSaveTransaction to add the new disbursement
+               handleSaveTransaction(tx);
            }
       }
   };
 
-  const handleDeleteLoan = (id: string) => setData(prev => ({ ...prev, loans: prev.loans.filter(l => l.id !== id) }));
+  const handleDeleteCommitment = (id: string) => {
+      setData(prev => ({
+          ...prev,
+          commitments: prev.commitments.filter(c => c.id !== id),
+          transactions: prev.transactions.filter(t => t.commitmentId !== id)
+      }));
+  };
 
   const handlePayBill = (bill: Bill) => {
       const categoryName = bill.type === 'SUBSCRIPTION' ? 'subscription' : 'bill';
@@ -475,15 +464,19 @@ const App: React.FC = () => {
       handleOpenModal('TX_FORM');
   };
 
-  const handlePayLoan = (loan: Loan, amount?: number) => {
-    setSelectedLoanId(loan.id);
-    const paymentAmount = amount || loan.installmentAmount || 0;
-    const isLending = loan.categoryId === 'cat_lending';
+  const handlePayCommitment = (commitment: Commitment, amount?: number) => {
+    setSelectedCommitmentId(commitment.id);
+    const installmentAmount = calculateInstallment(commitment);
+    const paymentAmount = amount || installmentAmount;
+
+    const isLending = commitment.type === CommitmentType.LENDING;
+    const description = isLending ? `Lending Payment` : `Loan Payment`;
+
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: `Payment ${isLending ? 'from' : 'to'} ${loan.name}`,
-        categoryId: loan.categoryId,
+        description: `${description} - ${commitment.name}`,
+        categoryId: commitment.categoryId,
         date: new Date().toISOString()
     });
     setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
@@ -503,7 +496,7 @@ const App: React.FC = () => {
   const editingWallet = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
   const editingBudget = useMemo(() => data.budgets.find(b => b.id === selectedBudgetId), [data.budgets, selectedBudgetId]);
   const editingBill = useMemo(() => data.bills.find(b => b.id === selectedBillId), [data.bills, selectedBillId]);
-  const editingLoan = useMemo(() => data.loans.find(l => l.id === selectedLoanId), [data.loans, selectedLoanId]);
+  const editingCommitment = useMemo(() => data.commitments.find(l => l.id === selectedCommitmentId), [data.commitments, selectedCommitmentId]);
   const selectedWalletForDetail = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
 
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
@@ -633,16 +626,15 @@ const App: React.FC = () => {
                 wallets={data.wallets}
                 currencySymbol={currentCurrency.symbol}
                 bills={data.bills}
-                loans={data.loans}
+                commitments={data.commitments}
                 transactions={data.transactions}
-                loanStatusMap={loanStatusMap}
                 categories={data.categories}
                 onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}
                 onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }}
                 onPayBill={handlePayBill}
-                onAddLoan={() => { setSelectedLoanId(null); handleOpenModal('LOAN_FORM'); }}
-                onEditLoan={(l) => { setSelectedLoanId(l.id); handleOpenModal('LOAN_FORM'); }}
-                onPayLoan={handlePayLoan}
+                onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }}
+                onEditCommitment={(c) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }}
+                onPayCommitment={handlePayCommitment}
                 onPayCC={handlePayCC}
                 onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }}
                 onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
@@ -796,13 +788,13 @@ const App: React.FC = () => {
         />
       )}
 
-      {(modal === 'LOAN_FORM' || (modal === 'NONE' && isModalExiting && selectedLoanId !== undefined)) && (
-        <LoanFormModal
-          isOpen={modal === 'LOAN_FORM'}
+      {(modal === 'COMMITMENT_FORM' || (modal === 'NONE' && isModalExiting && selectedCommitmentId !== undefined)) && (
+        <CommitmentFormModal
+          isOpen={modal === 'COMMITMENT_FORM'}
           onClose={handleBack}
-          onSave={handleSaveLoan}
-          onDelete={handleDeleteLoan}
-          initialLoan={editingLoan}
+          onSave={handleSaveCommitment}
+          onDelete={handleDeleteCommitment}
+          initialCommitment={editingCommitment}
           currencySymbol={currentCurrency.symbol}
           wallets={data.wallets}
           categories={data.categories}
