@@ -633,7 +633,7 @@ const App: React.FC = () => {
                 onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }}
                 onPayBill={handlePayBill}
                 onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }}
-                onEditCommitment={(c) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }}
+                onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }}
                 onPayCommitment={handlePayCommitment}
                 onPayCC={handlePayCC}
                 onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }}

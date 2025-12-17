@@ -1,5 +1,5 @@
 
-import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from './types';
+import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme.js';
 
@@ -46,4 +46,4 @@ export const INITIAL_WALLETS: Wallet[] = [
 export const INITIAL_BUDGETS: Budget[] = [];
 export const INITIAL_TRANSACTIONS: Transaction[] = [];
 export const INITIAL_BILLS: Bill[] = [];
-export const INITIAL_LOANS: Loan[] = [];
+export const INITIAL_COMMITMENTS: Commitment[] = [];

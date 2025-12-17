@@ -1,5 +1,6 @@
+
 import { AppState } from '../types';
-import { INITIAL_WALLETS, INITIAL_BUDGETS, INITIAL_TRANSACTIONS, DEFAULT_CATEGORIES, INITIAL_BILLS, INITIAL_LOANS } from '../constants';
+import { INITIAL_WALLETS, INITIAL_BUDGETS, INITIAL_TRANSACTIONS, DEFAULT_CATEGORIES, INITIAL_BILLS, INITIAL_COMMITMENTS } from '../constants';
 import { Preferences } from '@capacitor/preferences';
 
 const STORAGE_KEY = 'moneyfest_lite_v2';
@@ -10,7 +11,7 @@ export const DEFAULT_APP_STATE: AppState = {
     transactions: INITIAL_TRANSACTIONS,
     categories: DEFAULT_CATEGORIES,
     bills: INITIAL_BILLS,
-    loans: INITIAL_LOANS,
+    commitments: INITIAL_COMMITMENTS,
     currency: 'PHP'
 };
 
@@ -39,18 +40,16 @@ const parseAndMigrate = (serializedData: string): AppState => {
         startDate: b.startDate || new Date().toISOString(),
     }));
 
-    // Migration: Loans
-    if (!data.loans) data.loans = INITIAL_LOANS;
-    data.loans = data.loans.map((l: any) => ({
-        ...l,
-        type: l.type || 'PAYABLE',
-        status: l.status || (l.paidAmount >= l.totalAmount ? 'PAID' : 'UNPAID'),
-        dueDay: l.dueDay !== undefined ? l.dueDay : (l.dueDate ? parseInt(l.dueDate.toString()) : 0),
-        totalAmount: l.totalAmount || 0,
-        paidAmount: l.paidAmount || 0,
-        recurrence: l.recurrence || 'ONE_TIME',
-        startDate: l.startDate || new Date().toISOString(),
-    }));
+    // Migration: Loans to Commitments
+    if (data.loans) {
+        data.commitments = data.loans.map((l: any) => ({
+            ...l,
+            type: l.type || 'LOAN', // was PAYABLE
+        }));
+        delete data.loans;
+    }
+    if (!data.commitments) data.commitments = INITIAL_COMMITMENTS;
+
 
     return data;
 };
