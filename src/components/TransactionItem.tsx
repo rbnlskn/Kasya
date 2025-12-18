@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Transaction, Category, TransactionType, Wallet } from '../types';
 import { ArrowRightLeft, DollarSign, CornerRightDown } from 'lucide-react';
@@ -56,13 +55,13 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-  const getMainText = () => {
+  const getSubText = () => {
     if (transaction.description === 'Payment' && isTransfer) return "Payment";
     if (isTransfer) return fee > 0 ? "Transfer with fee" : "Transfer";
     return category?.name || transaction.type;
   };
 
-  const getSubText = () => {
+  const getMainText = () => {
       if (isTransfer && walletMap) {
           const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
           const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';

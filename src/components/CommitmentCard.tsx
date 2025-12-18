@@ -55,17 +55,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                 <p className="font-black text-gray-800 text-2xl text-right whitespace-nowrap">
                     {currencySymbol}{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}
                 </p>
+                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+                </span>
             </div>
         </div>
         <div className="flex items-center gap-4 mt-2">
             <div className="flex-grow flex items-center gap-2">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div className={`${progressFillColor} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
-                </div>
-                <div className="flex flex-col items-end">
-                    <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                        {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
-                    </span>
                 </div>
             </div>
             <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
