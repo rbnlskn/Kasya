@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Commitment Debug</title>
+</head>
+<body>
+  <h1>Commitment Debug</h1>
+  <p>Check the console for output.</p>
+  <script type="module">
+    import { getActiveCommitmentInstance } from './src/utils/commitment.ts';
+    import { INITIAL_COMMITMENTS, INITIAL_TRANSACTIONS } from './src/constants.ts';
+
+    console.log('Running debug script for getActiveCommitmentInstance...');
+
+    const commitment = INITIAL_COMMITMENTS[0];
+    const transactions = INITIAL_TRANSACTIONS;
+
+    if (commitment) {
+      console.log('Testing with commitment:', commitment.name);
+      try {
+        const instance = getActiveCommitmentInstance(commitment, transactions);
+        console.log('Result:', instance);
+      } catch (e) {
+        console.error('Error in getActiveCommitmentInstance:', e);
+      }
+    } else {
+      console.log('No commitment found to test.');
+    }
+  </script>
+</body>
+</html>

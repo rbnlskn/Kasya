@@ -157,7 +157,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const dueDate = isInstance ? item.dueDate : new Date();
     const status = isInstance ? item.status : 'SETTLED';
 
-    const isLending = commitment.categoryId === 'cat_lending';
+    const isLending = commitment.type === CommitmentType.LENDING;
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
@@ -277,8 +277,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans" className="h-[170px]">
             <CommitmentStack
               items={activeCommitmentInstances}
-              renderItem={(instance: CommitmentInstance & { id: string }) => {
-                const { commitment, dueDate, status } = instance;
+              renderItem={(instance) => {
+                const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
                 const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
                 return (
