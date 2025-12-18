@@ -55,13 +55,17 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
+  const isLoanTransaction = transaction.commitmentId && (transaction.description?.includes('Disbursement') || transaction.description?.includes('Payment'));
+
   const getMainText = () => {
+    if (isLoanTransaction) return transaction.description;
     if (transaction.description === 'Payment' && isTransfer) return "Payment";
     if (isTransfer) return fee > 0 ? "Transfer with fee" : "Transfer";
     return category?.name || transaction.type;
   };
 
   const getSubText = () => {
+      if (isLoanTransaction) return transaction.description;
       if (isTransfer && walletMap) {
           const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
           const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
