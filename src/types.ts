@@ -1,5 +1,4 @@
 
-
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
@@ -24,7 +23,6 @@ export interface Wallet {
   color: string;
   textColor: string;
   currency: string;
-  // Credit Card specific
   creditLimit?: number;
   statementDay?: number;
 }
@@ -53,7 +51,6 @@ export interface Transaction {
   date: string; // ISO String
   createdAt?: number; // Timestamp for sorting same-date transactions
   description?: string;
-  // Linking to commitments
   billId?: string;
   commitmentId?: string;
 }
@@ -88,19 +85,18 @@ export enum CommitmentType {
 
 export interface Commitment {
   id: string;
-  type: CommitmentType; // To distinguish between borrowing and lending
+  type: CommitmentType;
   name: string;
   principal: number;
-  interest: number; // Total interest amount, not rate
-  fee: number; // One-time fee
-  categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
-  dueDay: number; // 1-31
+  interest: number;
+  fee: number;
+  categoryId: string;
+  dueDay: number;
   recurrence: RecurrenceFrequency;
   icon: string;
-  startDate: string; // ISO String
-  duration: number; // in units of recurrence, 0 for open-ended
-  durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS'; // for ONE_TIME custom terms
-  lastPaidDate?: string; // ISO String of last payment
+  startDate: string;
+  duration: number;
+  durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS';
 }
 
 export interface AppState {

@@ -44,10 +44,6 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     }
 
     const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
-    const durationDisplay = commitment.recurrence === 'NO_DUE_DATE' ? '∞' : commitment.duration;
-
-    const accentColor = isLending ? 'bg-green-500' : 'bg-blue-500';
-    const progressFillColor = paidAmount > 0 ? accentColor : 'bg-gray-300';
 
     return (
       <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-full">
@@ -73,8 +69,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <div className="flex items-center gap-4 mt-2">
             <div className="flex-grow flex items-center gap-2">
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className={`${progressFillColor} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
+                    <div className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
                 </div>
+                <span className="text-xs font-bold text-gray-400">{paymentsMade}/{commitment.duration || '∞'}</span>
             </div>
             <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                 {isLending ? 'Collect' : 'Pay'}

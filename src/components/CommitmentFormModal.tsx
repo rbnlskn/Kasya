@@ -27,7 +27,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
     const [dueDay, setDueDay] = useState<number | ''>('');
     const [duration, setDuration] = useState('');
     const [type, setType] = useState<CommitmentType>(CommitmentType.LOAN);
-    const [createTransaction, setCreateTransaction] = useState(false);
+    const [recordDisbursement, setRecordDisbursement] = useState(false);
     const [selectedWalletId, setSelectedWalletId] = useState('');
     const [durationUnit, setDurationUnit] = useState<'WEEKS' | 'MONTHS' | 'YEARS'>('MONTHS');
 
@@ -44,7 +44,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
         setDueDay(new Date().getDate());
         setDuration('');
         setType(CommitmentType.LOAN);
-        setCreateTransaction(false);
+        setRecordDisbursement(false);
         setSelectedWalletId('');
         setDurationUnit('MONTHS');
     };
@@ -62,8 +62,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                 setDuration(initialCommitment.duration.toString());
                 setType(initialCommitment.type);
                 setDurationUnit(initialCommitment.durationUnit || 'MONTHS');
-                // Reset transaction-related fields for edits
-                setCreateTransaction(false);
+                setRecordDisbursement(false);
                 setSelectedWalletId('');
             } else {
                 resetForm();
@@ -71,7 +70,6 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
         }
     }, [initialCommitment, isOpen]);
 
-    // Due Day Automation
     useEffect(() => {
         if (!initialCommitment) {
             setDueDay(startDate.getDate());
@@ -83,18 +81,16 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || principalInput.rawValue <= 0 || !occurrence) return;
+        if (recordDisbursement && !selectedWalletId) return;
 
-        const principal = principalInput.rawValue;
-        const interest = interestInput.rawValue || 0;
-        const fee = feeInput.rawValue || 0;
         const totalDuration = parseInt(duration, 10) || 0;
 
         onSave({
             type: type,
             name,
-            principal,
-            interest,
-            fee,
+            principal: principalInput.rawValue,
+            interest: interestInput.rawValue || 0,
+            fee: feeInput.rawValue || 0,
             categoryId: type === CommitmentType.LOAN ? 'cat_loans' : 'cat_lending',
             dueDay: occurrence === 'NO_DUE_DATE' ? 0 : (Number(dueDay) || 0),
             recurrence: occurrence,
@@ -102,7 +98,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
             startDate: startDate.toISOString(),
             duration: occurrence === 'NO_DUE_DATE' ? 0 : totalDuration,
             durationUnit: occurrence === 'ONE_TIME' ? durationUnit : undefined,
-        }, initialCommitment?.id, createTransaction ? selectedWalletId : undefined);
+        }, initialCommitment?.id, recordDisbursement ? selectedWalletId : undefined);
 
         onClose();
     };
@@ -114,8 +110,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
         }
     };
 
-    const disbursementAmount = (principalInput.rawValue || 0) - (feeInput.rawValue || 0);
-    const showDurationFields = occurrence !== 'NO_DUE_DATE';
+    const isNoDueDay = occurrence === 'NO_DUE_DATE';
 
     return (
         <>
@@ -189,7 +184,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                             </div>
                         </div>
 
-                        {showDurationFields && (
+                        {!isNoDueDay && (
                             <div className="flex space-x-2">
                                 <div className="flex-1">
                                     <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day *</label>
@@ -217,9 +212,9 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                             <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record Disbursement</label>
-                                    <input id="record-tx-checkbox" type="checkbox" checked={createTransaction} onChange={(e) => setCreateTransaction(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                                    <input id="record-tx-checkbox" type="checkbox" checked={recordDisbursement} onChange={(e) => setRecordDisbursement(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
                                 </div>
-                                {createTransaction && (
+                                {recordDisbursement && (
                                     <div className="mt-3">
                                         <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">Into Wallet</label>
                                         <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
@@ -228,9 +223,6 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                             </span>
                                             <ChevronDown className="w-4 h-4 text-text-secondary" />
                                         </button>
-                                        <p className="text-xs text-primary/60 mt-1.5 leading-tight">
-                                            Creates an <span className="font-bold">{type === CommitmentType.LOAN ? 'Income' : 'Expense'}</span> of <span className="font-bold">{currencySymbol}{disbursementAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span> (Principal - Fee).
-                                        </p>
                                     </div>
                                 )}
                             </div>

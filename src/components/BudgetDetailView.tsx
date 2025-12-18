@@ -1,5 +1,4 @@
 
-
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
 import { Budget, Transaction, Category, Wallet, Commitment } from '../types';
@@ -10,18 +9,18 @@ interface BudgetDetailViewProps {
   transactions: Transaction[];
   categories: Category[];
   wallets: Wallet[];
+  commitments: Commitment[];
   onBack: () => void;
   onEdit: () => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
   isExiting: boolean;
   spending: number;
-  commitments: Commitment[];
 }
 
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transactions, categories, wallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, spending, commitments }) => {
+const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transactions, categories, wallets, commitments, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, spending }) => {
   const rangeType = budget.period === 'DAILY' ? 'DAILY' : budget.period === 'WEEKLY' ? 'WEEKLY' : 'MONTHLY';
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -73,6 +72,7 @@ const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transaction
   }, [filteredTransactions]);
 
   const walletMap = useMemo(() => wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [wallets]);
+  const commitmentMap = useMemo(() => commitments.reduce((acc, c) => ({...acc, [c.id]: c}), {} as Record<string, Commitment>), [commitments]);
   const category = categories.find(c => c.id === budget.categoryId);
   const remaining = budget.limit - spending;
   const percent = Math.min(100, Math.max(0, (spending / budget.limit) * 100));
@@ -130,20 +130,7 @@ const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transaction
               <div key={date}>
                 <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
                 <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => {
-                        const commitmentName = t.commitmentId ? commitments.find(c => c.id === t.commitmentId)?.name : undefined;
-                        return (
-                          <TransactionItem
-                            key={t.id}
-                            transaction={t}
-                            category={categories.find(c => c.id === t.categoryId)}
-                            onClick={onTransactionClick}
-                            walletMap={walletMap}
-                            currencySymbol={currencySymbol}
-                            commitmentName={commitmentName}
-                          />
-                        );
-                     })}
+                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
                 </div>
               </div>
             ))

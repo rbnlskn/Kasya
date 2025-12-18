@@ -64,10 +64,9 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
                 key={tx.id}
                 transaction={tx}
                 category={categories.find(c => c.id === tx.categoryId)}
+                commitment={commitment}
                 walletMap={walletMap}
                 currencySymbol={currencySymbol}
-                onClick={() => {}} // No action on click for now
-                commitmentName={commitment.name}
               />
             ))
           ) : (

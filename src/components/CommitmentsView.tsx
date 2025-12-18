@@ -139,13 +139,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const activeCommitmentInstances = useMemo(() => commitments
     .map(c => getActiveCommitmentInstance(c, transactions))
     .filter((c): c is NonNullable<typeof c> => c !== null)
+    .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
     .map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` })),
     [commitments, transactions]
   );
 
   const renderCommitmentItem = (instance: CommitmentInstance & { id: string }) => {
     const { commitment, dueDate, status } = instance;
-    const isPaid = status === 'PAID';
     const isLending = commitment.categoryId === 'cat_lending';
     const category = categories.find(c => c.id === commitment.categoryId);
 
@@ -154,30 +154,27 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: isPaid ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+            style={{ backgroundColor: category?.color || '#E5E7EB' }}
           >
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${isPaid ? 'line-through' : ''}`}>{commitment.name}</h4>
+            <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{commitment.name}</h4>
             <p className="text-xs text-gray-400">{generateDueDateText(dueDate, status)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${isPaid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
-            {!isPaid && (
+            <span className="block font-bold text-sm text-gray-800">{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
               <button
                 onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
                 className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
               >
                 {isLending ? 'Collect' : 'Pay'}
               </button>
-            )}
           </div>
         </div>
       </div>
     );
   }
-
 
   return (
     <>
@@ -237,7 +234,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         />
         <div data-testid="commitment-stack-bills" className="h-[120px]">
           <CommitmentStack
-            key={`bills_${transactions.length}`}
             items={upcomingBills}
             renderItem={(bill) => (
               <CommitmentCard
@@ -265,9 +261,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
         <div data-testid="commitment-stack-loans" className="h-[170px]">
-          {useMemo(() => (
             <CommitmentStack
-              key={`commitments_${transactions.length}`}
               items={activeCommitmentInstances}
               renderItem={(instance: CommitmentInstance & { id: string }) => {
                 const { commitment, dueDate, status } = instance;
@@ -292,7 +286,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
               }
             />
-          ), [transactions, activeCommitmentInstances])}
         </div>
       </section>
     </div>
@@ -417,13 +410,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
                 {commitmentFilter === 'ACTIVE' ? (
                     <CommitmentList
-                        items={activeCommitmentInstances.filter(c => c.status !== 'PAID')}
+                        items={activeCommitmentInstances}
                         renderItem={renderCommitmentItem}
                         placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active commitments</div>}
                     />
                 ) : (
                     <CommitmentList
-                        items={activeCommitmentInstances.filter(c => c.status === 'PAID')}
+                        items={[]}
                         renderItem={renderCommitmentItem}
                         placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled commitments</div>}
                     />

@@ -10,18 +10,18 @@ interface WalletDetailViewProps {
   transactions: Transaction[];
   categories: Category[];
   allWallets: Wallet[];
+  commitments: Commitment[];
   onBack: () => void;
   onEdit: () => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
   isExiting: boolean;
-  commitments: Commitment[];
 }
 
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, commitments }) => {
+const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, commitments, onBack, onEdit, onTransactionClick, currencySymbol, isExiting }) => {
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -39,9 +39,6 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
   const { filteredTransactions, dateLabel } = useMemo(() => {
     let filtered = filter === 'ALL' ? transactions : transactions.filter(t => t.type === filter);
     
-    // Sort logic handled in parent, but safe to ensure descending
-    filtered.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
     if (rangeType === 'ALL_TIME') return { filteredTransactions: filtered, dateLabel: 'All Time' };
     
     let start = new Date(currentDate);
@@ -81,6 +78,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
   }, [filteredTransactions]);
 
   const walletMap = useMemo(() => allWallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [allWallets]);
+  const commitmentMap = useMemo(() => commitments.reduce((acc, c) => ({...acc, [c.id]: c}), {} as Record<string, Commitment>), [commitments]);
 
   return (
     <div className={`fixed inset-0 bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
@@ -127,21 +125,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
               <div key={date}>
                 <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
                 <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => {
-                       const commitmentName = t.commitmentId ? commitments.find(c => c.id === t.commitmentId)?.name : undefined;
-                       return (
-                         <TransactionItem
-                           key={t.id}
-                           transaction={t}
-                           category={categories.find(c => c.id === t.categoryId)}
-                           onClick={onTransactionClick}
-                           currentWalletId={wallet.id}
-                           walletMap={walletMap}
-                           currencySymbol={currencySymbol}
-                           commitmentName={commitmentName}
-                         />
-                       );
-                     })}
+                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
                 </div>
               </div>
             ))

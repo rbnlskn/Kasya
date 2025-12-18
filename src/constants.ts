@@ -1,7 +1,6 @@
 
 import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
-import { COLORS } from './styles/theme.js';
 
 export const APP_VERSION = '1.0.0';
 export const CHANGELOG = [
@@ -12,16 +11,15 @@ export const CURRENCY_SYMBOL = '₱';
 
 export const WALLET_COLORS = WALLET_TEMPLATES;
 
-// New Palette based on Settings Icons
 export const CATEGORY_COLORS = [
-  '#DBEAFE', // Blue (Settings Base)
-  '#D1FAE5', // Green (Currency Base)
-  '#F3F4F6', // Gray (About Base)
-  '#F3E8FF', // Purple (Import Base)
-  '#FEE2E2', // Red (Reset Base)
-  '#FEF3C7', // Amber/Yellow
-  '#FFEDD5', // Orange
-  '#FCE7F3', // Pink
+  '#DBEAFE',
+  '#D1FAE5',
+  '#F3F4F6',
+  '#F3E8FF',
+  '#FEE2E2',
+  '#FEF3C7',
+  '#FFEDD5',
+  '#FCE7F3',
 ];
 
 export const DEFAULT_CATEGORIES: Category[] = [

@@ -8,7 +8,6 @@ export interface CommitmentInstance {
   commitment: Commitment;
   dueDate: Date;
   status: CommitmentInstanceStatus;
-  isPaid: boolean;
 }
 
 const addInterval = (date: Date, recurrence: RecurrenceFrequency, duration: number = 1): Date => {
@@ -27,52 +26,28 @@ const addInterval = (date: Date, recurrence: RecurrenceFrequency, duration: numb
     return newDate;
 };
 
-const addDuration = (date: Date, unit: 'WEEKS' | 'MONTHS' | 'YEARS' = 'MONTHS', duration: number): Date => {
-    const newDate = new Date(date);
-    switch (unit) {
-        case 'WEEKS':
-            newDate.setDate(newDate.getDate() + duration * 7);
-            break;
-        case 'MONTHS':
-            newDate.setMonth(newDate.getMonth() + duration);
-            break;
-        case 'YEARS':
-            newDate.setFullYear(newDate.getFullYear() + duration);
-            break;
-    }
-    return newDate;
-};
-
-
-const getPaymentStatusForDate = (commitment: Commitment, date: Date, transactions: Transaction[]): boolean => {
-    const startDate = new Date(commitment.startDate);
-    let periodStart: Date, periodEnd: Date;
+const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transactions: Transaction[]): boolean => {
+    const periodStart = new Date(dueDate);
 
     switch (commitment.recurrence) {
         case 'WEEKLY':
-            periodStart = new Date(date);
-            periodStart.setDate(date.getDate() - 6);
-            periodEnd = date;
+            periodStart.setDate(dueDate.getDate() - 6);
             break;
         case 'MONTHLY':
-            periodStart = new Date(date.getFullYear(), date.getMonth(), commitment.dueDay - 1);
-            periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, commitment.dueDay -1);
+            periodStart.setMonth(dueDate.getMonth() - 1);
             break;
         case 'YEARLY':
-             periodStart = new Date(date.getFullYear(), date.getMonth(), commitment.dueDay - 1);
-            periodEnd = new Date(date.getFullYear()+1, date.getMonth(), commitment.dueDay -1);
+            periodStart.setFullYear(dueDate.getFullYear() - 1);
             break;
         default:
-            periodStart = startDate;
-            periodEnd = new Date('2999-12-31'); // Far future date for one-time/no-due-date
-            break;
+             return calculateTotalPaid(commitment.id, transactions) > 0;
     }
 
     return transactions.some(t =>
         t.commitmentId === commitment.id &&
-        t.description?.endsWith('Payment') &&
+        (t.description === 'Loan Payment' || t.description === 'Lending Payment') &&
         new Date(t.date) >= periodStart &&
-        new Date(t.date) < periodEnd
+        new Date(t.date) < dueDate
     );
 };
 
@@ -91,46 +66,39 @@ export const getActiveCommitmentInstance = (
     today.setHours(0, 0, 0, 0);
 
     if (commitment.recurrence === 'ONE_TIME') {
-        const dueDate = addDuration(new Date(commitment.startDate), commitment.durationUnit, commitment.duration);
+        const dueDate = addInterval(new Date(commitment.startDate), 'MONTHLY', commitment.duration);
         const isPaid = getPaymentStatusForDate(commitment, dueDate, transactions);
         if (isPaid) return null;
 
-        const status = dueDate < today ? 'OVERDUE' : (dueDate.getTime() === today.getTime() ? 'DUE' : 'UPCOMING');
-        return { commitment, dueDate: dueDate, status, isPaid: false };
+        const status = dueDate < today ? 'OVERDUE' : 'UPCOMING';
+        return { commitment, dueDate, status };
     }
 
     if(commitment.recurrence === 'NO_DUE_DATE'){
-        return { commitment, dueDate: new Date(), status: 'DUE', isPaid: false };
+        return { commitment, dueDate: new Date(), status: 'DUE' };
     }
 
-    let nextDueDate = new Date(commitment.startDate);
-    nextDueDate.setDate(commitment.dueDay);
+    let installmentDate = new Date(commitment.startDate);
+
+    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
+        installmentDate.setDate(commitment.dueDay);
+    }
 
     let i = 0;
-    while(i < 1000){ // Circuit breaker
-        if (nextDueDate > today) { // We are in the future
-            const isPaid = getPaymentStatusForDate(commitment, nextDueDate, transactions);
-            if (!isPaid) {
-                 // This is the first unpaid future installment.
-                 return { commitment, dueDate: nextDueDate, status: 'UPCOMING', isPaid: false };
-            }
-        } else { // We are in the past or present
-            const isPaid = getPaymentStatusForDate(commitment, nextDueDate, transactions);
-            if (!isPaid) {
-                const status = nextDueDate < today ? 'OVERDUE' : 'DUE';
-                return { commitment, dueDate: nextDueDate, status, isPaid: false };
-            }
-        }
-
-        // If we are here, the installment at nextDueDate is paid. Move to the next one.
-        nextDueDate = addInterval(nextDueDate, commitment.recurrence);
+    while(getPaymentStatusForDate(commitment, installmentDate, transactions) && i < 1000) {
+        installmentDate = addInterval(installmentDate, commitment.recurrence);
         i++;
     }
 
-    return null;
+    let status: CommitmentInstanceStatus = 'UPCOMING';
+    if (installmentDate <= today) {
+        status = installmentDate < today ? 'OVERDUE' : 'DUE';
+    }
+
+    return { commitment, dueDate: installmentDate, status };
 };
 
-export const generateDueDateText = (dueDate: Date, status: 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID'): string => {
+export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus): string => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const date = new Date(dueDate);
@@ -147,7 +115,12 @@ export const generateDueDateText = (dueDate: Date, status: 'DUE' | 'UPCOMING' | 
     if (diffDays === 0) return `Due Today • ${specificDate}`;
     if (diffDays === 1) return `Due Tomorrow • ${specificDate}`;
     if (diffDays > 1 && diffDays <= 7) return `Due in ${diffDays} days • ${specificDate}`;
-    if (diffDays > 7) return `Due in ${Math.floor(diffDays / 7)} weeks • ${specificDate}`;
+
+    const diffWeeks = Math.floor(diffDays / 7);
+    const diffMonths = Math.floor(diffDays / 30);
+
+    if (diffMonths > 0) return `Due in ${diffMonths} month${diffMonths > 1 ? 's' : ''} • ${specificDate}`;
+    if (diffWeeks > 0) return `Due in ${diffWeeks} week${diffWeeks > 1 ? 's' : ''} • ${specificDate}`;
 
     return `Upcoming • ${specificDate}`;
 };
