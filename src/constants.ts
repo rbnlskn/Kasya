@@ -52,7 +52,7 @@ export const INITIAL_COMMITMENTS: Commitment[] = [
     interest: 200,
     fee: 50,
     categoryId: 'cat_loans',
-    recurrence: RecurrenceFrequency.ONE_TIME,
+    recurrence: 'ONE_TIME',
     dueDay: 0,
     startDate: new Date().toISOString(),
     duration: 1,
