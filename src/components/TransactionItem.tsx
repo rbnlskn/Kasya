@@ -11,9 +11,10 @@ interface TransactionItemProps {
   walletMap?: Record<string, Wallet>;
   dateHeader?: string;
   currencySymbol: string;
+  commitmentName?: string;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, onClick, currentWalletId, walletMap, dateHeader, currencySymbol }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, onClick, currentWalletId, walletMap, dateHeader, currencySymbol, commitmentName }) => {
   const isTransfer = transaction.type === TransactionType.TRANSFER;
   let displayAmount = transaction.amount;
   let isPositive = transaction.type === TransactionType.INCOME;
@@ -65,7 +66,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const getSubText = () => {
-      if (isLoanTransaction) return transaction.description;
+      if (isLoanTransaction) return commitmentName || transaction.description;
       if (isTransfer && walletMap) {
           const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
           const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';

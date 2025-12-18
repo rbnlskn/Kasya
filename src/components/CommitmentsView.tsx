@@ -265,30 +265,34 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
         <div data-testid="commitment-stack-loans" className="h-[170px]">
-          <CommitmentStack
-            key={`commitments_${transactions.length}`}
-            items={activeCommitmentInstances}
-            renderItem={(instance: CommitmentInstance & { id: string }) => {
-              const { commitment, dueDate, status } = instance;
-              const paidAmount = calculateTotalPaid(commitment.id, transactions);
-              const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
-              return (
-                <CommitmentCard
-                  item={commitment}
-                  category={categories.find(c => c.id === commitment.categoryId)}
-                  paidAmount={paidAmount}
-                  paymentsMade={paymentsMade}
-                  dueDateText={generateDueDateText(dueDate, status)}
-                  currencySymbol={currencySymbol}
-                  onPay={() => onPayCommitment(commitment)}
-                  onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
-                />
-              )
-            }}
-            placeholder={
-              <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
-            }
-          />
+          {useMemo(() => (
+            <CommitmentStack
+              key={`commitments_${transactions.length}`}
+              items={activeCommitmentInstances}
+              renderItem={(instance: CommitmentInstance & { id: string }) => {
+                const { commitment, dueDate, status } = instance;
+                const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                return (
+                  <CommitmentCard
+                    key={instance.id}
+                    item={commitment}
+                    category={categories.find(c => c.id === commitment.categoryId)}
+                    paidAmount={paidAmount}
+                    paymentsMade={paymentsMade}
+                    dueDateText={generateDueDateText(dueDate, status)}
+                    currencySymbol={currencySymbol}
+                    onPay={() => onPayCommitment(commitment)}
+                    onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                    instanceStatus={status}
+                  />
+                )
+              }}
+              placeholder={
+                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
+              }
+            />
+          ), [transactions, activeCommitmentInstances])}
         </div>
       </section>
     </div>

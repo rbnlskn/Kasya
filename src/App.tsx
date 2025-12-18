@@ -475,7 +475,7 @@ const App: React.FC = () => {
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: commitment.name,
+        description: title,
         categoryId: commitment.categoryId,
         date: new Date().toISOString()
     });
@@ -677,6 +677,7 @@ const App: React.FC = () => {
              onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }}
              currencySymbol={currentCurrency.symbol}
              isExiting={isOverlayExiting}
+             commitments={data.commitments}
           />
       )}
 
@@ -692,6 +693,7 @@ const App: React.FC = () => {
              currencySymbol={currentCurrency.symbol}
              isExiting={isOverlayExiting}
              spending={spendingMap[editingBudget.id] || 0}
+             commitments={data.commitments}
           />
       )}
 
@@ -704,6 +706,7 @@ const App: React.FC = () => {
             onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }}
             currencySymbol={currentCurrency.symbol}
             isExiting={isOverlayExiting}
+            commitments={data.commitments}
           />
       )}
 

@@ -106,19 +106,21 @@ export const getActiveCommitmentInstance = (
 
     let i = 0;
     while(i < 1000){ // Circuit breaker
-        const isPaid = getPaymentStatusForDate(commitment, nextDueDate, transactions);
-        if (!isPaid) {
-            const status = nextDueDate < today ? 'OVERDUE' : 'DUE';
-            return { commitment, dueDate: nextDueDate, status, isPaid: false };
+        if (nextDueDate > today) { // We are in the future
+            const isPaid = getPaymentStatusForDate(commitment, nextDueDate, transactions);
+            if (!isPaid) {
+                 // This is the first unpaid future installment.
+                 return { commitment, dueDate: nextDueDate, status: 'UPCOMING', isPaid: false };
+            }
+        } else { // We are in the past or present
+            const isPaid = getPaymentStatusForDate(commitment, nextDueDate, transactions);
+            if (!isPaid) {
+                const status = nextDueDate < today ? 'OVERDUE' : 'DUE';
+                return { commitment, dueDate: nextDueDate, status, isPaid: false };
+            }
         }
 
-        // N+1 Logic: If current is paid, show the next one
-        const nextInstanceDate = addInterval(nextDueDate, commitment.recurrence);
-        const isNextPaid = getPaymentStatusForDate(commitment, nextInstanceDate, transactions);
-        if(!isNextPaid){
-             return { commitment, dueDate: nextInstanceDate, status: 'UPCOMING', isPaid: true };
-        }
-
+        // If we are here, the installment at nextDueDate is paid. Move to the next one.
         nextDueDate = addInterval(nextDueDate, commitment.recurrence);
         i++;
     }

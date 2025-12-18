@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
-import { Wallet, Transaction, Category } from '../types';
+import { Wallet, Transaction, Category, Commitment } from '../types';
 import TransactionItem from './TransactionItem';
 import WalletCard from './WalletCard';
 
@@ -15,12 +15,13 @@ interface WalletDetailViewProps {
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
   isExiting: boolean;
+  commitments: Commitment[];
 }
 
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting }) => {
+const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transactions, categories, allWallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, commitments }) => {
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -126,7 +127,21 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
               <div key={date}>
                 <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
                 <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} currentWalletId={wallet.id} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                     {(txs as Transaction[]).map(t => {
+                       const commitmentName = t.commitmentId ? commitments.find(c => c.id === t.commitmentId)?.name : undefined;
+                       return (
+                         <TransactionItem
+                           key={t.id}
+                           transaction={t}
+                           category={categories.find(c => c.id === t.categoryId)}
+                           onClick={onTransactionClick}
+                           currentWalletId={wallet.id}
+                           walletMap={walletMap}
+                           currencySymbol={currencySymbol}
+                           commitmentName={commitmentName}
+                         />
+                       );
+                     })}
                 </div>
               </div>
             ))

@@ -67,6 +67,7 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
                 walletMap={walletMap}
                 currencySymbol={currencySymbol}
                 onClick={() => {}} // No action on click for now
+                commitmentName={commitment.name}
               />
             ))
           ) : (

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, Edit2, ArrowDownUp, ArrowDown, ArrowUp, Calendar, ChevronRight } from 'lucide-react';
-import { Budget, Transaction, Category, Wallet } from '../types';
+import { Budget, Transaction, Category, Wallet, Commitment } from '../types';
 import TransactionItem from './TransactionItem';
 
 interface BudgetDetailViewProps {
@@ -16,11 +16,12 @@ interface BudgetDetailViewProps {
   currencySymbol: string;
   isExiting: boolean;
   spending: number;
+  commitments: Commitment[];
 }
 
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transactions, categories, wallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, spending }) => {
+const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transactions, categories, wallets, onBack, onEdit, onTransactionClick, currencySymbol, isExiting, spending, commitments }) => {
   const rangeType = budget.period === 'DAILY' ? 'DAILY' : budget.period === 'WEEKLY' ? 'WEEKLY' : 'MONTHLY';
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -129,7 +130,20 @@ const BudgetDetailView: React.FC<BudgetDetailViewProps> = ({ budget, transaction
               <div key={date}>
                 <h4 className="text-gray-500 font-bold text-xs uppercase tracking-wider my-2 px-2">{date}</h4>
                 <div className="bg-white rounded-2xl shadow-sm p-2 mb-2">
-                     {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                     {(txs as Transaction[]).map(t => {
+                        const commitmentName = t.commitmentId ? commitments.find(c => c.id === t.commitmentId)?.name : undefined;
+                        return (
+                          <TransactionItem
+                            key={t.id}
+                            transaction={t}
+                            category={categories.find(c => c.id === t.categoryId)}
+                            onClick={onTransactionClick}
+                            walletMap={walletMap}
+                            currencySymbol={currencySymbol}
+                            commitmentName={commitmentName}
+                          />
+                        );
+                     })}
                 </div>
               </div>
             ))

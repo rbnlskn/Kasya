@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface CommitmentStackProps<T extends { id: string }> {
   items: T[];
@@ -16,6 +16,10 @@ export const CommitmentStack = <T extends { id: string }>({
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [items]);
 
   const displayItems = items.slice(0, maxVisible);
   const stackItems = [...displayItems, { id: 'placeholder', isPlaceholder: true }];

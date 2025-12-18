@@ -3,6 +3,7 @@ import React from 'react';
 import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
+import { CommitmentInstanceStatus } from '../utils/commitment';
 
 interface CommitmentCardProps {
   item: Bill | Commitment;
@@ -13,6 +14,7 @@ interface CommitmentCardProps {
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
+  instanceStatus?: CommitmentInstanceStatus;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -24,6 +26,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   currencySymbol,
   onPay,
   onViewDetails,
+  instanceStatus,
 }) => {
   const isCommitment = 'principal' in item;
 
@@ -31,7 +34,14 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     const commitment = item as Commitment;
     const isLending = commitment.type === CommitmentType.LENDING;
     const totalObligation = calculateTotalObligation(commitment);
-    const remainingBalance = totalObligation - paidAmount;
+
+    const installmentAmount = calculateInstallment(commitment);
+    let displayAmount = 0;
+    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
+        displayAmount = totalObligation - paidAmount;
+    } else {
+        displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
+    }
 
     const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
     const durationDisplay = commitment.recurrence === 'NO_DUE_DATE' ? '∞' : commitment.duration;
@@ -53,10 +63,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             </div>
             <div className="flex flex-col items-end ml-2 flex-shrink-0">
                 <p className="font-black text-gray-800 text-2xl text-right whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}
+                    {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
                 </p>
                 <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+                    Paid: {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
                 </span>
             </div>
         </div>
