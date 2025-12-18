@@ -74,8 +74,9 @@ export const getActiveCommitmentInstance = (
         return { commitment, dueDate, status };
     }
 
-    if(commitment.recurrence === 'NO_DUE_DATE'){
-        return { commitment, dueDate: new Date(), status: 'DUE' };
+    if (commitment.recurrence === 'NO_DUE_DATE') {
+        if (totalPaid >= totalObligation) return null;
+        return { commitment, dueDate: new Date(), status: 'UPCOMING' };
     }
 
     let installmentDate = new Date(commitment.startDate);
@@ -99,28 +100,9 @@ export const getActiveCommitmentInstance = (
 };
 
 export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus): string => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(dueDate);
-    date.setHours(0, 0, 0, 0);
-
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-
-    if (status === 'OVERDUE') {
-        const daysOverdue = Math.abs(diffDays);
-        return `Overdue by ${daysOverdue} day${daysOverdue > 1 ? 's' : ''} • ${specificDate}`;
-    }
-    if (diffDays === 0) return `Due Today • ${specificDate}`;
-    if (diffDays === 1) return `Due Tomorrow • ${specificDate}`;
-    if (diffDays > 1 && diffDays <= 7) return `Due in ${diffDays} days • ${specificDate}`;
-
-    const diffWeeks = Math.floor(diffDays / 7);
-    const diffMonths = Math.floor(diffDays / 30);
-
-    if (diffMonths > 0) return `Due in ${diffMonths} month${diffMonths > 1 ? 's' : ''} • ${specificDate}`;
-    if (diffWeeks > 0) return `Due in ${diffWeeks} week${diffWeeks > 1 ? 's' : ''} • ${specificDate}`;
-
-    return `Upcoming • ${specificDate}`;
+    const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    if (status === 'OVERDUE') return `Overdue • ${specificDate}`;
+    if (status === 'DUE') return `Due Today • ${specificDate}`;
+    if (status === 'UPCOMING') return `Due ${specificDate}`;
+    return specificDate;
 };

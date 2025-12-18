@@ -53,27 +53,29 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     {category?.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
                     <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
                 </div>
             </div>
             <div className="flex flex-col items-end ml-2 flex-shrink-0">
-                <p className="font-black text-gray-800 text-2xl text-right whitespace-nowrap">
+                <p className="font-bold text-gray-800 text-md text-right whitespace-nowrap">
                     {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
                 </p>
-                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                    Paid: {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+                <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
                 </span>
             </div>
         </div>
-        <div className="flex items-center gap-4 mt-2">
-            <div className="flex-grow flex items-center gap-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
-                </div>
-                <span className="text-xs font-bold text-gray-400">{paymentsMade}/{commitment.duration || '∞'}</span>
+        <div className="flex items-center gap-3 mt-2">
+            <div className="flex-grow">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
+              </div>
+              <div className="flex justify-between mt-1">
+                 <span className="text-xs font-bold text-gray-400">{paymentsMade}/{commitment.duration || '∞'} Payments</span>
+              </div>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-sm font-black px-5 py-3 rounded-xl active:scale-95 transition-transform h-full ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                 {isLending ? 'Collect' : 'Pay'}
             </button>
         </div>

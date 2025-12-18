@@ -372,7 +372,7 @@ const App: React.FC = () => {
                       categoryId: commitmentData.categoryId,
                       walletId: initialTransactionWalletId,
                       date: commitmentData.startDate,
-                      description: isLoan ? 'Loan Disbursement' : 'Lending Disbursement',
+                      description: isLoan ? `Disbursement - ${commitmentData.name}` : `Disbursement - ${commitmentData.name}`,
                       commitmentId: newCommitmentId
                   };
                   handleSaveTransaction(tx);
@@ -406,7 +406,7 @@ const App: React.FC = () => {
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: title,
+        description: isLending ? `Payment - ${commitment.name}` : `Payment - ${commitment.name}`,
         categoryId: commitment.categoryId,
         date: new Date().toISOString(),
         commitmentId: commitment.id
