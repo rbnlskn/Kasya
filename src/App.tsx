@@ -429,15 +429,15 @@ const App: React.FC = () => {
 
            if (txAmount > 0) {
                const isLoan = commitmentData.type === CommitmentType.LOAN;
-               const description = isLoan ? 'Loan Disbursement' : 'Lending Disbursement';
+               const title = isLoan ? 'Loan Disbursement' : 'Lending Disbursement';
 
                const tx: Omit<Transaction, 'id'> = {
                    amount: txAmount,
                    type: isLoan ? TransactionType.INCOME : TransactionType.EXPENSE,
                    categoryId: commitmentData.categoryId,
                    walletId: initialTransactionWalletId,
-                   date: new Date().toISOString(),
-                   description: `${description} - ${commitmentData.name}`,
+                   date: commitmentData.startDate,
+                   description: title,
                    commitmentId: newCommitmentId
                };
 
@@ -470,16 +470,16 @@ const App: React.FC = () => {
     const paymentAmount = amount || installmentAmount;
 
     const isLending = commitment.type === CommitmentType.LENDING;
-    const description = isLending ? `Lending Payment` : `Loan Payment`;
+    const title = isLending ? `Lending Payment` : `Loan Payment`;
 
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: `${description} - ${commitment.name}`,
+        description: commitment.name,
         categoryId: commitment.categoryId,
         date: new Date().toISOString()
     });
-    setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
+    setTransactionModalTitle(title);
     handleOpenModal('TX_FORM');
   };
 
