@@ -15,6 +15,7 @@ interface CommitmentDetailsModalProps {
   categories: Category[];
   currencySymbol: string;
   onEdit: (commitment: Commitment) => void;
+  onTransactionClick: (transaction: Transaction) => void;
   isExiting?: boolean;
 }
 
@@ -27,6 +28,7 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
   categories,
   currencySymbol,
   onEdit,
+  onTransactionClick,
   isExiting,
 }) => {
   if (!isOpen && !isExiting) return null;
@@ -67,6 +69,7 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
                 commitment={commitment}
                 walletMap={walletMap}
                 currencySymbol={currencySymbol}
+                onClick={onTransactionClick}
               />
             ))
           ) : (

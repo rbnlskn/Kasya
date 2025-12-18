@@ -29,9 +29,10 @@ interface CommitmentsViewProps {
   onPayCC: (wallet: Wallet) => void;
   onWalletClick?: (wallet: Wallet) => void;
   onAddCreditCard: () => void;
+  onTransactionClick: (transaction: Transaction) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
@@ -144,13 +145,24 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     [commitments, transactions]
   );
 
-  const renderCommitmentItem = (instance: CommitmentInstance & { id: string }) => {
-    const { commitment, dueDate, status } = instance;
+  const settledCommitments = useMemo(() => commitments.filter(c => {
+    const totalPaid = calculateTotalPaid(c.id, transactions);
+    const totalObligation = c.principal + c.interest;
+    return totalPaid >= totalObligation;
+  }), [commitments, transactions]);
+
+  const renderCommitmentItem = (item: (CommitmentInstance & { id: string }) | Commitment) => {
+    const isInstance = 'commitment' in item;
+    const commitment = isInstance ? item.commitment : item;
+    const dueDate = isInstance ? item.dueDate : new Date();
+    const status = isInstance ? item.status : 'SETTLED';
+
     const isLending = commitment.categoryId === 'cat_lending';
     const category = categories.find(c => c.id === commitment.categoryId);
+    const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
     return (
-      <div key={instance.id} onClick={() => onEditCommitment(commitment)} className="p-4 cursor-pointer">
+      <div key={commitment.id} onClick={() => onEditCommitment(commitment)} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -159,17 +171,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-gray-800 text-sm leading-tight truncate">{commitment.name}</h4>
-            <p className="text-xs text-gray-400">{generateDueDateText(dueDate, status)}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' ? 'line-through' : ''}`}>{commitment.name}</h4>
+            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className="block font-bold text-sm text-gray-800">{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
+            {status !== 'SETTLED' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
                 className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
               >
                 {isLending ? 'Collect' : 'Pay'}
               </button>
+            )}
           </div>
         </div>
       </div>
@@ -303,6 +317,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 onEditCommitment(c);
                 setDetailsModal(null);
             }}
+            onTransactionClick={(t) => {
+                onTransactionClick(t);
+                setDetailsModal(null);
+            }}
         />
     )}
 
@@ -416,7 +434,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     />
                 ) : (
                     <CommitmentList
-                        items={[]}
+                        items={settledCommitments}
                         renderItem={renderCommitmentItem}
                         placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled commitments</div>}
                     />
