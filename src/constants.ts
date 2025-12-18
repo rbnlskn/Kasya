@@ -1,7 +1,6 @@
 
-import { Wallet, Budget, Transaction, Category, WalletType, Bill, Loan } from './types';
+import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment, RecurrenceFrequency, CommitmentType, TransactionType } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
-import { COLORS } from './styles/theme.js';
 
 export const APP_VERSION = '1.0.0';
 export const CHANGELOG = [
@@ -12,16 +11,15 @@ export const CURRENCY_SYMBOL = '₱';
 
 export const WALLET_COLORS = WALLET_TEMPLATES;
 
-// New Palette based on Settings Icons
 export const CATEGORY_COLORS = [
-  '#DBEAFE', // Blue (Settings Base)
-  '#D1FAE5', // Green (Currency Base)
-  '#F3F4F6', // Gray (About Base)
-  '#F3E8FF', // Purple (Import Base)
-  '#FEE2E2', // Red (Reset Base)
-  '#FEF3C7', // Amber/Yellow
-  '#FFEDD5', // Orange
-  '#FCE7F3', // Pink
+  '#DBEAFE',
+  '#D1FAE5',
+  '#F3F4F6',
+  '#F3E8FF',
+  '#FEE2E2',
+  '#FEF3C7',
+  '#FFEDD5',
+  '#FCE7F3',
 ];
 
 export const DEFAULT_CATEGORIES: Category[] = [
@@ -44,6 +42,37 @@ export const INITIAL_WALLETS: Wallet[] = [
 ];
 
 export const INITIAL_BUDGETS: Budget[] = [];
-export const INITIAL_TRANSACTIONS: Transaction[] = [];
+
+export const INITIAL_COMMITMENTS: Commitment[] = [
+  {
+    id: 'c1',
+    name: 'Test Loan',
+    type: CommitmentType.LOAN,
+    principal: 1000,
+    interest: 200,
+    fee: 50,
+    categoryId: 'cat_loans',
+    recurrence: RecurrenceFrequency.ONE_TIME,
+    dueDay: 0,
+    startDate: new Date().toISOString(),
+    duration: 1,
+    durationUnit: 'MONTHS',
+    icon: '💷'
+  }
+];
+
+export const INITIAL_TRANSACTIONS: Transaction[] = [
+    {
+        id: 't1',
+        amount: 950,
+        type: TransactionType.INCOME,
+        categoryId: 'cat_loans',
+        walletId: 'w1',
+        date: new Date().toISOString(),
+        title: 'Loan Disbursement',
+        description: 'Test Loan',
+        commitmentId: 'c1',
+        createdAt: Date.now(),
+    }
+];
 export const INITIAL_BILLS: Bill[] = [];
-export const INITIAL_LOANS: Loan[] = [];

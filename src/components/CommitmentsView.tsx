@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
-import { Wallet, WalletType, Bill, Commitment, Category, Transaction } from '../types';
+import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';

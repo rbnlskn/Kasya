@@ -50,6 +50,7 @@ export interface Transaction {
   transferToWalletId?: string;
   date: string; // ISO String
   createdAt?: number; // Timestamp for sorting same-date transactions
+  title?: string;
   description?: string;
   billId?: string;
   commitmentId?: string;
