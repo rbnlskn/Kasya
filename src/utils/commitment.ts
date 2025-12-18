@@ -2,10 +2,12 @@
 import { Commitment, Transaction, RecurrenceFrequency } from '../types';
 import { calculateTotalPaid, calculateTotalObligation } from './math';
 
+export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
+
 export interface CommitmentInstance {
   commitment: Commitment;
   dueDate: Date;
-  status: 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
+  status: CommitmentInstanceStatus;
   isPaid: boolean;
 }
 
