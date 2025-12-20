@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/storageService';
-import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Loan } from './types';
+import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Commitment, CommitmentType } from './types';
 import BudgetRing from './components/BudgetRing';
 import TransactionItem from './components/TransactionItem';
 import WalletCard from './components/WalletCard';
@@ -17,23 +17,23 @@ import BudgetFormModal from './components/BudgetFormModal';
 import SettingsView from './components/SettingsView';
 import CommitmentsView from './components/CommitmentsView';
 import BillFormModal from './components/BillFormModal';
-import LoanFormModal from './components/LoanFormModal';
+import CommitmentFormModal from './components/CommitmentFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
 import AddCard from './components/AddCard';
 import AddBudgetCard from './components/AddBudgetCard';
-import { Plus, BarChart3, Loader2, Zap } from 'lucide-react';
+import { Plus, BarChart3, Loader2 } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
-import { COLORS } from './styles/theme.js';
 import { requestInitialPermissions } from './services/permissionService';
+import { calculateNetProceeds, calculateInstallment } from './utils/math';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
-type Modal = 'NONE' | 'TX_FORM' | 'WALLET_FORM' | 'BUDGET_FORM' | 'CATEGORY_MANAGER' | 'BILL_FORM' | 'LOAN_FORM';
+type Modal = 'NONE' | 'TX_FORM' | 'WALLET_FORM' | 'BUDGET_FORM' | 'CATEGORY_MANAGER' | 'BILL_FORM' | 'COMMITMENT_FORM';
 
 const TAB_ORDER: Record<Tab, number> = {
   'HOME': 0,
@@ -49,27 +49,22 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('HOME');
   const [prevTab, setPrevTab] = useState<Tab>('HOME');
 
-  // Navigation State
   const [overlay, setOverlay] = useState<Overlay>('NONE');
   const [isOverlayExiting, setIsOverlayExiting] = useState(false);
   const [modal, setModal] = useState<Modal>('NONE');
   const [isModalExiting, setIsModalExiting] = useState(false);
 
-  // Navigation History Logic
   const [returnToWalletList, setReturnToWalletList] = useState(false);
   const [returnToBudgetList, setReturnToBudgetList] = useState(false);
 
-  // Selection states
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
   const [selectedBudgetId, setSelectedBudgetId] = useState<string | null>(null);
   const [selectedBillId, setSelectedBillId] = useState<string | null>(null);
-  const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<string | null>(null);
 
   const [presetTransaction, setPresetTransaction] = useState<Partial<Transaction> | undefined>(undefined);
   const [transactionModalTitle, setTransactionModalTitle] = useState<string | undefined>(undefined);
-
-  // --- INITIALIZATION ---
 
   useEffect(() => {
     const initApp = async () => {
@@ -98,8 +93,6 @@ const App: React.FC = () => {
     if (isLoading) return;
     saveData(data);
   }, [data, isLoading]);
-
-  // --- NAVIGATION LOGIC ---
 
   const handleTabChange = useCallback((newTab: Tab) => {
     if (activeTab === newTab) return;
@@ -153,7 +146,7 @@ const App: React.FC = () => {
             setSelectedBudgetId(null);
           }
           setSelectedBillId(null);
-          setSelectedLoanId(null);
+          setSelectedCommitmentId(null);
           setPresetTransaction(undefined);
           setTransactionModalTitle(undefined);
       }, 200);
@@ -188,8 +181,6 @@ const App: React.FC = () => {
       return () => window.removeEventListener('popstate', handlePopState);
   }, [modal, overlay, closeModal, closeOverlay]);
 
-  // --- DATA LOGIC ---
-
   const spendingMap = useMemo(() => {
      const map: Record<string, number> = {};
      data.budgets.forEach(b => {
@@ -217,23 +208,6 @@ const App: React.FC = () => {
     return CURRENCIES.find(c => c.code === data.currency) || CURRENCIES[0];
   }, [data.currency]);
 
-  const loanStatusMap = useMemo(() => {
-    const map: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }> = {};
-    data.loans.forEach(loan => {
-      const payments = data.transactions.filter(t => t.loanId === loan.id);
-      const paidAmount = payments.reduce((sum, t) => sum + t.amount, 0);
-      const paymentsMade = payments.length;
-      const lastPayment = payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
-      map[loan.id] = {
-        paidAmount,
-        paymentsMade,
-        status: paidAmount >= loan.totalAmount ? 'PAID' : 'UNPAID',
-        lastPaidDate: lastPayment?.date,
-      };
-    });
-    return map;
-  }, [data.loans, data.transactions]);
-
   const sortTransactions = (txs: Transaction[]) => {
       return [...txs].sort((a,b) => {
           const dateB = new Date(b.date).getTime();
@@ -247,10 +221,9 @@ const App: React.FC = () => {
 
   const recentTransactionsWithHeaders = useMemo(() => {
       const sorted = sortTransactions(data.transactions);
-      const recent = sorted.slice(0, 3);
       const result: { header?: string, tx: Transaction }[] = [];
       let lastDate = '';
-      recent.forEach(t => {
+      sorted.slice(0, 3).forEach(t => {
           const dateStr = new Date(t.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
           if (dateStr !== lastDate) {
               result.push({ header: dateStr, tx: t });
@@ -271,12 +244,11 @@ const App: React.FC = () => {
         : 'animate-in slide-in-from-left fade-in duration-300';
   };
 
-  // Helper Transactions Logic
   const handleSaveTransaction = (txData: Omit<Transaction, 'id'>, id?: string) => {
     const applyBalanceChange = (wallets: Wallet[], tx: Transaction | Omit<Transaction, 'id'>, reverse: boolean = false) => {
         return wallets.map(w => {
             if (w.id === tx.walletId) {
-                let change = tx.amount;
+                let change = tx.amount + (tx.fee || 0);
                 if (tx.type === TransactionType.EXPENSE || tx.type === TransactionType.TRANSFER) change = -change;
                 if (reverse) change = -change;
                 return { ...w, balance: w.balance + change };
@@ -285,11 +257,6 @@ const App: React.FC = () => {
                  let change = tx.amount;
                  if (reverse) change = -change;
                  return { ...w, balance: w.balance + change };
-            }
-            if (tx.type === TransactionType.TRANSFER && tx.fee && w.id === tx.walletId) {
-                let feeChange = -tx.fee;
-                if (reverse) feeChange = -feeChange;
-                return { ...w, balance: w.balance + feeChange };
             }
             return w;
         });
@@ -315,10 +282,8 @@ const App: React.FC = () => {
 
             const newTx: Transaction = { 
                 ...txData, 
-                id: `tx_${newTimestamp}_${Math.random().toString(36).substr(2, 9)}`,
+                id: `tx_${newTimestamp}`,
                 createdAt: newTimestamp,
-                billId: selectedBillId || undefined,
-                loanId: selectedLoanId || undefined
             };
 
             let updatedBills = [...prev.bills];
@@ -338,7 +303,7 @@ const App: React.FC = () => {
     setPresetTransaction(undefined);
     setTransactionModalTitle(undefined);
     setSelectedBillId(null);
-    setSelectedLoanId(null);
+    setSelectedCommitmentId(null);
   };
 
   const handleDeleteTransaction = (id: string) => {
@@ -347,15 +312,12 @@ const App: React.FC = () => {
       const applyBalanceRevert = (wallets: Wallet[], tx: Transaction) => {
           return wallets.map(w => {
               if (w.id === tx.walletId) {
-                  let change = tx.amount;
+                  let change = tx.amount + (tx.fee || 0);
                   if (tx.type === TransactionType.EXPENSE || tx.type === TransactionType.TRANSFER) change = -change; 
                   return { ...w, balance: w.balance - change }; 
               }
               if (tx.type === TransactionType.TRANSFER && w.id === tx.transferToWalletId) {
                   return { ...w, balance: w.balance - tx.amount };
-              }
-              if (tx.type === TransactionType.TRANSFER && tx.fee && w.id === tx.walletId) {
-                  return { ...w, balance: w.balance + tx.fee };
               }
               return w;
           });
@@ -376,27 +338,7 @@ const App: React.FC = () => {
 
   const handleSaveWallet = (wData: Omit<Wallet, 'id'>, id?: string, adjustment?: { amount: number, isExpense: boolean, description?: string }) => {
       if (id) {
-          setData(prev => {
-              let newTransactions = [...prev.transactions];
-              if (adjustment) {
-                  const adjTx: Transaction = {
-                      id: `tx_adj_${Date.now()}`,
-                      createdAt: Date.now(),
-                      amount: adjustment.amount,
-                      type: adjustment.isExpense ? TransactionType.EXPENSE : TransactionType.INCOME,
-                      categoryId: adjustment.isExpense ? 'cat_exp_adj' : 'cat_inc_adj',
-                      walletId: id,
-                      date: new Date().toISOString(),
-                      description: adjustment.description || 'Balance Adjustment'
-                  };
-                  newTransactions = sortTransactions([adjTx, ...newTransactions]);
-              }
-              return { 
-                  ...prev, 
-                  wallets: prev.wallets.map(w => w.id === id ? { ...w, ...wData } : w),
-                  transactions: newTransactions
-              };
-          });
+          setData(prev => ({ ...prev, wallets: prev.wallets.map(w => w.id === id ? { ...w, ...wData } : w) }));
       } else {
           const newWallet = { ...wData, id: `w_${Date.now()}` };
           setData(prev => ({ ...prev, wallets: [...prev.wallets, newWallet] }));
@@ -407,86 +349,69 @@ const App: React.FC = () => {
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
   const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string) => {
-    if (id) {
-        setData(prev => ({
-            ...prev,
-            bills: prev.bills.map(b => b.id === id ? { ...b, ...billData, endDate: undefined } : b)
-        }));
-    } else {
-        setData(prev => ({
-            ...prev,
-            bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }]
-        }));
-    }
+    id ? setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }))
+       : setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }] }));
   };
-  const handleDeleteBill = (id: string) => {
-    setData(prev => ({
-        ...prev,
-        bills: prev.bills.filter(b => b.id !== id)
-    }));
-  };
+  const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
   
-  const handleSaveLoan = (loanData: Omit<Loan, 'id'>, id?: string, initialTransactionWalletId?: string) => {
-      let newLoanId = id;
-      let loansList = [...data.loans];
+  const handleSaveCommitment = (commitmentData: Omit<Commitment, 'id'>, id?: string, initialTransactionWalletId?: string) => {
+      let newCommitmentId = id;
       if (id) {
-          loansList = loansList.map(l => l.id === id ? { ...l, ...loanData } : l);
+          setData(prev => ({ ...prev, commitments: prev.commitments.map(c => c.id === id ? { ...c, ...commitmentData } : c) }));
       } else {
-          newLoanId = `loan_${Date.now()}`;
-          loansList.push({ ...loanData, id: newLoanId });
-      }
+          newCommitmentId = `commitment_${Date.now()}`;
+          setData(prev => ({ ...prev, commitments: [...prev.commitments, { ...commitmentData, id: newCommitmentId! }] }));
 
-      if (initialTransactionWalletId && !id && newLoanId) {
-           const isPayable = loanData.categoryId === 'cat_loans';
-           const principal = loanData.totalAmount - (loanData.interest || 0);
-           const txAmount = principal - (loanData.fee || 0);
-           if (txAmount > 0) {
-               const tx: Omit<Transaction, 'id'> = {
-                   amount: txAmount,
-                   type: isPayable ? TransactionType.INCOME : TransactionType.EXPENSE,
-                   categoryId: 'cat_loans',
-                   walletId: initialTransactionWalletId,
-                   date: new Date().toISOString(),
-                   description: loanData.name,
-                   loanId: newLoanId
-               };
-               const newTx: Transaction = { ...tx, id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, createdAt: Date.now() };
-               const updatedWallets = data.wallets.map(w => {
-                   if (w.id === tx.walletId) {
-                        let change = tx.amount;
-                        if (tx.type === TransactionType.EXPENSE) change = -change;
-                        return { ...w, balance: w.balance + change };
-                   }
-                   return w;
-               });
-               setData(prev => ({ ...prev, loans: loansList, transactions: sortTransactions([newTx, ...prev.transactions]), wallets: updatedWallets }));
-           }
+          if (initialTransactionWalletId) {
+              const txAmount = calculateNetProceeds(commitmentData);
+              if (txAmount > 0) {
+                  const isLoan = commitmentData.type === CommitmentType.LOAN;
+                  const tx: Omit<Transaction, 'id'> = {
+                      amount: txAmount,
+                      type: isLoan ? TransactionType.INCOME : TransactionType.EXPENSE,
+                      categoryId: commitmentData.categoryId,
+                      walletId: initialTransactionWalletId,
+                      date: commitmentData.startDate,
+                      description: isLoan ? `Loan Disbursement - ${commitmentData.name}` : `Lending Disbursement - ${commitmentData.name}`,
+                      commitmentId: newCommitmentId
+                  };
+                  handleSaveTransaction(tx);
+              }
+          }
       }
   };
 
-  const handleDeleteLoan = (id: string) => setData(prev => ({ ...prev, loans: prev.loans.filter(l => l.id !== id) }));
+  const handleDeleteCommitment = (id: string) => {
+      setData(prev => ({
+          ...prev,
+          commitments: prev.commitments.filter(c => c.id !== id),
+          transactions: prev.transactions.filter(t => t.commitmentId !== id)
+      }));
+  };
 
   const handlePayBill = (bill: Bill) => {
-      const categoryName = bill.type === 'SUBSCRIPTION' ? 'subscription' : 'bill';
-      const category = data.categories.find(c => c.name.toLowerCase().includes(categoryName)) || data.categories.find(c => c.name.toLowerCase().includes('bill')) || data.categories[0];
+      const category = data.categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6')) || data.categories[0];
       setSelectedBillId(bill.id);
       setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };
 
-  const handlePayLoan = (loan: Loan, amount?: number) => {
-    setSelectedLoanId(loan.id);
-    const paymentAmount = amount || loan.installmentAmount || 0;
-    const isLending = loan.categoryId === 'cat_lending';
+  const handlePayCommitment = (commitment: Commitment, amount?: number) => {
+    setSelectedCommitmentId(commitment.id);
+    const paymentAmount = amount || calculateInstallment(commitment) || 0;
+    const isLending = commitment.type === CommitmentType.LENDING;
+    const title = isLending ? "Lending Payment" : "Loan Payment";
+
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: `Payment ${isLending ? 'from' : 'to'} ${loan.name}`,
-        categoryId: loan.categoryId,
-        date: new Date().toISOString()
+        description: `${title} - ${commitment.name}`,
+        categoryId: commitment.categoryId,
+        date: new Date().toISOString(),
+        commitmentId: commitment.id
     });
-    setTransactionModalTitle(isLending ? "Record Collection" : "Record Payment");
+    setTransactionModalTitle(title);
     handleOpenModal('TX_FORM');
   };
 
@@ -494,7 +419,7 @@ const App: React.FC = () => {
       if (!wallet.creditLimit) return;
       const debt = wallet.creditLimit - wallet.balance; 
       if (debt <= 0) return; 
-      setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `${wallet.name}`, transferToWalletId: wallet.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `Payment to ${wallet.name}`, transferToWalletId: wallet.id, date: new Date().toISOString() });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };
@@ -503,22 +428,22 @@ const App: React.FC = () => {
   const editingWallet = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
   const editingBudget = useMemo(() => data.budgets.find(b => b.id === selectedBudgetId), [data.budgets, selectedBudgetId]);
   const editingBill = useMemo(() => data.bills.find(b => b.id === selectedBillId), [data.bills, selectedBillId]);
-  const editingLoan = useMemo(() => data.loans.find(l => l.id === selectedLoanId), [data.loans, selectedLoanId]);
+  const editingCommitment = useMemo(() => data.commitments.find(c => c.id === selectedCommitmentId), [data.commitments, selectedCommitmentId]);
   const selectedWalletForDetail = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
 
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
-      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
-          <div className="flex justify-between items-center">
-             <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
-             {rightAction}
-          </div>
+      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
+         <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
+            {rightAction}
+         </div>
       </div>
   );
 
   if (isLoading) {
       return (
-          <div className="h-screen w-full bg-slate-50 flex items-center justify-center flex-col">
-              <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+          <div className="h-screen w-full bg-slate-50 flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-primary animate-spin" />
           </div>
       );
   }
@@ -528,91 +453,54 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md border-b border-transparent transition-all">
-                  <div className="flex justify-between items-center">
-                     <Logo size="2rem" />
-                  </div>
+              <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
+                 <div className="flex justify-between items-center"><Logo size="2rem" /></div>
               </div>
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
                  <div className="grid grid-cols-1 gap-4 content-start">
                      <section>
-                         <SectionHeader
-                           title="WALLETS"
-                           onViewAll={() => handleOpenOverlay('ALL_WALLETS')}
-                         />
+                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.wallets.map((w) => (
                                 <div key={w.id} className="w-[255px] h-[150px] flex-shrink-0">
-                                    <WalletCard
-                                        wallet={w}
-                                        onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
-                                        currencySymbol={currentCurrency.symbol}
-                                        scale={0.75}
-                                    />
+                                    <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} scale={0.75} />
                                 </div>
                             ))}
                             <div className="w-[255px] h-[150px] flex-shrink-0">
-                                 <AddCard
-                                    onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
-                                    label="Add Wallet"
-                                    scale={0.75}
-                                />
+                                 <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" scale={0.75} />
                             </div>
                          </div>
                      </section>
 
                     <section>
-                        <SectionHeader
-                          title="BUDGETS"
-                          onViewAll={() => handleOpenOverlay('ALL_BUDGETS')}
-                        />
+                        <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.budgets.map((b) => (
                                 <div key={b.id} className="w-40 h-20 flex-shrink-0">
-                                    <BudgetRing
-                                        budget={b}
-                                        category={data.categories.find(c => c.id === b.categoryId)}
-                                        spent={spendingMap[b.id] || 0}
-                                        currencySymbol={currentCurrency.symbol}
-                                        onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }}
-                                    />
+                                    <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
                             <div className="w-40 h-20 flex-shrink-0">
-                                <AddBudgetCard
-                                    onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
-                                    label="Add Budget"
-                                />
+                                <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>
                     </section>
 
-<section>
-    <SectionHeader
-      title="RECENT TRANSACTIONS"
-      onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')}
-    />
-    <div>
-        {data.transactions.length === 0 ? (
-            <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
-        ) : (
-            <div className="grid gap-0">
-                {recentTransactionsWithHeaders.slice(0, 3).map((item) => (
-                <TransactionItem
-                    key={item.tx.id}
-                    transaction={item.tx}
-                    category={data.categories.find(c => c.id === item.tx.categoryId)}
-                    onClick={(tx) => { setSelectedTxId(tx.id); handleOpenModal('TX_FORM'); }}
-                    walletMap={data.wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as any)}
-                    dateHeader={item.header}
-                    currencySymbol={currentCurrency.symbol}
-                />
-            ))}
-            </div>
-        )}
-    </div>
-</section>
-</div>
+                    <section>
+                        <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
+                        <div>
+                            {data.transactions.length === 0 ? (
+                                <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
+                            ) : (
+                                <div className="grid gap-0">
+                                    {recentTransactionsWithHeaders.map((item) => (
+                                    <TransactionItem key={item.tx.id} transaction={item.tx} category={data.categories.find(c => c.id === item.tx.categoryId)} commitment={item.tx.commitmentId ? data.commitments.find(c => c.id === item.tx.commitmentId) : undefined} onClick={(tx) => { setSelectedTxId(tx.id); handleOpenModal('TX_FORM'); }} walletMap={data.wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as any)} dateHeader={item.header} currencySymbol={currentCurrency.symbol} />
+                                ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                 </div>
               </div>
            </div>
         )}
@@ -629,200 +517,31 @@ const App: React.FC = () => {
 
         {activeTab === 'COMMITMENTS' && (
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-             <CommitmentsView
-                wallets={data.wallets}
-                currencySymbol={currentCurrency.symbol}
-                bills={data.bills}
-                loans={data.loans}
-                transactions={data.transactions}
-                loanStatusMap={loanStatusMap}
-                categories={data.categories}
-                onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }}
-                onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }}
-                onPayBill={handlePayBill}
-                onAddLoan={() => { setSelectedLoanId(null); handleOpenModal('LOAN_FORM'); }}
-                onEditLoan={(l) => { setSelectedLoanId(l.id); handleOpenModal('LOAN_FORM'); }}
-                onPayLoan={handlePayLoan}
-                onPayCC={handlePayCC}
-                onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }}
-                onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
-             />
+             <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
            </div>
         )}
 
         {activeTab === 'SETTINGS' && (
             <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <SettingsView
-                  data={data}
-                  onBack={() => handleTabChange('HOME')}
-                  onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')}
-                  onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')}
-                  onImport={(newData) => setData(newData)}
-                  onReset={async () => { await clearData(); window.location.reload(); }}
-                  onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))}
-              />
+              <SettingsView data={data} onBack={() => handleTabChange('HOME')} onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')} onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')} onImport={(newData) => setData(newData)} onReset={async () => { await clearData(); window.location.reload(); }} onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))} />
             </div>
         )}
       </div>
 
-      {overlay === 'NONE' && (
-        <BottomNav
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onAddClick={() => { setSelectedTxId(null); setPresetTransaction(undefined); setTransactionModalTitle(undefined); handleOpenModal('TX_FORM'); }}
-        />
-      )}
+      {overlay === 'NONE' && (<BottomNav activeTab={activeTab} onTabChange={handleTabChange} onAddClick={() => { setSelectedTxId(null); setPresetTransaction(undefined); setTransactionModalTitle(undefined); handleOpenModal('TX_FORM'); }} />)}
 
-      {/* OVERLAYS & MODALS */}
-      {overlay === 'WALLET_DETAIL' && selectedWalletForDetail && (
-          <WalletDetailView
-             wallet={selectedWalletForDetail}
-             transactions={sortTransactions(data.transactions.filter(t => t.walletId === selectedWalletId || t.transferToWalletId === selectedWalletId))}
-             categories={data.categories}
-             allWallets={data.wallets}
-             onBack={handleBack}
-             onEdit={() => { handleOpenModal('WALLET_FORM'); }}
-             onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }}
-             currencySymbol={currentCurrency.symbol}
-             isExiting={isOverlayExiting}
-          />
-      )}
+      {overlay === 'WALLET_DETAIL' && selectedWalletForDetail && (<WalletDetailView wallet={selectedWalletForDetail} transactions={sortTransactions(data.transactions.filter(t => t.walletId === selectedWalletId || t.transferToWalletId === selectedWalletId))} categories={data.categories} allWallets={data.wallets} commitments={data.commitments} onBack={handleBack} onEdit={() => { handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} />)}
+      {overlay === 'BUDGET_DETAIL' && editingBudget && (<BudgetDetailView budget={editingBudget} transactions={sortTransactions(data.transactions.filter(t => t.categoryId === editingBudget.categoryId))} categories={data.categories} wallets={data.wallets} commitments={data.commitments} onBack={handleBack} onEdit={() => { handleOpenModal('BUDGET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} spending={spendingMap[editingBudget.id] || 0} />)}
+      {overlay === 'ALL_TRANSACTIONS' && (<TransactionHistoryView transactions={sortTransactions(data.transactions)} categories={data.categories} wallets={data.wallets} commitments={data.commitments} onBack={handleBack} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} />)}
+      {overlay === 'ALL_WALLETS' && (<WalletListView wallets={data.wallets} onBack={handleBack} onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onEdit={(w) => { setSelectedWalletId(w.id); handleOpenModal('WALLET_FORM'); }} onView={(w) => { setSelectedWalletId(w.id); setReturnToWalletList(true); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} onReorder={(newWallets) => setData(prev => ({ ...prev, wallets: newWallets }))} />)}
+      {overlay === 'ALL_BUDGETS' && (<BudgetManager budgets={data.budgets} categories={data.categories} spendingMap={spendingMap} onBack={handleBack} onAdd={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} onEdit={(b) => { setSelectedBudgetId(b.id); handleOpenModal('BUDGET_FORM'); }} onView={(b) => { setSelectedBudgetId(b.id); setReturnToBudgetList(true); handleOpenOverlay('BUDGET_DETAIL'); }} onDelete={handleDeleteBudget} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))} />)}
 
-      {overlay === 'BUDGET_DETAIL' && editingBudget && (
-          <BudgetDetailView
-             budget={editingBudget}
-             transactions={sortTransactions(data.transactions.filter(t => t.categoryId === editingBudget.categoryId))}
-             categories={data.categories}
-             wallets={data.wallets}
-             onBack={handleBack}
-             onEdit={() => { handleOpenModal('BUDGET_FORM'); }}
-             onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }}
-             currencySymbol={currentCurrency.symbol}
-             isExiting={isOverlayExiting}
-             spending={spendingMap[editingBudget.id] || 0}
-          />
-      )}
-
-      {overlay === 'ALL_TRANSACTIONS' && (
-          <TransactionHistoryView
-            transactions={sortTransactions(data.transactions)}
-            categories={data.categories}
-            wallets={data.wallets}
-            onBack={handleBack}
-            onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }}
-            currencySymbol={currentCurrency.symbol}
-            isExiting={isOverlayExiting}
-          />
-      )}
-
-      {overlay === 'ALL_WALLETS' && (
-          <WalletListView
-            wallets={data.wallets}
-            onBack={handleBack}
-            onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
-            onEdit={(w) => { setSelectedWalletId(w.id); handleOpenModal('WALLET_FORM'); }}
-            onView={(w) => { setSelectedWalletId(w.id); setReturnToWalletList(true); handleOpenOverlay('WALLET_DETAIL'); }}
-            currencySymbol={currentCurrency.symbol}
-            isExiting={isOverlayExiting}
-            onReorder={(newWallets) => setData(prev => ({ ...prev, wallets: newWallets }))}
-          />
-      )}
-
-      {overlay === 'ALL_BUDGETS' && (
-          <BudgetManager
-            budgets={data.budgets}
-            categories={data.categories}
-            spendingMap={spendingMap}
-            onBack={handleBack}
-            onAdd={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }}
-            onEdit={(b) => { setSelectedBudgetId(b.id); handleOpenModal('BUDGET_FORM'); }}
-            onView={(b) => { setSelectedBudgetId(b.id); setReturnToBudgetList(true); handleOpenOverlay('BUDGET_DETAIL'); }}
-            onDelete={handleDeleteBudget}
-            currencySymbol={currentCurrency.symbol}
-            isExiting={isOverlayExiting}
-            onReorder={(newBudgets) => setData(prev => ({ ...prev, budgets: newBudgets }))}
-          />
-      )}
-
-      {(modal === 'TX_FORM' || (modal === 'NONE' && isModalExiting && selectedTxId !== undefined)) && (
-        <TransactionFormModal
-          isOpen={modal === 'TX_FORM'}
-          onClose={handleBack}
-          categories={data.categories}
-          wallets={data.wallets}
-          onSave={handleSaveTransaction}
-          onDelete={handleDeleteTransaction}
-          initialTransaction={editingTransaction}
-          currencySymbol={currentCurrency.symbol}
-          title={transactionModalTitle}
-          isExiting={isModalExiting}
-        />
-      )}
-
-      {(modal === 'WALLET_FORM' || (modal === 'NONE' && isModalExiting && selectedWalletId !== undefined)) && (
-        <WalletFormModal
-          isOpen={modal === 'WALLET_FORM'}
-          onClose={handleBack}
-          onSave={handleSaveWallet}
-          onDelete={handleDeleteWallet}
-          initialWallet={editingWallet}
-          currencySymbol={currentCurrency.symbol}
-          isExiting={isModalExiting}
-        />
-      )}
-
-      {(modal === 'BUDGET_FORM' || (modal === 'NONE' && isModalExiting && selectedBudgetId !== undefined)) && (
-        <BudgetFormModal
-          isOpen={modal === 'BUDGET_FORM'}
-          onClose={handleBack}
-          onSave={handleSaveBudget}
-          onDelete={handleDeleteBudget}
-          categories={data.categories}
-          initialBudget={editingBudget}
-          currencySymbol={currentCurrency.symbol}
-          isExiting={isModalExiting}
-        />
-      )}
-
-      {(modal === 'BILL_FORM' || (modal === 'NONE' && isModalExiting && selectedBillId !== undefined)) && (
-        <BillFormModal
-          isOpen={modal === 'BILL_FORM'}
-          onClose={handleBack}
-          onSave={handleSaveBill}
-          onDelete={handleDeleteBill}
-          initialBill={editingBill}
-          currencySymbol={currentCurrency.symbol}
-          isExiting={isModalExiting}
-        />
-      )}
-
-      {(modal === 'LOAN_FORM' || (modal === 'NONE' && isModalExiting && selectedLoanId !== undefined)) && (
-        <LoanFormModal
-          isOpen={modal === 'LOAN_FORM'}
-          onClose={handleBack}
-          onSave={handleSaveLoan}
-          onDelete={handleDeleteLoan}
-          initialLoan={editingLoan}
-          currencySymbol={currentCurrency.symbol}
-          wallets={data.wallets}
-          categories={data.categories}
-          isExiting={isModalExiting}
-        />
-      )}
-
-      {modal === 'CATEGORY_MANAGER' && (
-          <CategoryManager
-             categories={data.categories}
-             onSave={(cat) => {
-                 if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) }));
-                 else setData(prev => ({ ...prev, categories: [...prev.categories, cat] }));
-             }}
-             onDelete={(id) => setData(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }))}
-             onReorder={(newCats) => setData(prev => ({ ...prev, categories: newCats }))}
-             onClose={handleBack}
-             isExiting={isModalExiting}
-          />
-      )}
+      {(modal === 'TX_FORM' || (modal === 'NONE' && isModalExiting && selectedTxId !== undefined)) && (<TransactionFormModal isOpen={modal === 'TX_FORM'} onClose={handleBack} categories={data.categories} wallets={data.wallets} onSave={handleSaveTransaction} onDelete={handleDeleteTransaction} initialTransaction={editingTransaction} currencySymbol={currentCurrency.symbol} title={transactionModalTitle} isExiting={isModalExiting} />)}
+      {(modal === 'WALLET_FORM' || (modal === 'NONE' && isModalExiting && selectedWalletId !== undefined)) && (<WalletFormModal isOpen={modal === 'WALLET_FORM'} onClose={handleBack} onSave={handleSaveWallet} onDelete={handleDeleteWallet} initialWallet={editingWallet} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
+      {(modal === 'BUDGET_FORM' || (modal === 'NONE' && isModalExiting && selectedBudgetId !== undefined)) && (<BudgetFormModal isOpen={modal === 'BUDGET_FORM'} onClose={handleBack} onSave={handleSaveBudget} onDelete={handleDeleteBudget} categories={data.categories} initialBudget={editingBudget} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
+      {(modal === 'BILL_FORM' || (modal === 'NONE' && isModalExiting && selectedBillId !== undefined)) && (<BillFormModal isOpen={modal === 'BILL_FORM'} onClose={handleBack} onSave={handleSaveBill} onDelete={handleDeleteBill} initialBill={editingBill} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
+      {(modal === 'COMMITMENT_FORM' || (modal === 'NONE' && isModalExiting && selectedCommitmentId !== undefined)) && (<CommitmentFormModal isOpen={modal === 'COMMITMENT_FORM'} onClose={handleBack} onSave={handleSaveCommitment} onDelete={handleDeleteCommitment} initialCommitment={editingCommitment} currencySymbol={currentCurrency.symbol} wallets={data.wallets} categories={data.categories} isExiting={isModalExiting} />)}
+      {modal === 'CATEGORY_MANAGER' && (<CategoryManager categories={data.categories} onSave={(cat) => {if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) })); else setData(prev => ({ ...prev, categories: [...prev.categories, cat] }));}} onDelete={(id) => setData(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }))} onReorder={(newCats) => setData(prev => ({ ...prev, categories: newCats }))} onClose={handleBack} isExiting={isModalExiting} />)}
     </div>
   );
 };

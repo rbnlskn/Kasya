@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { Bill, Loan, Category, LoanType } from '../types';
+import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { formatCurrency } from '../utils/number';
-import { calculateTotalObligation } from '../utils/math';
+import { calculateTotalObligation, calculateInstallment } from '../utils/math';
+import { CommitmentInstanceStatus } from '../utils/commitment';
 
 interface CommitmentCardProps {
-  item: Bill | Loan;
+  item: Bill | Commitment;
   category?: Category;
   paidAmount: number;
   paymentsMade: number;
@@ -13,6 +14,7 @@ interface CommitmentCardProps {
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
+  instanceStatus?: CommitmentInstanceStatus;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -24,50 +26,58 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   currencySymbol,
   onPay,
   onViewDetails,
+  instanceStatus,
 }) => {
-  const isLoan = 'principal' in item;
+  const isCommitment = 'principal' in item;
 
-  if (isLoan) {
-    const loan = item as Loan;
-    const isLending = loan.type === LoanType.LENDING;
-    const totalBalance = calculateTotalObligation(loan);
-    const progress = totalBalance > 0 ? (paidAmount / totalBalance) * 100 : 0;
-    const durationDisplay = loan.duration === 0 ? '∞' : loan.duration;
+  if (isCommitment) {
+    const commitment = item as Commitment;
+    const isLending = commitment.type === CommitmentType.LENDING;
+    const totalObligation = calculateTotalObligation(commitment);
 
-    const accentColor = isLending ? 'bg-green-500' : 'bg-blue-500';
-    const progressFillColor = paidAmount > 0 ? accentColor : 'bg-gray-300';
+    const installmentAmount = calculateInstallment(commitment);
+    let displayAmount = 0;
+    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
+        displayAmount = totalObligation - paidAmount;
+    } else {
+        displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
+    }
+
+    const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
 
     return (
-      <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-center w-full flex-shrink-0">
+      <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-full">
         <div className="flex items-start justify-between">
             <div className="flex items-center flex-1 min-w-0">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
                     {category?.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{loan.name}</h4>
-                    <p className="text-xs text-gray-500 font-medium">{dueDateText.replace(':', '')}</p>
+                    <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
                 </div>
             </div>
             <div className="flex flex-col items-end ml-2 flex-shrink-0">
-                <p className="font-bold text-gray-800 text-sm text-right whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(paidAmount)}
+                <p className="font-bold text-gray-800 text-md text-right whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
                 </p>
-                <p className="text-xs text-gray-500 font-medium text-right whitespace-nowrap">
-                    / {currencySymbol}{formatCurrency(totalBalance)}
-                </p>
-            </div>
-        </div>
-        <div className="flex items-center gap-4 mt-2">
-            <div className="flex-grow flex items-center gap-2">
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div className={`${progressFillColor} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
-                </div>
-                <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                    {paymentsMade}/{durationDisplay}
+                <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
                 </span>
             </div>
-            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+        </div>
+        <div className="flex items-center gap-3 mt-2">
+            <div className="flex-grow">
+              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                  <div className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-1.5 rounded-full`} style={{ width: `${progress}%` }}></div>
+              </div>
+              <div className="flex justify-between mt-1">
+                 {commitment.recurrence !== 'NO_DUE_DATE' && (
+                    <span className="text-xs font-bold text-gray-400">{paymentsMade}/{commitment.duration || '∞'} Payments</span>
+                  )}
+              </div>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className={`text-sm font-black px-5 py-3 rounded-xl active:scale-95 transition-transform h-full ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                 {isLending ? 'Collect' : 'Pay'}
             </button>
         </div>
@@ -75,6 +85,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   }
 
+  // Bill section remains unchanged
   const bill = item as Bill;
   return (
     <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex items-center justify-between w-full flex-shrink-0">
@@ -84,7 +95,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             </div>
             <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
-                <p className="text-xs text-gray-500 font-medium">{dueDateText.replace(':', '')}</p>
+                <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
             </div>
         </div>
         <div className="flex flex-col items-end ml-2 flex-shrink-0">

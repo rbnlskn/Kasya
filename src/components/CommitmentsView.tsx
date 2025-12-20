@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
-import { Wallet, WalletType, Bill, Loan, Category, Transaction } from '../types';
+import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
@@ -10,31 +10,33 @@ import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
+import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance } from '../utils/commitment';
+import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
   currencySymbol: string;
   bills: Bill[];
-  loans: Loan[];
+  commitments: Commitment[];
   transactions: Transaction[];
-  loanStatusMap: Record<string, { paidAmount: number; paymentsMade: number; status: 'PAID' | 'UNPAID'; lastPaidDate?: string }>;
   categories: Category[];
   onAddBill: () => void;
   onEditBill: (bill: Bill) => void;
   onPayBill: (bill: Bill) => void;
-  onAddLoan: () => void;
-  onEditLoan: (loan: Loan) => void;
-  onPayLoan: (loan: Loan, amount?: number) => void;
+  onAddCommitment: () => void;
+  onEditCommitment: (commitment: Commitment) => void;
+  onPayCommitment: (commitment: Commitment, amount?: number) => void;
   onPayCC: (wallet: Wallet) => void;
   onWalletClick?: (wallet: Wallet) => void;
   onAddCreditCard: () => void;
+  onTransactionClick: (transaction: Transaction) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, loans, transactions, loanStatusMap, categories, onAddBill, onEditBill, onPayBill, onAddLoan, onEditLoan, onPayLoan, onPayCC, onWalletClick, onAddCreditCard }) => {
-  const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_LOANS' | 'ALL_CREDIT_CARDS'>('NONE');
-  const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'LOAN', item: Bill | Loan } | null>(null);
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
+  const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
+  const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
-  const [loanFilter, setLoanFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
+  const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const creditCards = wallets.filter(w => w.type === WalletType.CREDIT_CARD).sort((a,b) => {
@@ -96,32 +98,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     }
     return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   };
-
-  const getLoanDueDateText = (loan: Loan) => {
-    const loanStatus = loanStatusMap[loan.id];
-    if (loanStatus?.status === 'PAID') return 'Settled';
-    if (loan.dueDay === 0) return 'No Due Date';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const startDate = new Date(loan.startDate);
-    let installmentDateForView = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
-    if (loanStatus?.lastPaidDate) {
-        const lastPaidDate = new Date(loanStatus.lastPaidDate);
-        if(lastPaidDate.getMonth() === currentDate.getMonth() && lastPaidDate.getFullYear() === currentDate.getFullYear()) {
-            installmentDateForView.setMonth(installmentDateForView.getMonth() + 1);
-        }
-    }
-    const targetDueDate = installmentDateForView;
-    targetDueDate.setHours(0, 0, 0, 0);
-    const actualNextDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), loan.dueDay);
-    if (today > actualNextDueDate && loan.recurrence !== 'ONE_TIME') {
-         return `Overdue since ${actualNextDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-    if (targetDueDate.getFullYear() > currentDate.getFullYear() || (targetDueDate.getFullYear() === currentDate.getFullYear() && targetDueDate.getMonth() > currentDate.getMonth())) {
-        return `Upcoming: ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-    return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  };
   
   const getCCDueText = (day?: number) => {
       if (!day) return 'No Due Date';
@@ -161,32 +137,48 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-  const renderLoanItem = (loan: Loan) => {
-    const { paidAmount, status } = loanStatusMap[loan.id] || { paidAmount: 0, status: 'UNPAID' };
-    const isPaid = status === 'PAID';
-    const dueDateText = getLoanDueDateText(loan);
-    const paymentAmount = loan.installmentAmount || 0;
-    const isLending = loan.categoryId === 'cat_lending';
-    const category = categories.find(c => c.id === loan.categoryId);
+  const activeCommitmentInstances = useMemo(() => commitments
+    .map(c => getActiveCommitmentInstance(c, transactions))
+    .filter((c): c is NonNullable<typeof c> => c !== null)
+    .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+    .map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` })),
+    [commitments, transactions]
+  );
+
+  const settledCommitments = useMemo(() => commitments.filter(c => {
+    const totalPaid = calculateTotalPaid(c.id, transactions);
+    const totalObligation = c.principal + c.interest;
+    return totalPaid >= totalObligation;
+  }), [commitments, transactions]);
+
+  const renderCommitmentItem = (item: (CommitmentInstance & { id: string }) | Commitment) => {
+    const isInstance = 'commitment' in item;
+    const commitment = isInstance ? item.commitment : item;
+    const dueDate = isInstance ? item.dueDate : new Date();
+    const status = isInstance ? item.status : 'SETTLED';
+
+    const isLending = commitment.type === CommitmentType.LENDING;
+    const category = categories.find(c => c.id === commitment.categoryId);
+    const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
     return (
-      <div key={loan.id} onClick={() => onEditLoan(loan)} className="p-4 cursor-pointer">
+      <div key={commitment.id} onClick={() => onEditCommitment(commitment)} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: isPaid ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+            style={{ backgroundColor: category?.color || '#E5E7EB' }}
           >
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${isPaid ? 'line-through' : ''}`}>{loan.name}</h4>
-            <p className="text-xs text-gray-400">{dueDateText}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' ? 'line-through' : ''}`}>{commitment.name}</h4>
+            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${isPaid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(loan.installmentAmount || 0)}</span>
-            {!isPaid && (
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
+            {status !== 'SETTLED' && (
               <button
-                onClick={(e) => { e.stopPropagation(); onPayLoan(loan, paymentAmount); }}
+                onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
                 className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
               >
                 {isLending ? 'Collect' : 'Pay'}
@@ -196,66 +188,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
     );
-  };
-
-  const isLoanDueInMonth = (loan: Loan, checkDate: Date): boolean => {
-    const loanStatus = loanStatusMap[loan.id];
-    const startDate = new Date(loan.startDate);
-    const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    const checkMonth = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
-
-    // If settled, only show in the month it was paid off.
-    if (loanStatus?.status === 'PAID') {
-        if (!loanStatus.lastPaidDate) return false;
-        const paidDate = new Date(loanStatus.lastPaidDate);
-        return paidDate.getFullYear() === checkDate.getFullYear() && paidDate.getMonth() === checkDate.getMonth();
-    }
-
-    // Don't show before it starts.
-    if (checkMonth < startMonth) {
-        return false;
-    }
-
-    // If it has a fixed duration, check if we are past the end date.
-    if (loan.duration > 0 && loan.recurrence !== 'ONE_TIME') {
-        const endDate = new Date(loan.startDate);
-        if (loan.recurrence === 'MONTHLY') {
-            endDate.setMonth(endDate.getMonth() + loan.duration);
-        } else if (loan.recurrence === 'YEARLY') {
-            endDate.setFullYear(endDate.getFullYear() + loan.duration);
-        } else if (loan.recurrence === 'WEEKLY') {
-            endDate.setDate(endDate.getDate() + loan.duration * 7);
-        }
-        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-        if (checkMonth > endMonth) {
-            return false;
-        }
-    }
-
-    // For one-time loans, only show in the month of the first due date.
-    if (loan.recurrence === 'ONE_TIME') {
-        let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), loan.dueDay);
-        if (firstDueDate <= startDate) {
-            firstDueDate.setMonth(firstDueDate.getMonth() + 1);
-        }
-        const dueMonth = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
-        return checkMonth.getTime() === dueMonth.getTime();
-    }
-
-    // Otherwise, it's an active, ongoing loan for this month.
-    return true;
-  };
-
-  const validLoans = loans.filter(loan => isLoanDueInMonth(loan, currentDate));
-  const sortedLoans = [...validLoans].sort((a,b) => {
-    const dayA = a.dueDay === 0 ? 32 : a.dueDay;
-    const dayB = b.dueDay === 0 ? 32 : b.dueDay;
-    return dayA - dayB;
-  });
+  }
 
   return (
     <>
-    <div className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
+    <div data-testid="commitments-view" className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
         <div className="flex justify-between items-center mb-4">
              <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
         </div>
@@ -334,46 +271,54 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
           <SectionHeader
             title="LOANS & DEBTS"
-            count={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID').length}
-            onViewAll={() => setOverlay('ALL_LOANS')}
+            count={activeCommitmentInstances.length}
+            onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
         <div data-testid="commitment-stack-loans" className="h-[170px]">
-          <CommitmentStack
-            items={sortedLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
-            renderItem={(loan) => {
-              const { paidAmount, paymentsMade } = loanStatusMap[loan.id] || { paidAmount: 0, paymentsMade: 0 };
-              return (
-                <CommitmentCard
-                  item={loan}
-                  category={categories.find(c => c.id === loan.categoryId)}
-                  paidAmount={paidAmount}
-                  paymentsMade={paymentsMade}
-                  dueDateText={getLoanDueDateText(loan)}
-                  currencySymbol={currencySymbol}
-                  onPay={() => onPayLoan(loan, loan.installmentAmount)}
-                  onViewDetails={() => setDetailsModal({ type: 'LOAN', item: loan })}
-                />
-              )
-            }}
-            placeholder={
-              <AddCommitmentCard onClick={onAddLoan} label="Add Loan or Debt" type="loan" />
-            }
-          />
+            <CommitmentStack
+              items={activeCommitmentInstances}
+              renderItem={(instance) => {
+                const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
+                const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                return (
+                  <CommitmentCard
+                    key={instance.id}
+                    item={commitment}
+                    category={categories.find(c => c.id === commitment.categoryId)}
+                    paidAmount={paidAmount}
+                    paymentsMade={paymentsMade}
+                    dueDateText={generateDueDateText(dueDate, status)}
+                    currencySymbol={currencySymbol}
+                    onPay={() => onPayCommitment(commitment)}
+                    onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                    instanceStatus={status}
+                  />
+                )
+              }}
+              placeholder={
+                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
+              }
+            />
         </div>
       </section>
     </div>
 
-    {detailsModal?.type === 'LOAN' && (
+    {detailsModal?.type === 'COMMITMENT' && (
         <CommitmentDetailsModal
             isOpen={!!detailsModal}
             onClose={() => setDetailsModal(null)}
-            commitment={detailsModal.item as Loan}
+            commitment={detailsModal.item as Commitment}
             transactions={transactions.filter(t => t.commitmentId === detailsModal.item.id)}
             wallets={wallets}
             categories={categories}
             currencySymbol={currencySymbol}
-            onEdit={() => {
-                onEditLoan(detailsModal.item as Loan);
+            onEdit={(c) => {
+                onEditCommitment(c);
+                setDetailsModal(null);
+            }}
+            onTransactionClick={(t) => {
+                onTransactionClick(t);
                 setDetailsModal(null);
             }}
         />
@@ -463,40 +408,35 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
     )}
 
-    {overlay === 'ALL_LOANS' && (
+    {overlay === 'ALL_COMMITMENTS' && (
         <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
             <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
                 <div className="flex items-center">
                     <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
                     <h2 className="text-xl font-bold ml-2">Loans & Debts</h2>
                 </div>
-                <button onClick={onAddLoan} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
+                <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
             </div>
 
             <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
                 <div className="flex space-x-2 mb-4">
-                    <button onClick={() => setLoanFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${loanFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
-                    <button onClick={() => setLoanFilter('SETTLED')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${loanFilter === 'SETTLED' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Settled</button>
-                </div>
-                <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-                    <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
-                    <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
+                    <button onClick={() => setCommitmentFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
+                    <button onClick={() => setCommitmentFilter('SETTLED')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'SETTLED' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Settled</button>
                 </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                {loanFilter === 'ACTIVE' ? (
+                {commitmentFilter === 'ACTIVE' ? (
                     <CommitmentList
-                        items={validLoans.filter(l => loanStatusMap[l.id]?.status !== 'PAID')}
-                        renderItem={renderLoanItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active loans</div>}
+                        items={activeCommitmentInstances}
+                        renderItem={renderCommitmentItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active commitments</div>}
                     />
                 ) : (
                     <CommitmentList
-                        items={validLoans.filter(l => loanStatusMap[l.id]?.status === 'PAID')}
-                        renderItem={renderLoanItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled loans</div>}
+                        items={settledCommitments}
+                        renderItem={renderCommitmentItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled commitments</div>}
                     />
                 )}
             </div>

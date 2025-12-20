@@ -1,5 +1,4 @@
 
-
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
@@ -24,7 +23,6 @@ export interface Wallet {
   color: string;
   textColor: string;
   currency: string;
-  // Credit Card specific
   creditLimit?: number;
   statementDay?: number;
 }
@@ -52,11 +50,10 @@ export interface Transaction {
   transferToWalletId?: string;
   date: string; // ISO String
   createdAt?: number; // Timestamp for sorting same-date transactions
+  title?: string;
   description?: string;
-  // Linking to commitments
   billId?: string;
   commitmentId?: string;
-  loanId?: string;
 }
 
 export interface Category {
@@ -66,7 +63,7 @@ export interface Category {
   color: string;
 }
 
-export type RecurrenceFrequency = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+export type RecurrenceFrequency = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'NO_DUE_DATE';
 export type BillType = 'BILL' | 'SUBSCRIPTION';
 
 export interface Bill {
@@ -82,27 +79,25 @@ export interface Bill {
   endDate?: string; // ISO String
 }
 
-export enum LoanType {
+export enum CommitmentType {
   LOAN = 'LOAN',
   LENDING = 'LENDING',
 }
 
-export interface Loan {
+export interface Commitment {
   id: string;
-  type: LoanType; // To distinguish between borrowing and lending
+  type: CommitmentType;
   name: string;
   principal: number;
-  interest: number; // Total interest amount, not rate
-  fee: number; // One-time fee
-  totalAmount: number;
-  categoryId: string; // This will be either 'cat_loans' or 'cat_lending'
-  dueDay: number; // 1-31
+  interest: number;
+  fee: number;
+  categoryId: string;
+  dueDay: number;
   recurrence: RecurrenceFrequency;
   icon: string;
-  startDate: string; // ISO String
-  duration: number; // in units of recurrence, 0 for open-ended
-  installmentAmount?: number;
-  lastPaidDate?: string; // ISO String of last payment
+  startDate: string;
+  duration: number;
+  durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS';
 }
 
 export interface AppState {
@@ -111,7 +106,7 @@ export interface AppState {
   transactions: Transaction[];
   categories: Category[];
   bills: Bill[];
-  loans: Loan[];
+  commitments: Commitment[];
   currency: string;
   theme?: ThemeMode;
 }

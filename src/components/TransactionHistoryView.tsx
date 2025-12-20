@@ -1,13 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowDownUp, ArrowDown, ArrowUp, Calendar } from 'lucide-react';
-import { Transaction, Category, Wallet } from '../types';
+import { Transaction, Category, Wallet, Commitment } from '../types';
 import TransactionItem from './TransactionItem';
 
 interface TransactionHistoryViewProps {
   transactions: Transaction[];
   categories: Category[];
   wallets: Wallet[];
+  commitments: Commitment[];
   onBack: () => void;
   onTransactionClick: (t: Transaction) => void;
   currencySymbol: string;
@@ -17,7 +18,7 @@ interface TransactionHistoryViewProps {
 type FilterType = 'ALL' | 'INCOME' | 'EXPENSE' | 'TRANSFER';
 type DateRangeType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'ALL_TIME';
 
-const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transactions, categories, wallets, onBack, onTransactionClick, currencySymbol, isExiting }) => {
+const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transactions, categories, wallets, commitments, onBack, onTransactionClick, currencySymbol, isExiting }) => {
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [rangeType, setRangeType] = useState<DateRangeType>('MONTHLY');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,6 +74,7 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
   }, [filteredTransactions]);
 
   const walletMap = useMemo(() => wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>), [wallets]);
+  const commitmentMap = useMemo(() => commitments.reduce((acc, c) => ({...acc, [c.id]: c}), {} as Record<string, Commitment>), [commitments]);
 
   return (
     <div className={`fixed inset-0 bg-app-bg z-[60] flex flex-col ease-in-out ${isExiting ? 'animate-out slide-out-to-right duration-300 fill-mode-forwards' : 'animate-in slide-in-from-right duration-300'}`}>
@@ -110,7 +112,7 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
             <div key={date} className="mb-4">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-2 px-2">{date}</h3>
               <div className="bg-white rounded-2xl shadow-sm p-2">
-                {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
               </div>
             </div>
           ))
