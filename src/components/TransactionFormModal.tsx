@@ -23,7 +23,9 @@ interface TransactionFormModalProps {
 const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onClose, categories, wallets, onSave, onDelete, initialTransaction, currencySymbol, title, isExiting }) => {
   const amountInput = useCurrencyInput('');
   const feeInput = useCurrencyInput('');
+  const [transactionTitle, setTransactionTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [commitmentId, setCommitmentId] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
   const [selectedToWallet, setSelectedToWallet] = useState('');
@@ -33,26 +35,30 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
   useEffect(() => {
     if (isOpen) {
-      if (initialTransaction) {
-        amountInput.setValue(initialTransaction.amount);
-        feeInput.setValue(initialTransaction.fee || '');
-        setDescription(initialTransaction.description || '');
-        setSelectedCategory(initialTransaction.categoryId);
-        setSelectedWallet(initialTransaction.walletId);
-        setSelectedToWallet(initialTransaction.transferToWalletId || '');
-        setType(initialTransaction.type);
-        setDateVal(new Date(initialTransaction.date));
-      } else {
-        amountInput.setValue('');
-        feeInput.setValue('');
-        setDescription('');
-        setSelectedCategory(''); 
-        setSelectedWallet(''); 
-        setSelectedToWallet(''); 
-        setType(TransactionType.EXPENSE);
-        setDateVal(new Date());
-      }
-      setSelectorView('NONE');
+        if (initialTransaction) {
+            amountInput.setValue(initialTransaction.amount);
+            feeInput.setValue(initialTransaction.fee || '');
+            setTransactionTitle(initialTransaction.title || '');
+            setDescription(initialTransaction.description || '');
+            setSelectedCategory(initialTransaction.categoryId);
+            setSelectedWallet(initialTransaction.walletId);
+            setSelectedToWallet(initialTransaction.transferToWalletId || '');
+            setType(initialTransaction.type);
+            setDateVal(new Date(initialTransaction.date));
+            setCommitmentId(initialTransaction.commitmentId);
+        } else {
+            amountInput.setValue('');
+            feeInput.setValue('');
+            setTransactionTitle('');
+            setDescription('');
+            setSelectedCategory('');
+            setSelectedWallet('');
+            setSelectedToWallet('');
+            setType(TransactionType.EXPENSE);
+            setDateVal(new Date());
+            setCommitmentId(undefined);
+        }
+        setSelectorView('NONE');
     }
   }, [isOpen, initialTransaction]);
 
@@ -73,7 +79,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       walletId: selectedWallet,
       transferToWalletId: type === TransactionType.TRANSFER ? selectedToWallet : undefined,
       date: dateVal.toISOString(),
-      description
+      title: transactionTitle,
+      description,
+      commitmentId
     }, initialTransaction?.id);
     onClose();
   };
