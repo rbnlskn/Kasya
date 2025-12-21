@@ -36,19 +36,13 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
   
   const getMainText = () => {
-    if (transaction.commitmentId && transaction.description) {
-        const parts = transaction.description.split(' - ');
-        return parts[0]; // "Payment" or "Disbursement"
-    }
+    if (transaction.title) return transaction.title;
     if (isTransfer) return "Transfer";
     return category?.name || 'Uncategorized';
   };
 
   const getSubText = () => {
-    if (transaction.commitmentId && transaction.description) {
-        const parts = transaction.description.split(' - ');
-        return parts.length > 1 ? parts.slice(1).join(' - ') : commitment?.name;
-    }
+    if (transaction.commitmentId) return transaction.description || commitment?.name;
     if (isTransfer && walletMap) {
         const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
         const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
