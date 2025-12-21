@@ -50,9 +50,8 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         onClick={onViewDetails}
         className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-[170px]"
       >
-        {/* Top Section */}
         <div className="flex justify-between items-start">
-          <div className="flex items-center">
+          <div className="flex items-center flex-1 min-w-0">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
               {category?.icon}
             </div>
@@ -71,7 +70,6 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
 
-        {/* Bottom Section: Progress Bar and Pay Button */}
         <div className="flex items-center gap-3">
             <div className="flex-grow flex items-center">
               <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">

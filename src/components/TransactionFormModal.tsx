@@ -26,6 +26,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const [transactionTitle, setTransactionTitle] = useState('');
   const [description, setDescription] = useState('');
   const [commitmentId, setCommitmentId] = useState<string | undefined>();
+  const [billId, setBillId] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
   const [selectedToWallet, setSelectedToWallet] = useState('');
@@ -46,6 +47,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             setType(initialTransaction.type);
             setDateVal(new Date(initialTransaction.date));
             setCommitmentId(initialTransaction.commitmentId);
+            setBillId(initialTransaction.billId);
         } else {
             amountInput.setValue('');
             feeInput.setValue('');
@@ -57,6 +59,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             setType(TransactionType.EXPENSE);
             setDateVal(new Date());
             setCommitmentId(undefined);
+            setBillId(undefined);
         }
         setSelectorView('NONE');
     }
@@ -81,7 +84,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       date: dateVal.toISOString(),
       title: transactionTitle,
       description,
-      commitmentId
+      commitmentId,
+      billId
     }, initialTransaction?.id);
     onClose();
   };
