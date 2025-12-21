@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Plus, ChevronRight, ChevronLeft, CreditCard, Calendar, Handshake } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
@@ -66,37 +66,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const validBills = bills.filter(b => {
-    const startDate = new Date(b.startDate);
-    const endDate = b.endDate ? new Date(b.endDate) : null;
-    const today = new Date();
+      const startDate = new Date(b.startDate);
+      const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
 
-    // Deactivate if end date is in the past
-    if (endDate && endDate < today) {
-        return false;
-    }
+      const endDate = b.endDate ? new Date(b.endDate) : null;
+      const endMonthStart = endDate ? new Date(endDate.getFullYear(), endDate.getMonth(), 1) : null;
 
-    // Deactivate if start date is in the future
-    if (startDate > today) {
-        return false;
-    }
+      if (endMonthStart && currentMonthStart > endMonthStart) {
+          return false;
+      }
 
-    // Upcoming month bill logic: show only 1 week before the next month begins
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const oneWeekBeforeNextMonth = new Date(nextMonth);
-    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
-
-    const billDueDateThisMonth = new Date(today.getFullYear(), today.getMonth(), b.dueDay);
-
-    // If the bill's due date for *this* month has already passed...
-    if (today > billDueDateThisMonth) {
-        const billDueDateNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, b.dueDay);
-        // ...then only show it if we are within 1 week of the next month starting.
-        if (today < oneWeekBeforeNextMonth && billDueDateNextMonth > nextMonth) {
-            return false;
-        }
-    }
-
-    return true;
+      return currentMonthStart >= startMonthStart;
   });
 
   const sortedBills = [...validBills].sort((a,b) => {
@@ -216,21 +197,20 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="flex justify-between items-center mb-4">
              <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
         </div>
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-            <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-            <div className="flex flex-col items-center">
-                <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-            </div>
-            <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
-        </div>
     </div>
 
     <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+          <div className="flex flex-col items-center">
+              <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+          </div>
+          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+      </div>
 
       <section>
           <SectionHeader
             title="CREDIT CARDS"
-            icon={<CreditCard size={16} />}
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
@@ -264,7 +244,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
         <SectionHeader
           title="BILLS & SUBSCRIPTIONS"
-          icon={<Calendar size={16} />}
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
@@ -293,7 +272,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
           <SectionHeader
             title="LOANS & LENDING"
-            icon={<Handshake size={16} />}
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />

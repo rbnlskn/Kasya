@@ -52,11 +52,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       >
         {/* Top Section */}
         <div className="flex justify-between items-start">
-          <div className="flex items-start">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
               {category?.icon}
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
               <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
             </div>

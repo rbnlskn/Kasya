@@ -6,7 +6,6 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
-  loop?: boolean;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -14,7 +13,6 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 2,
   placeholder,
-  loop = true,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -36,15 +34,9 @@ export const CommitmentStack = <T extends { id: string }>({
 
     if (Math.abs(deltaY) > 50) { // Swipe threshold
       if (deltaY > 0) { // Swipe down
-        setActiveIndex(prev => {
-          if (!loop && prev === 0) return 0;
-          return (prev - 1 + stackItems.length) % stackItems.length;
-        });
+        setActiveIndex(prev => (prev - 1 + stackItems.length) % stackItems.length);
       } else { // Swipe up
-        setActiveIndex(prev => {
-          if (!loop && prev === stackItems.length - 1) return prev;
-          return (prev + 1) % stackItems.length;
-        });
+        setActiveIndex(prev => (prev + 1) % stackItems.length);
       }
     }
   };

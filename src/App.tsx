@@ -23,7 +23,7 @@ import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
 import AddCard from './components/AddCard';
 import AddBudgetCard from './components/AddBudgetCard';
-import { Plus, BarChart3, Loader2, Wallet as WalletIcon, PieChart, Clock, CreditCard, Calendar, Handshake } from 'lucide-react';
+import { Plus, BarChart3, Loader2 } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -461,7 +461,7 @@ const App: React.FC = () => {
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
                  <div className="grid grid-cols-1 gap-4 content-start">
                      <section>
-                         <SectionHeader title="WALLETS" icon={<WalletIcon size={16} />} onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
+                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.wallets.map((w) => (
                                 <div key={w.id} className="w-[255px] h-[150px] flex-shrink-0">
@@ -475,7 +475,7 @@ const App: React.FC = () => {
                      </section>
 
                     <section>
-                        <SectionHeader title="BUDGETS" icon={<PieChart size={16} />} onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
+                        <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.budgets.map((b) => (
                                 <div key={b.id} className="w-40 h-20 flex-shrink-0">
@@ -489,7 +489,7 @@ const App: React.FC = () => {
                     </section>
 
                     <section>
-                        <SectionHeader title="RECENT TRANSACTIONS" icon={<Clock size={16} />} onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
+                        <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
                         <div>
                             {data.transactions.length === 0 ? (
                                 <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
