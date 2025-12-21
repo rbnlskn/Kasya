@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft, CreditCard, Calendar, Handshake } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
 import SectionHeader from './SectionHeader';
@@ -10,6 +10,7 @@ import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
+import BillHistoryModal from './BillHistoryModal';
 import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 
@@ -210,6 +211,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
           <SectionHeader
             title="CREDIT CARDS"
+            icon={<CreditCard size={16} />}
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
@@ -243,6 +245,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <section>
         <SectionHeader
           title="BILLS & SUBSCRIPTIONS"
+          icon={<Calendar size={16} />}
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
@@ -270,7 +273,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       <section>
           <SectionHeader
-            title="LOANS & DEBTS"
+            title="LOANS & LENDING"
+            icon={<Handshake size={16} />}
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
@@ -304,25 +308,32 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       </section>
     </div>
 
-    {detailsModal?.type === 'COMMITMENT' && (
-        <CommitmentDetailsModal
-            isOpen={!!detailsModal}
-            onClose={() => setDetailsModal(null)}
-            commitment={detailsModal.item as Commitment}
-            transactions={transactions.filter(t => t.commitmentId === detailsModal.item.id)}
-            wallets={wallets}
-            categories={categories}
-            currencySymbol={currencySymbol}
-            onEdit={(c) => {
-                onEditCommitment(c);
-                setDetailsModal(null);
-            }}
-            onTransactionClick={(t) => {
-                onTransactionClick(t);
-                setDetailsModal(null);
-            }}
-        />
-    )}
+    {detailsModal && (
+      <CommitmentDetailsModal
+          isOpen={!!detailsModal}
+          onClose={() => setDetailsModal(null)}
+          item={detailsModal.item}
+          transactions={transactions.filter(t =>
+              (detailsModal.type === 'COMMITMENT' && t.commitmentId === detailsModal.item.id) ||
+              (detailsModal.type === 'BILL' && t.billId === detailsModal.item.id)
+          )}
+          wallets={wallets}
+          categories={categories}
+          currencySymbol={currencySymbol}
+          onEdit={(item) => {
+              if (detailsModal.type === 'COMMITMENT') {
+                  onEditCommitment(item as Commitment);
+              } else {
+                  onEditBill(item as Bill);
+              }
+              setDetailsModal(null);
+          }}
+          onTransactionClick={(t) => {
+              onTransactionClick(t);
+              setDetailsModal(null);
+          }}
+      />
+  )}
 
     {overlay === 'ALL_CREDIT_CARDS' && (
       <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
@@ -413,7 +424,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
                 <div className="flex items-center">
                     <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
-                    <h2 className="text-xl font-bold ml-2">Loans & Debts</h2>
+                    <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
                 </div>
                 <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
             </div>
