@@ -42,14 +42,14 @@ export const calculateInstallment = (commitment: Pick<Commitment, 'principal' | 
 
 /**
  * Calculates the total amount paid towards a commitment.
- * It only sums transactions with the title "Loan Payment" or "Lending Payment".
+ * It only sums transactions with descriptions starting with "Loan Payment" or "Lending Payment".
  * @param commitmentId The ID of the commitment.
  * @param transactions A list of all transactions.
  * @returns The total amount paid.
  */
 export const calculateTotalPaid = (commitmentId: string, transactions: Transaction[]): number => {
   return transactions
-    .filter(t => t.commitmentId === commitmentId && (t.title === 'Loan Payment' || t.title === 'Lending Payment'))
+    .filter(t => t.commitmentId === commitmentId && (t.description?.startsWith('Loan Payment') || t.description?.startsWith('Lending Payment')))
     .reduce((sum, t) => sum + t.amount, 0);
 };
 
@@ -60,7 +60,7 @@ export const calculateTotalPaid = (commitmentId: string, transactions: Transacti
  * @returns The number of payments.
  */
 export const calculatePaymentsMade = (commitmentId: string, transactions: Transaction[]): number => {
-    return transactions.filter(t => t.commitmentId === commitmentId && (t.title === 'Loan Payment' || t.title === 'Lending Payment')).length;
+    return transactions.filter(t => t.commitmentId === commitmentId && (t.description?.startsWith('Loan Payment') || t.description?.startsWith('Lending Payment'))).length;
 };
 
 /**

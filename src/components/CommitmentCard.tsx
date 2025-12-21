@@ -43,29 +43,31 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         onClick={onViewDetails}
         className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-[170px]"
       >
-        {/* Row 1: Loan Name and Remaining Amount */}
+        {/* Top Section */}
         <div className="flex justify-between items-start">
-            <div className="flex items-center">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-                    {category?.icon}
-                </div>
-                <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
+          {/* Left: Icon, Name, Due Date */}
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+              {category?.icon}
             </div>
-            <p className="font-bold text-gray-800 text-lg text-right whitespace-nowrap">
-                {currencySymbol}{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}
+            <div>
+              <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
+              <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+            </div>
+          </div>
+          {/* Right: Balance Info */}
+          <div className="text-right">
+            <p className="font-bold text-gray-800 text-lg whitespace-nowrap">
+              {currencySymbol}{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}
             </p>
-        </div>
-
-        {/* Row 2: Due Date and Paid/Total */}
-        <div className="flex justify-between items-center text-xs">
-            <p className="text-gray-500 font-medium">{dueDateText}</p>
-            <span className="font-medium text-gray-400 whitespace-nowrap">
-                {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+            <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+              {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
             </span>
+          </div>
         </div>
 
-        {/* Row 3: Progress Bar and Pay Button */}
-        <div className="flex items-center gap-3">
+        {/* Bottom Section: Progress Bar and Pay Button */}
+        <div className="flex items-center gap-3 mt-2">
             <div className="flex-grow flex items-center">
               <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">
                   <div
