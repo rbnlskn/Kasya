@@ -308,32 +308,40 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       </section>
     </div>
 
-    {detailsModal && (
-      <CommitmentDetailsModal
-          isOpen={!!detailsModal}
-          onClose={() => setDetailsModal(null)}
-          item={detailsModal.item}
-          transactions={transactions.filter(t =>
-              (detailsModal.type === 'COMMITMENT' && t.commitmentId === detailsModal.item.id) ||
-              (detailsModal.type === 'BILL' && t.billId === detailsModal.item.id)
-          )}
-          wallets={wallets}
-          categories={categories}
-          currencySymbol={currencySymbol}
-          onEdit={(item) => {
-              if (detailsModal.type === 'COMMITMENT') {
-                  onEditCommitment(item as Commitment);
-              } else {
-                  onEditBill(item as Bill);
-              }
-              setDetailsModal(null);
-          }}
-          onTransactionClick={(t) => {
-              onTransactionClick(t);
-              setDetailsModal(null);
-          }}
-      />
-  )}
+    {detailsModal?.type === 'COMMITMENT' && (
+        <CommitmentDetailsModal
+            isOpen={!!detailsModal}
+            onClose={() => setDetailsModal(null)}
+            commitment={detailsModal.item as Commitment}
+            transactions={transactions.filter(t => t.commitmentId === detailsModal.item.id)}
+            wallets={wallets}
+            categories={categories}
+            currencySymbol={currencySymbol}
+            onEdit={(c) => {
+                onEditCommitment(c);
+                setDetailsModal(null);
+            }}
+            onTransactionClick={(t) => {
+                onTransactionClick(t);
+                setDetailsModal(null);
+            }}
+        />
+    )}
+
+    {detailsModal?.type === 'BILL' && (
+        <BillHistoryModal
+            isOpen={!!detailsModal}
+            onClose={() => setDetailsModal(null)}
+            bill={detailsModal.item as Bill}
+            transactions={transactions.filter(t => t.billId === detailsModal.item.id)}
+            categories={categories}
+            currencySymbol={currencySymbol}
+            onEdit={(b) => {
+                onEditBill(b);
+                setDetailsModal(null);
+            }}
+        />
+    )}
 
     {overlay === 'ALL_CREDIT_CARDS' && (
       <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
