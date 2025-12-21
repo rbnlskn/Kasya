@@ -278,8 +278,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans" className="h-[170px]">
             <CommitmentStack
               items={activeCommitmentInstances}
-              maxVisible={3}
-              loop={false}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
