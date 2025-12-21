@@ -10,6 +10,7 @@ import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
+import BillHistoryModal from './BillHistoryModal';
 import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 
@@ -109,7 +110,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const paid = isBillPaid(sub);
     const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
     return (
-      <div key={sub.id} onClick={() => onEditBill(sub)} className="p-4 cursor-pointer">
+      <div key={sub.id} onClick={() => setDetailsModal({ type: 'BILL', item: sub })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -162,7 +163,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
     return (
-      <div key={commitment.id} onClick={() => onEditCommitment(commitment)} className="p-4 cursor-pointer">
+      <div key={commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -172,7 +173,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
           <div className="flex-1 min-w-0">
             <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' ? 'line-through' : ''}`}>{commitment.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status)}</p>
+            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status, commitment.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
             <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
@@ -196,16 +197,16 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="flex justify-between items-center mb-4">
              <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
         </div>
-        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
-            <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-            <div className="flex flex-col items-center">
-                <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-            </div>
-            <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
-        </div>
     </div>
 
     <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+          <div className="flex flex-col items-center">
+              <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+          </div>
+          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+      </div>
 
       <section>
           <SectionHeader
@@ -270,7 +271,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
       <section>
           <SectionHeader
-            title="LOANS & DEBTS"
+            title="LOANS & LENDING"
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
@@ -288,7 +289,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     category={categories.find(c => c.id === commitment.categoryId)}
                     paidAmount={paidAmount}
                     paymentsMade={paymentsMade}
-                    dueDateText={generateDueDateText(dueDate, status)}
+                    dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
                     currencySymbol={currencySymbol}
                     onPay={() => onPayCommitment(commitment)}
                     onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
@@ -297,7 +298,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 )
               }}
               placeholder={
-                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
+                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" height="170px" />
               }
             />
         </div>
@@ -319,6 +320,21 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             }}
             onTransactionClick={(t) => {
                 onTransactionClick(t);
+                setDetailsModal(null);
+            }}
+        />
+    )}
+
+    {detailsModal?.type === 'BILL' && (
+        <BillHistoryModal
+            isOpen={!!detailsModal}
+            onClose={() => setDetailsModal(null)}
+            bill={detailsModal.item as Bill}
+            transactions={transactions.filter(t => t.billId === detailsModal.item.id)}
+            categories={categories}
+            currencySymbol={currencySymbol}
+            onEdit={(b) => {
+                onEditBill(b);
                 setDetailsModal(null);
             }}
         />
@@ -413,7 +429,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
                 <div className="flex items-center">
                     <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
-                    <h2 className="text-xl font-bold ml-2">Loans & Debts</h2>
+                    <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
                 </div>
                 <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
             </div>

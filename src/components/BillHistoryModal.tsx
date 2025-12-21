@@ -1,42 +1,33 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { Commitment, Transaction, Wallet, Category } from '../types';
-import TransactionItem from './TransactionItem';
+import { Bill, Transaction, Category } from '../types';
 import { formatCurrency } from '../utils/number';
-import { calculateTotalObligation } from '../utils/math';
 
-interface CommitmentDetailsModalProps {
+interface BillHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  commitment: Commitment;
+  bill: Bill;
   transactions: Transaction[];
-  wallets: Wallet[];
   categories: Category[];
   currencySymbol: string;
-  onEdit: (commitment: Commitment) => void;
-  onTransactionClick: (transaction: Transaction) => void;
+  onEdit: (bill: Bill) => void;
   isExiting?: boolean;
 }
 
-const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
+const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
   isOpen,
   onClose,
-  commitment,
+  bill,
   transactions,
-  wallets,
   categories,
   currencySymbol,
   onEdit,
-  onTransactionClick,
   isExiting,
 }) => {
   if (!isOpen && !isExiting) return null;
 
-  const totalBalance = calculateTotalObligation(commitment);
-  const walletMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
-  const category = categories.find(c => c.id === commitment.categoryId);
-
+  const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const transactionsWithHeaders = sortedTransactions.reduce((acc, tx) => {
@@ -60,38 +51,38 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
               {category?.icon}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-text-primary tracking-tight">{commitment.name}</h2>
-              <p className="text-sm font-medium text-text-secondary">{formatCurrency(totalBalance)} Total</p>
+              <h2 className="text-xl font-bold text-text-primary tracking-tight">{bill.name}</h2>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button type="button" onClick={() => onEdit(commitment)} className="text-sm font-bold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg">Edit</button>
+            <button type="button" onClick={() => onEdit(bill)} className="text-sm font-bold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg">Edit</button>
             <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto -mx-6 px-6">
-          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-2 sticky top-0 bg-surface pt-2">Related Transactions</h3>
+          <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-2 sticky top-0 bg-surface pt-2">Payment History</h3>
           {transactionsWithHeaders.length > 0 ? (
             <div className="space-y-4">
               {transactionsWithHeaders.map(group => (
                 <div key={group.header}>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group.header}</h4>
-                  {group.transactions.map(tx => (
-                    <TransactionItem
-                      key={tx.id}
-                      transaction={tx}
-                      category={categories.find(c => c.id === tx.categoryId)}
-                      commitment={commitment}
-                      walletMap={walletMap}
-                      currencySymbol={currencySymbol}
-                      onClick={onTransactionClick}
-                    />
-                  ))}
+                  <div className="space-y-2">
+                    {group.transactions.map(tx => (
+                      <div key={tx.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
+                        <span className="text-sm font-medium text-text-primary">
+                          {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                        <span className="text-sm font-bold text-text-primary">
+                          {currencySymbol}{formatCurrency(tx.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center text-text-secondary py-8">No transactions found.</p>
+            <p className="text-center text-text-secondary py-8">No payment history found.</p>
           )}
         </div>
       </div>
@@ -99,4 +90,4 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
   );
 };
 
-export default CommitmentDetailsModal;
+export default BillHistoryModal;

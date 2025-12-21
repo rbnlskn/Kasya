@@ -372,7 +372,8 @@ const App: React.FC = () => {
                       categoryId: commitmentData.categoryId,
                       walletId: initialTransactionWalletId,
                       date: commitmentData.startDate,
-                      description: isLoan ? `Loan Disbursement - ${commitmentData.name}` : `Lending Disbursement - ${commitmentData.name}`,
+                      title: isLoan ? 'Loan Disbursement' : 'Lending Disbursement',
+                      description: commitmentData.name,
                       commitmentId: newCommitmentId
                   };
                   handleSaveTransaction(tx);
@@ -392,7 +393,7 @@ const App: React.FC = () => {
   const handlePayBill = (bill: Bill) => {
       const category = data.categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6')) || data.categories[0];
       setSelectedBillId(bill.id);
-      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString(), billId: bill.id });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };
@@ -401,12 +402,13 @@ const App: React.FC = () => {
     setSelectedCommitmentId(commitment.id);
     const paymentAmount = amount || calculateInstallment(commitment) || 0;
     const isLending = commitment.type === CommitmentType.LENDING;
-    const title = isLending ? "Lending Payment" : "Loan Payment";
+    const title = isLending ? 'Lending Payment' : 'Loan Payment';
 
     setPresetTransaction({
         amount: paymentAmount,
         type: isLending ? TransactionType.INCOME : TransactionType.EXPENSE,
-        description: `${title} - ${commitment.name}`,
+        title: title,
+        description: commitment.name,
         categoryId: commitment.categoryId,
         date: new Date().toISOString(),
         commitmentId: commitment.id
@@ -467,7 +469,7 @@ const App: React.FC = () => {
                                 </div>
                             ))}
                             <div className="w-[255px] h-[150px] flex-shrink-0">
-                                 <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" scale={0.75} />
+                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
                             </div>
                          </div>
                      </section>
