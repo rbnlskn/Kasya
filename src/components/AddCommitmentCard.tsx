@@ -6,16 +6,17 @@ interface AddCommitmentCardProps {
   onClick: () => void;
   label?: string;
   type: 'bill' | 'loan';
+  height?: string;
 }
 
 const AddCommitmentCard: React.FC<AddCommitmentCardProps> = ({
   onClick,
   label = 'Add New',
   type,
+  height: customHeight,
 }) => {
-  // Bills are ~92px, Loans are ~116px.
-  // This ensures the ghost card matches the real card height.
-  const height = type === 'bill' ? '92px' : '116px';
+  const defaultHeight = type === 'bill' ? '92px' : '116px';
+  const height = customHeight || defaultHeight;
 
   return (
     <div

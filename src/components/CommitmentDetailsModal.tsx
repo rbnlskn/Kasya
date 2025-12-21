@@ -39,6 +39,17 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
 
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const transactionsWithHeaders = sortedTransactions.reduce((acc, tx) => {
+    const date = new Date(tx.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const last = acc[acc.length - 1];
+    if (last && last.header === date) {
+      last.transactions.push(tx);
+    } else {
+      acc.push({ header: date, transactions: [tx] });
+    }
+    return acc;
+  }, [] as { header: string, transactions: Transaction[] }[]);
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4 pb-safe">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose}></div>
@@ -60,18 +71,25 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
         </div>
         <div className="flex-1 overflow-y-auto -mx-6 px-6">
           <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-2 sticky top-0 bg-surface pt-2">Related Transactions</h3>
-          {sortedTransactions.length > 0 ? (
-            sortedTransactions.map(tx => (
-              <TransactionItem
-                key={tx.id}
-                transaction={tx}
-                category={categories.find(c => c.id === tx.categoryId)}
-                commitment={commitment}
-                walletMap={walletMap}
-                currencySymbol={currencySymbol}
-                onClick={onTransactionClick}
-              />
-            ))
+          {transactionsWithHeaders.length > 0 ? (
+            <div className="space-y-4">
+              {transactionsWithHeaders.map(group => (
+                <div key={group.header}>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group.header}</h4>
+                  {group.transactions.map(tx => (
+                    <TransactionItem
+                      key={tx.id}
+                      transaction={tx}
+                      category={categories.find(c => c.id === tx.categoryId)}
+                      commitment={commitment}
+                      walletMap={walletMap}
+                      currencySymbol={currencySymbol}
+                      onClick={onTransactionClick}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="text-center text-text-secondary py-8">No transactions found.</p>
           )}

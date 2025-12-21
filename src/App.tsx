@@ -393,7 +393,7 @@ const App: React.FC = () => {
   const handlePayBill = (bill: Bill) => {
       const category = data.categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6')) || data.categories[0];
       setSelectedBillId(bill.id);
-      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString() });
+      setPresetTransaction({ amount: bill.amount, type: TransactionType.EXPENSE, description: bill.name, categoryId: category.id, date: new Date().toISOString(), billId: bill.id });
       setTransactionModalTitle("Make Payment");
       handleOpenModal('TX_FORM');
   };

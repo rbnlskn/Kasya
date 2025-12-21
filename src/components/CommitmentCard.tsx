@@ -34,6 +34,13 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     const commitment = item as Commitment;
     const isLending = commitment.type === CommitmentType.LENDING;
     const totalObligation = calculateTotalObligation(commitment);
+    const installmentAmount = calculateInstallment(commitment);
+    let displayAmount = 0;
+    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
+        displayAmount = totalObligation - paidAmount;
+    } else {
+        displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
+    }
     const remainingBalance = totalObligation - paidAmount;
     const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
     const paymentsTotal = commitment.duration || '∞';
@@ -45,9 +52,8 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       >
         {/* Top Section */}
         <div className="flex justify-between items-start">
-          {/* Left: Icon, Name, Due Date */}
-          <div className="flex items-center">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+          <div className="flex items-start">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
               {category?.icon}
             </div>
             <div>
@@ -55,10 +61,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
               <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
             </div>
           </div>
-          {/* Right: Balance Info */}
-          <div className="text-right">
+          <div className="text-right flex-shrink-0 pl-2">
             <p className="font-bold text-gray-800 text-lg whitespace-nowrap">
-              {currencySymbol}{formatCurrency(remainingBalance < 0 ? 0 : remainingBalance)}
+              {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
             </p>
             <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
               {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
@@ -67,7 +72,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
 
         {/* Bottom Section: Progress Bar and Pay Button */}
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3">
             <div className="flex-grow flex items-center">
               <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">
                   <div

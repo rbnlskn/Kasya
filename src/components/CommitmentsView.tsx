@@ -66,18 +66,37 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const validBills = bills.filter(b => {
-      const startDate = new Date(b.startDate);
-      const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const startDate = new Date(b.startDate);
+    const endDate = b.endDate ? new Date(b.endDate) : null;
+    const today = new Date();
 
-      const endDate = b.endDate ? new Date(b.endDate) : null;
-      const endMonthStart = endDate ? new Date(endDate.getFullYear(), endDate.getMonth(), 1) : null;
+    // Deactivate if end date is in the past
+    if (endDate && endDate < today) {
+        return false;
+    }
 
-      if (endMonthStart && currentMonthStart > endMonthStart) {
-          return false;
-      }
+    // Deactivate if start date is in the future
+    if (startDate > today) {
+        return false;
+    }
 
-      return currentMonthStart >= startMonthStart;
+    // Upcoming month bill logic: show only 1 week before the next month begins
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const oneWeekBeforeNextMonth = new Date(nextMonth);
+    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+
+    const billDueDateThisMonth = new Date(today.getFullYear(), today.getMonth(), b.dueDay);
+
+    // If the bill's due date for *this* month has already passed...
+    if (today > billDueDateThisMonth) {
+        const billDueDateNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, b.dueDay);
+        // ...then only show it if we are within 1 week of the next month starting.
+        if (today < oneWeekBeforeNextMonth && billDueDateNextMonth > nextMonth) {
+            return false;
+        }
+    }
+
+    return true;
   });
 
   const sortedBills = [...validBills].sort((a,b) => {
@@ -110,7 +129,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const paid = isBillPaid(sub);
     const category = categories.find(c => c.id === (sub.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
     return (
-      <div key={sub.id} onClick={() => onEditBill(sub)} className="p-4 cursor-pointer">
+      <div key={sub.id} onClick={() => setDetailsModal({ type: 'BILL', item: sub })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -163,7 +182,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
     return (
-      <div key={commitment.id} onClick={() => onEditCommitment(commitment)} className="p-4 cursor-pointer">
+      <div key={commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -173,7 +192,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
           <div className="flex-1 min-w-0">
             <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' ? 'line-through' : ''}`}>{commitment.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status)}</p>
+            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status, commitment.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
             <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
@@ -281,6 +300,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans" className="h-[170px]">
             <CommitmentStack
               items={activeCommitmentInstances}
+              maxVisible={3}
+              loop={false}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
@@ -292,7 +313,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     category={categories.find(c => c.id === commitment.categoryId)}
                     paidAmount={paidAmount}
                     paymentsMade={paymentsMade}
-                    dueDateText={generateDueDateText(dueDate, status)}
+                    dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
                     currencySymbol={currencySymbol}
                     onPay={() => onPayCommitment(commitment)}
                     onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
@@ -301,7 +322,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 )
               }}
               placeholder={
-                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" />
+                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" height="170px" />
               }
             />
         </div>

@@ -39,8 +39,8 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
         case 'YEARLY':
             periodStart.setFullYear(dueDate.getFullYear() - 1);
             break;
-        default:
-             return calculateTotalPaid(commitment.id, transactions) > 0;
+        case 'ONE_TIME':
+            return calculateTotalPaid(commitment.id, transactions) > 0;
     }
 
     return transactions.some(t =>
@@ -104,7 +104,8 @@ export const getActiveCommitmentInstance = (
     return { commitment, dueDate: installmentDate, status };
 };
 
-export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus): string => {
+export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus, recurrence?: RecurrenceFrequency): string => {
+    if (recurrence === 'NO_DUE_DATE') return 'No Due Date';
     const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     if (status === 'OVERDUE') return `Overdue • ${specificDate}`;
     if (status === 'DUE') return `Due Today • ${specificDate}`;
