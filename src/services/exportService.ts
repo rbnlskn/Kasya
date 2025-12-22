@@ -1,5 +1,6 @@
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { Capacitor } from '@capacitor/core';
 import { AppState } from '../types';
 
@@ -26,40 +27,28 @@ export const exportBackup = async (data: AppState): Promise<{ success: boolean; 
 
   try {
     const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
-
-    // Write to Cache directory (no permissions needed)
-    const result = await Filesystem.writeFile({
-        path: fileName,
-        data: JSON.stringify(data, null, 2),
-        directory: Directory.Cache,
-        encoding: Encoding.UTF8,
+    const result = await FilePicker.saveFile({
+      name: fileName,
+      data: btoa(JSON.stringify(data, null, 2)),
     });
 
-    // Share the file
-    await Share.share({
-        title: 'Backup Kasya Data',
-        text: 'Here is your backup file.',
-        url: result.uri,
-        dialogTitle: 'Save Backup'
-    });
+    return { success: true, message: 'Backup file has been saved.' };
 
-    return { success: true, message: 'Backup ready to share/save.' };
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Backup failed:', error);
     return { success: false, message: 'Failed to generate backup.' };
   }
 };
 
 export const downloadTransactionTemplate = async (): Promise<{ success: boolean; message: string }> => {
+    const csvContent = [
+        "Date,Time,Type,Amount,Wallet,Category,Description",
+        "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
+        "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
+        "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
+    ].join('\n');
+
     if (!Capacitor.isNativePlatform()) {
-         // For web
-        const csvContent = [
-            "Date,Time,Type,Amount,Wallet,Category,Description",
-            "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
-            "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
-            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
-        ].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -71,33 +60,13 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
     }
 
     try {
-        const fileName = 'Kasya-Transaction-Template.csv';
-        const csvContent = [
-            "Date,Time,Type,Amount,Wallet,Category,Description",
-            "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
-            "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
-            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
-        ].join('\n');
-
-        // Write to Cache directory
-        const result = await Filesystem.writeFile({
-            path: fileName,
-            data: csvContent,
-            directory: Directory.Cache,
-            encoding: Encoding.UTF8,
+        await FilePicker.saveFile({
+            name: 'Kasya-Transaction-Template.csv',
+            data: btoa(csvContent),
         });
-
-        // Share the file
-        await Share.share({
-            title: 'Kasya Transaction Template',
-            url: result.uri,
-            dialogTitle: 'Save Template'
-        });
-
-        return { success: true, message: 'Template ready to share/save.' };
-
+        return { success: true, message: 'Template saved successfully.' };
     } catch (error) {
         console.error('Template download failed:', error);
-        return { success: false, message: 'Failed to generate template.' };
+        return { success: false, message: 'Failed to save template.' };
     }
 };

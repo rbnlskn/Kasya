@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
+import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
 import { CURRENCIES } from '../data/currencies';
 import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
@@ -19,7 +20,6 @@ interface SettingsViewProps {
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCategories, onViewTransactions, onImport, onReset, onCurrencyChange }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
   const [appVersion, setAppVersion] = useState('');
@@ -51,110 +51,101 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
     });
   }
 
-  const handleImportClick = () => {
-     // Ensure ref exists and click it.
-     // This native HTML input click works reliably across Capacitor WebViews for file picking
-     // without needing extra permissions.
-     if(fileInputRef.current) {
-         fileInputRef.current.click();
-     }
-  };
+  const handleImport = async () => {
+    try {
+      const result = await FilePicker.pickFiles({
+        types: ['application/json', 'text/csv'],
+        readData: true,
+      });
+      const file = result.files[0];
+      if (!file.data) {
+        throw new Error('File data is missing');
+      }
+      const data = atob(file.data);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        try {
-            const result = event.target?.result as string;
-            if (file.name.endsWith('.json')) {
-                const parsed = JSON.parse(result);
-                if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
-                    onImport(parsed);
-                    alert('Data imported successfully!');
-                } else { throw new Error('Invalid JSON structure'); }
-            } else if (file.name.endsWith('.csv')) {
-                const lines = result.split(/\r?\n/);
-                if (lines.length < 2) {
-                    alert('CSV file is empty or has no data rows.');
-                    return;
-                }
+      if (file.name.endsWith('.json')) {
+          const parsed = JSON.parse(data);
+          if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
+              onImport(parsed);
+              alert('Data imported successfully!');
+          } else { throw new Error('Invalid JSON structure'); }
+      } else if (file.name.endsWith('.csv')) {
+          const lines = data.split(/\r?\n/);
+          if (lines.length < 2) {
+              alert('CSV file is empty or has no data rows.');
+              return;
+          }
 
-                const headers = lines[0].split(',').map(h => h.trim());
-                const dataRows = lines.slice(1);
+          const headers = lines[0].split(',').map(h => h.trim());
+          const dataRows = lines.slice(1);
 
-                const newTransactions: Transaction[] = [];
-                let skippedCount = 0;
+          const newTransactions: Transaction[] = [];
+          let skippedCount = 0;
 
-                dataRows.forEach((line, index) => {
-                    if (!line.trim()) return; // Skip empty rows
-                    const values = line.split(',');
+          dataRows.forEach((line, index) => {
+              if (!line.trim()) return; // Skip empty rows
+              const values = line.split(',');
 
-                    // Create an object from headers and values
-                    const row = headers.reduce((obj, header, i) => {
-                        obj[header.toLowerCase()] = values[i]?.trim();
-                        return obj;
-                    }, {} as Record<string, string>);
+              const row = headers.reduce((obj, header, i) => {
+                  obj[header.toLowerCase()] = values[i]?.trim();
+                  return obj;
+              }, {} as Record<string, string>);
 
 
-                    const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === row.wallet?.toLowerCase());
-                    const category = data.categories.find(c => c.name.trim().toLowerCase() === row.category?.toLowerCase());
+              const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === row.wallet?.toLowerCase());
+              const category = data.categories.find(c => c.name.trim().toLowerCase() === row.category?.toLowerCase());
 
-                    if (!wallet || !category || !row.date || !row.type || !row.amount) {
-                        console.warn(`Skipping line ${index + 2}: Missing required data, or Wallet/Category not found.`);
-                        skippedCount++;
-                        return;
-                    }
+              if (!wallet || !category || !row.date || !row.type || !row.amount) {
+                  console.warn(`Skipping line ${index + 2}: Missing required data, or Wallet/Category not found.`);
+                  skippedCount++;
+                  return;
+              }
 
-                    // Robust date parsing
-                    let parsedDate;
-                    if (row.date.includes('-')) { // YYYY-MM-DD
-                        parsedDate = new Date(row.date + (row.time ? `T${row.time}` : 'T00:00:00'));
-                    } else if (row.date.includes('/')) { // MM/DD/YYYY
-                        const parts = row.date.split('/');
-                        const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-                        parsedDate = new Date(isoDate + (row.time ? `T${row.time}` : 'T00:00:00'));
-                    } else {
-                        parsedDate = new Date(row.date + (row.time ? ` ${row.time}` : ''));
-                    }
+              let parsedDate;
+              if (row.date.includes('-')) {
+                  parsedDate = new Date(row.date + (row.time ? `T${row.time}` : 'T00:00:00'));
+              } else if (row.date.includes('/')) {
+                  const parts = row.date.split('/');
+                  const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
+                  parsedDate = new Date(isoDate + (row.time ? `T${row.time}` : 'T00:00:00'));
+              } else {
+                  parsedDate = new Date(row.date + (row.time ? ` ${row.time}` : ''));
+              }
 
-                    if (isNaN(parsedDate.getTime())) {
-                        console.warn(`Skipping line ${index + 2}: Invalid date format.`);
-                        skippedCount++;
-                        return;
-                    }
+              if (isNaN(parsedDate.getTime())) {
+                  console.warn(`Skipping line ${index + 2}: Invalid date format.`);
+                  skippedCount++;
+                  return;
+              }
 
-                    newTransactions.push({
-                        id: `tx_csv_${Date.now()}_${index}`,
-                        date: parsedDate.toISOString(),
-                        type: row.type.toUpperCase() as TransactionType,
-                        amount: parseFloat(row.amount),
-                        walletId: wallet.id,
-                        categoryId: category.id,
-                        description: row.description || '',
-                        createdAt: Date.now() + index,
-                    });
-                });
+              newTransactions.push({
+                  id: `tx_csv_${Date.now()}_${index}`,
+                  date: parsedDate.toISOString(),
+                  type: row.type.toUpperCase() as TransactionType,
+                  amount: parseFloat(row.amount),
+                  walletId: wallet.id,
+                  categoryId: category.id,
+                  description: row.description || '',
+                  createdAt: Date.now() + index,
+              });
+          });
 
-                if (newTransactions.length > 0) {
-                    const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) };
-                    onImport(updatedData);
-                    let alertMessage = `${newTransactions.length} transactions imported successfully!`;
-                    if (skippedCount > 0) {
-                        alertMessage += `\n${skippedCount} rows were skipped due to errors.`;
-                    }
-                    alert(alertMessage);
-                } else {
-                    alert('No new transactions were imported. Please check the CSV file format and content.');
-                }
-            }
-        } catch (err) {
-            console.error("Import error:", err);
-            alert('Failed to import data. Please ensure the file is a valid backup or correctly formatted CSV.');
-        }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+          if (newTransactions.length > 0) {
+              const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) };
+              onImport(updatedData);
+              let alertMessage = `${newTransactions.length} transactions imported successfully!`;
+              if (skippedCount > 0) {
+                  alertMessage += `\n${skippedCount} rows were skipped due to errors.`;
+              }
+              alert(alertMessage);
+          } else {
+              alert('No new transactions were imported. Please check the CSV file format and content.');
+          }
+      }
+    } catch (err) {
+        console.error("Import error:", err);
+        alert('Failed to import data. Please ensure the file is a valid backup or correctly formatted CSV.');
+    }
   };
   
   const handleFullReset = () => {
@@ -202,7 +193,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
           <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-widest mb-4 px-2">Data Management</h3>
           <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
             <SettingItem icon={<Download className="w-5 h-5" />} label="Backup Data" onClick={() => setShowBackupSheet(true)} />
-            <SettingItem icon={<Upload className="w-5 h-5" />} label="Import Backup" onClick={handleImportClick} />
+            <SettingItem icon={<Upload className="w-5 h-5" />} label="Import Backup" onClick={handleImport} />
             <SettingItem icon={<Trash2 className="w-5 h-5" />} label="Reset App" isDanger onClick={handleFullReset} />
           </div>
         </section>
@@ -212,8 +203,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
              <p className="text-[10px] text-text-secondary mt-1">Local First • Privacy Focused</p>
         </section>
       </div>
-
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json,.csv" />
 
       {/* Backup Modal */}
       {showBackupSheet && (

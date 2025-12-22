@@ -33,7 +33,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
                 <Sparkle className="w-5 h-5" />
             </button>
             
-            <button onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
+            <button data-testid="settings-button" onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
                 <Settings className="w-5 h-5" />
             </button>
         </div>
