@@ -3,7 +3,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
-import { FilePicker } from '@capawesome/capacitor-file-picker';
 import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
 import { CURRENCIES } from '../data/currencies';
 import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
@@ -61,16 +60,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
       if (!file.data) {
         throw new Error('File data is missing');
       }
-      const data = atob(file.data);
+      const fileContent = atob(file.data);
 
       if (file.name.endsWith('.json')) {
-          const parsed = JSON.parse(data);
+          const parsed = JSON.parse(fileContent);
           if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
               onImport(parsed);
               alert('Data imported successfully!');
           } else { throw new Error('Invalid JSON structure'); }
       } else if (file.name.endsWith('.csv')) {
-          const lines = data.split(/\r?\n/);
+          const lines = fileContent.split(/\r?\n/);
           if (lines.length < 2) {
               alert('CSV file is empty or has no data rows.');
               return;
