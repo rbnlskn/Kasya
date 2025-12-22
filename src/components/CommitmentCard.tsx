@@ -48,28 +48,22 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     return (
       <div
         onClick={onViewDetails}
-        className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between w-full flex-shrink-0 h-[170px]"
+        className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col w-full flex-shrink-0 gap-3"
       >
-        <div className="flex justify-between items-start">
-          <div className="flex items-center flex-1 min-w-0">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-              {category?.icon}
+        <div>
+            <div className="flex justify-between items-baseline">
+                <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
+                <p className="font-bold text-gray-800 text-md whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
+                </p>
             </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
-              <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+            <div className="flex justify-between items-baseline mt-1">
+                <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+                <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
+                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+                </span>
             </div>
-          </div>
-          <div className="text-right flex-shrink-0 pl-2">
-            <p className="font-bold text-gray-800 text-lg whitespace-nowrap">
-              {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
-            </p>
-            <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
-              {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
-            </span>
-          </div>
         </div>
-
         <div className="flex items-center gap-3">
             <div className="flex-grow flex items-center">
               <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">

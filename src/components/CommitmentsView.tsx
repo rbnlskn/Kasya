@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
+import AddCard from './AddCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
 import AddCommitmentCard from './AddCommitmentCard';
@@ -238,6 +239,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                       </div>
                   )
               })}
+              <div className="w-[255px] h-[150px] flex-shrink-0">
+                <AddCard onClick={onAddCreditCard} label="Add Credit Card" />
+              </div>
           </div>
       </section>
 
