@@ -1,7 +1,7 @@
 ---
 name: Batch Task (Multi-Issue)
 about: Group multiple small issues into a single Jules session to save costs
-title: 'Batch Update: [Topic]'
+title: '[BATCH] '
 labels: backlog
 assignees: ''
 ---
