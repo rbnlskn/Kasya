@@ -76,7 +76,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             {wallet.name}
           </span>
         </div>
-        </div>
       </div>
 
       {/* Card Footer */}
