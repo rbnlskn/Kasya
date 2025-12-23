@@ -101,7 +101,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col"
+      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
       style={{ minHeight: '178px' }}
     >
       <div className="flex items-center">
@@ -117,16 +117,14 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col justify-end">
-          <div className="flex gap-3 h-[68px]">
-            {renderInfoBox()}
-            <button
+      <div className="flex gap-3 h-[68px]">
+        {renderInfoBox()}
+        <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
           className={`w-[68px] h-full ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 rounded-xl transition flex items-center justify-center shrink-0`}
         >
           <span className="font-bold text-sm tracking-wide">{isLending ? 'Collect' : 'Pay'}</span>
         </button>
-          </div>
       </div>
     </div>
   );
