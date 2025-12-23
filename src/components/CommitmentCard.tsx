@@ -101,14 +101,14 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       onClick={onViewDetails}
       className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
     >
-      <div className="flex items-center mb-3">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+      <div className="flex items-start mb-3">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
           {category?.icon}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-baseline">
-            <h3 className="font-bold text-slate-800 text-lg truncate">{item.name}</h3>
-            <h3 className="font-extrabold text-lg text-pink-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
+        <div className="flex-1 min-w-0 pt-0.5">
+          <div className="flex justify-between items-start">
+            <h3 className="font-bold text-slate-800 text-base leading-tight truncate pr-2">{item.name}</h3>
+            <h3 className="font-extrabold text-base text-pink-600 ml-2 whitespace-nowrap leading-tight">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
           <p className="text-slate-400 text-xs font-medium">{dueDateText}</p>
         </div>
@@ -118,7 +118,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
-          className={`w-[68px] h-full ${isLending ? 'bg-green-600 hover:bg-green-500 shadow-green-600/30' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'} active:scale-95 text-white rounded-xl shadow-lg transition flex items-center justify-center shrink-0`}
+          className={`w-[68px] h-full ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 rounded-xl transition flex items-center justify-center shrink-0`}
         >
           <span className="font-bold text-sm tracking-wide">{isLending ? 'Collect' : 'Pay'}</span>
         </button>
