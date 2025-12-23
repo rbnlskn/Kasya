@@ -131,3 +131,11 @@ export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceSta
     if (status === 'UPCOMING') return `Due ${specificDate}`;
     return specificDate;
 };
+
+export const findLastPayment = (billId: string, transactions: Transaction[]): Transaction | null => {
+  const billPayments = transactions
+    .filter(t => t.billId === billId)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return billPayments.length > 0 ? billPayments[0] : null;
+};

@@ -15,6 +15,7 @@ interface CommitmentCardProps {
   onPay: () => void;
   onViewDetails: () => void;
   instanceStatus?: CommitmentInstanceStatus;
+  lastPaymentAmount?: number;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -27,97 +28,100 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onPay,
   onViewDetails,
   instanceStatus,
+  lastPaymentAmount,
 }) => {
   const isCommitment = 'principal' in item;
 
-  if (isCommitment) {
-    const commitment = item as Commitment;
-    const isLending = commitment.type === CommitmentType.LENDING;
-    const totalObligation = calculateTotalObligation(commitment);
-    const installmentAmount = calculateInstallment(commitment);
-    let displayAmount = 0;
-    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
-        displayAmount = totalObligation - paidAmount;
-    } else {
-        displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
-    }
-    const remainingBalance = totalObligation - paidAmount;
-    const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
-    const paymentsTotal = commitment.duration || '∞';
+  const renderInfoBox = () => {
+    if (isCommitment) {
+      const commitment = item as Commitment;
+      const totalObligation = calculateTotalObligation(commitment);
+      const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
+      const isLending = commitment.type === CommitmentType.LENDING;
 
+      return (
+        <div className="flex-1 bg-slate-50 rounded-xl px-4 border border-slate-100 flex flex-col justify-center gap-1.5">
+          <div className="flex justify-between items-center leading-none">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
+            <span className="text-[10px] font-bold text-slate-600">{Math.round(progress)}%</span>
+          </div>
+          <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${isLending ? 'bg-green-500' : 'bg-blue-600'} rounded-full`}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between items-center leading-none">
+            <span className="text-[11px] font-medium text-slate-400">
+              Paid: <span className="text-slate-600">{currencySymbol}{formatCurrency(paidAmount)}</span>
+            </span>
+            <span className="text-[11px] font-medium text-slate-400">/ {currencySymbol}{formatCurrency(totalObligation)}</span>
+          </div>
+        </div>
+      );
+    }
+
+    // Bill Info Box
+    const bill = item as Bill;
     return (
-      <div
-        onClick={onViewDetails}
-        className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col w-full flex-shrink-0 gap-3"
-      >
-        <div className="flex items-center">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-                {category?.icon}
+        <div className="flex-1 bg-slate-50 rounded-xl px-4 border border-slate-100 flex flex-col justify-center gap-2">
+            <div className="flex justify-between items-center leading-none">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Period</span>
+                <span className="text-[11px] font-bold text-slate-700">{dueDateText}</span>
             </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline">
-                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
-                    <p className="font-bold text-gray-800 text-md whitespace-nowrap">
-                        {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
-                    </p>
-                </div>
-            <div className="flex justify-between items-baseline mt-1">
-                <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
-                <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
+            <div className="w-full border-t border-dashed border-slate-300/60"></div>
+            <div className="flex justify-between items-center leading-none">
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last Pay</span>
+                <span className="text-[11px] font-bold text-slate-500">
+                  {lastPaymentAmount !== undefined ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}
                 </span>
             </div>
-            </div>
         </div>
-        <div className="flex items-center gap-3">
-            <div className="flex-grow flex items-center">
-                <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">
-                    <div
-                        className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-2 rounded-full`}
-                        style={{ width: `${progress}%` }}
-                    ></div>
-                </div>
-                {commitment.recurrence !== 'NO_DUE_DATE' && (
-                    <span className="text-xs font-bold text-gray-400 ml-2">{paymentsMade}/{paymentsTotal}</span>
-                )}
-            </div>
-            <div className="w-24 text-right">
-                <button
-                    onClick={(e) => { e.stopPropagation(); onPay(); }}
-                    className={`text-sm font-black px-5 py-2.5 rounded-xl active:scale-95 transition-transform h-full ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
-                >
-                    {isLending ? 'Collect' : 'Pay'}
-                </button>
-            </div>
-        </div>
-      </div>
     );
+  };
+
+  const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
+  let displayAmount = 0;
+  if (isCommitment) {
+      const commitment = item as Commitment;
+      const totalObligation = calculateTotalObligation(commitment);
+      const installmentAmount = calculateInstallment(commitment);
+      if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
+          displayAmount = totalObligation - paidAmount;
+      } else {
+          displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
+      }
+  } else {
+      displayAmount = (item as Bill).amount;
   }
 
-  // Bill section
-  const bill = item as Bill;
+
   return (
-    <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex items-center justify-between w-full flex-shrink-0">
-      <div className="flex items-center flex-1 min-w-0">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+    <div
+      onClick={onViewDetails}
+      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
+    >
+      <div className="flex items-center mb-3">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
           {category?.icon}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
-            <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
-            <p className="font-bold text-gray-800 text-md text-right whitespace-nowrap">
-              {currencySymbol}{formatCurrency(bill.amount)}
-            </p>
+            <h3 className="font-bold text-slate-800 text-lg truncate">{item.name}</h3>
+            <h3 className="font-extrabold text-lg text-pink-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
-          <div className="flex justify-between items-baseline mt-1">
-            <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
-            <div className="w-16 text-right">
-              <button onClick={(e) => { e.stopPropagation(); onPay(); }} className="text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform bg-blue-100 text-blue-800">
-                Pay
-              </button>
-            </div>
-          </div>
+          <p className="text-slate-400 text-xs font-medium">{dueDateText}</p>
         </div>
+      </div>
+
+      <div className="flex gap-3 h-[68px]">
+        {renderInfoBox()}
+        <button
+          onClick={(e) => { e.stopPropagation(); onPay(); }}
+          className={`w-[68px] h-full ${isLending ? 'bg-green-600 hover:bg-green-500 shadow-green-600/30' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'} active:scale-95 text-white rounded-xl shadow-lg transition flex items-center justify-center shrink-0`}
+        >
+          <span className="font-bold text-sm tracking-wide">{isLending ? 'Collect' : 'Pay'}</span>
+        </button>
       </div>
     </div>
   );

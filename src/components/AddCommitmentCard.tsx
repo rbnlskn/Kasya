@@ -5,25 +5,17 @@ import { Plus } from 'lucide-react';
 interface AddCommitmentCardProps {
   onClick: () => void;
   label?: string;
-  type: 'bill' | 'loan';
-  height?: string;
 }
 
 const AddCommitmentCard: React.FC<AddCommitmentCardProps> = ({
   onClick,
   label = 'Add New',
-  type,
-  height: customHeight,
 }) => {
-  const defaultHeight = type === 'bill' ? '92px' : '100%';
-  const height = customHeight || defaultHeight;
-
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-3xl p-4 shadow-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full flex-shrink-0"
-      style={{ height }}
-      data-testid={`add-commitment-${type}-button`}
+      className="bg-white rounded-3xl p-4 shadow-sm border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full h-full"
+      style={{ minHeight: '178px' }}
     >
       <div className="text-center text-gray-400">
         <Plus className="w-8 h-8 mx-auto" />

@@ -6,6 +6,7 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
+  cardHeight: number;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -13,6 +14,7 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 2,
   placeholder,
+  cardHeight,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -41,11 +43,13 @@ export const CommitmentStack = <T extends { id: string }>({
     }
   };
 
-  const cardSpacing = 12;
+  const cardSpacing = 8;
+  const totalHeight = cardHeight + (Math.min(displayItems.length, maxVisible) * cardSpacing);
 
   return (
     <div
       className="relative"
+      style={{ height: `${totalHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
