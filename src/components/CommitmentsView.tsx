@@ -138,7 +138,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
           <div className="flex-1 min-w-0">
             <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${paid ? 'line-through' : ''}`}>{sub.name}</h4>
-            <p className="text-xs text-gray-400">{getBillDueDateText(sub)}</p>
+            <p className="text-xs text-gray-400">{getBillDueDateText(sub, false)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
             <span className={`block font-bold text-sm text-gray-800 ${paid ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(sub.amount)}</span>

@@ -30,6 +30,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onViewDetails,
   instanceStatus,
   lastPaymentAmount,
+  isOverdue,
 }) => {
   const isCommitment = 'principal' in item;
 
