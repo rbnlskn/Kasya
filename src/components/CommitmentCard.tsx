@@ -16,6 +16,7 @@ interface CommitmentCardProps {
   onViewDetails: () => void;
   instanceStatus?: CommitmentInstanceStatus;
   lastPaymentAmount?: number;
+  isOverdue?: boolean;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -99,18 +100,18 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
+      className="w-full bg-white rounded-3xl p-3 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
     >
-      <div className="flex items-start mb-3">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-sm flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+      <div className="flex items-start mb-2.5">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shadow-sm flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
           {category?.icon}
         </div>
-        <div className="flex-1 min-w-0 pt-0.5">
+        <div className="flex-1 min-w-0 pt-0">
           <div className="flex justify-between items-start">
-            <h3 className="font-bold text-slate-800 text-base leading-tight truncate pr-2">{item.name}</h3>
-            <h3 className="font-extrabold text-base text-pink-600 ml-2 whitespace-nowrap leading-tight">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
+            <h3 className="font-bold text-slate-800 text-sm leading-tight truncate pr-2">{item.name}</h3>
+            <h3 className="font-extrabold text-sm text-blue-600 ml-2 whitespace-nowrap leading-tight">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
-          <p className="text-slate-400 text-xs font-medium">{dueDateText}</p>
+          <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{dueDateText}</p>
         </div>
       </div>
 

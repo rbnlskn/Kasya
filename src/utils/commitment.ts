@@ -197,3 +197,34 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
     return dateA.getTime() - dateB.getTime();
   });
 };
+
+export const getBillingPeriod = (bill: any, currentDate: Date = new Date()): string => {
+  if (bill.dueDay === 0) return 'No Due Date';
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const dueDay = bill.dueDay;
+
+  const dueDate = new Date(year, month, dueDay);
+
+  // Calculate the start date of the period
+  let startDate = new Date(dueDate);
+  switch (bill.recurrence) {
+    case 'WEEKLY':
+      startDate.setDate(dueDate.getDate() - 6);
+      break;
+    case 'MONTHLY':
+      startDate.setMonth(dueDate.getMonth() - 1);
+      startDate.setDate(dueDate.getDate() + 1);
+      break;
+    case 'YEARLY':
+      startDate.setFullYear(dueDate.getFullYear() - 1);
+      startDate.setDate(dueDate.getDate() + 1);
+      break;
+    default: // one-time or others
+      return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+  return `${startDate.toLocaleDateString('en-US', options)} - ${dueDate.toLocaleDateString('en-US', options)}`;
+};

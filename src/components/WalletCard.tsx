@@ -72,7 +72,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             </span>
             {dueDate && <span className="text-[10px] font-bold opacity-60 bg-white/10 px-1.5 py-0.5 rounded-md">{dueDate}</span>}
           </div>
-          <span className="text-xl font-bold truncate max-w-[180px]">
+          <span className="text-xl font-bold truncate">
             {wallet.name}
           </span>
         </div>

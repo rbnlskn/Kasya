@@ -115,7 +115,6 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
               <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
-                  <Calendar className="w-4 h-4 mr-2 text-text-secondary"/>
                   <span className="text-sm font-bold text-text-primary">{startDate.toLocaleDateString()}</span>
               </button>
           </div>

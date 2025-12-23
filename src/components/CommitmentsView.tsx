@@ -12,7 +12,7 @@ import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
-import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified } from '../utils/commitment';
+import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
 
@@ -80,16 +80,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const upcomingBills = sortedBills.filter(b => !isBillPaid(b));
   
-  const getBillDueDateText = (bill: Bill) => {
+  const getBillDueDateText = (bill: Bill, isOverdue: boolean) => {
     if (isBillPaid(bill)) return 'Paid';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const targetDueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay);
-    targetDueDate.setHours(0, 0, 0, 0);
-    if (today > targetDueDate) {
-        return `Overdue since ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-    return `Due ${targetDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    if (isOverdue) return `Overdue since ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    return `Due ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   };
   
   const getCCDueText = (day?: number) => {
@@ -107,10 +101,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const currentBalance = (cc.creditLimit || 0) - cc.balance;
 
     return (
-        <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-white border">
-            <div className="flex items-center flex-1 mr-4 relative z-10">
+        <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-2 flex justify-between items-center cursor-pointer">
+            <div className="flex items-center flex-1 mr-4">
                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-white mr-3 shadow-sm`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-white mr-3`}
                     style={{ backgroundColor: cc.color }}
                  >
                      <div className={`opacity-60`}>
@@ -242,7 +236,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-            onAdd={onAddCreditCard}
           />
           <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
               {creditCards.length === 0 ? (
@@ -266,7 +259,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                               <div className="absolute bottom-4 right-4 z-20">
                                   <button
                                       onClick={() => onPayCC(cc)}
-                                      className="px-4 py-2 bg-white/20 rounded-full text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
+                                      className="px-4 py-2 bg-black/80 rounded-2xl text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
                                   >
                                      Pay
                                   </button>
@@ -284,25 +277,31 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           title="BILLS & SUBSCRIPTIONS"
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
-          onAdd={onAddBill}
         />
         <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={upcomingBills}
             cardHeight={154}
+            maxVisible={3}
             renderItem={(bill) => {
               const lastPayment = findLastPayment(bill.id, transactions);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay);
+                dueDate.setHours(0, 0, 0, 0);
+                const isOverdue = today > dueDate;
               return (
                 <CommitmentCard
                   item={bill}
                   category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
                   paidAmount={isBillPaid(bill) ? bill.amount : 0}
                   paymentsMade={isBillPaid(bill) ? 1 : 0}
-                  dueDateText={getBillDueDateText(bill)}
+                    dueDateText={getBillingPeriod(bill, currentDate)}
                   currencySymbol={currencySymbol}
                   onPay={() => onPayBill(bill)}
                   onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
                   lastPaymentAmount={lastPayment?.amount}
+                    isOverdue={isOverdue && !isBillPaid(bill)}
                 />
               );
             }}
@@ -318,12 +317,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             title="LOANS & LENDING"
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
-            onAdd={onAddCommitment}
           />
         <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
               cardHeight={154}
+              maxVisible={3}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
@@ -340,6 +339,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     onPay={() => onPayCommitment(commitment)}
                     onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
                     instanceStatus={status}
+                    isOverdue={status === 'OVERDUE'}
                   />
                 )
               }}
@@ -431,7 +431,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
                     <button onClick={() => setBillFilter('PAID')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PAID' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
                 </div>
-                <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+                <div className="flex items-.center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
                     <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
                     <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                     <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
