@@ -28,6 +28,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onPay,
   onViewDetails,
   instanceStatus,
+  lastPaymentAmount,
 }) => {
   const isCommitment = 'principal' in item;
 
