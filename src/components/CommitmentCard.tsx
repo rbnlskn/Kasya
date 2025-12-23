@@ -15,6 +15,8 @@ interface CommitmentCardProps {
   onPay: () => void;
   onViewDetails: () => void;
   instanceStatus?: CommitmentInstanceStatus;
+  billingPeriod?: string;
+  lastPayment?: number;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -27,6 +29,8 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onPay,
   onViewDetails,
   instanceStatus,
+  billingPeriod,
+  lastPayment
 }) => {
   const isCommitment = 'principal' in item;
 
@@ -41,9 +45,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     } else {
         displayAmount = instanceStatus === 'PAID' ? 0 : installmentAmount;
     }
-    const remainingBalance = totalObligation - paidAmount;
     const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
-    const paymentsTotal = commitment.duration || '∞';
 
     return (
       <div
@@ -94,36 +96,43 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   }
 
-  // Bill section
   const bill = item as Bill;
   return (
     <div
       onClick={onViewDetails}
       className="bg-white rounded-2xl p-6 shadow-md border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col w-full flex-shrink-0 gap-4"
     >
-      {/* Header Zone */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-            {category?.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
-            <p className="text-xs text-gray-500 font-medium mt-1">{dueDateText}</p>
-          </div>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+                    {category?.icon}
+                </div>
+                <div>
+                    <h4 className="font-bold text-gray-800 text-md leading-tight">{bill.name}</h4>
+                    <p className="text-xs text-gray-500 font-medium mt-1">{dueDateText}</p>
+                </div>
+            </div>
+            <p className="font-bold text-lg text-pink-600">{currencySymbol}{formatCurrency(bill.amount)}</p>
         </div>
-        <p className="font-bold text-pink-600 text-md text-right whitespace-nowrap ml-2">
-          {currencySymbol}{formatCurrency(bill.amount)}
-        </p>
-      </div>
-
-      {/* Action Footer */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onPay(); }}
-        className="w-full bg-pink-100 text-pink-800 font-bold py-3 rounded-lg active:scale-95 transition-transform text-sm"
-      >
-        Pay Bill →
-      </button>
+        <div className="flex items-end gap-4">
+            <div className="flex-grow bg-gray-50 rounded-lg p-3">
+                <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Period</span>
+                    <span className="text-xs font-bold text-gray-800">{billingPeriod}</span>
+                </div>
+                <div className="border-t border-gray-200 my-2"></div>
+                <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Pay</span>
+                    <span className="text-xs font-bold text-gray-800">{lastPayment ? `${currencySymbol}${formatCurrency(lastPayment)}` : 'N/A'}</span>
+                </div>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onPay(); }}
+              className="bg-pink-100 text-pink-800 font-bold py-3 rounded-lg active:scale-95 transition-transform text-sm px-6"
+            >
+                Pay Bill →
+            </button>
+        </div>
     </div>
   );
 };
