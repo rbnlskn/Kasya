@@ -67,6 +67,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     {currencySymbol}{formatCurrency(paidAmount)} / {currencySymbol}{formatCurrency(totalObligation)}
                 </span>
             </div>
+            </div>
         </div>
         <div className="flex items-center gap-3">
             <div className="flex-grow flex items-center">
