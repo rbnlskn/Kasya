@@ -76,7 +76,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             {wallet.name}
           </span>
         </div>
-        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
+        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px] absolute top-6 right-6">
           &bull;&bull;&bull;&bull;
         </div>
       </div>
