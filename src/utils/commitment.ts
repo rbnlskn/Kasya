@@ -1,5 +1,5 @@
 
-import { Bill, Commitment, Transaction, RecurrenceFrequency } from '../types';
+import { Commitment, Transaction, RecurrenceFrequency } from '../types';
 import { calculateTotalPaid, calculateTotalObligation } from './math';
 
 export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
@@ -130,45 +130,4 @@ export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceSta
     if (status === 'DUE') return `Due Today • ${specificDate}`;
     if (status === 'UPCOMING') return `Due ${specificDate}`;
     return specificDate;
-};
-
-export const getBillingPeriod = (bill: Bill, currentDate: Date = new Date()): string => {
-    if (bill.recurrence === 'ONE_TIME') return 'One Time';
-
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-
-    let startDate = new Date(currentYear, currentMonth, bill.dueDay - 1);
-    let endDate = new Date(currentYear, currentMonth, bill.dueDay);
-
-    switch(bill.recurrence) {
-        case 'WEEKLY':
-            const currentDay = currentDate.getDay();
-            const dueDay = bill.dueDay; // 0=Sun, 6=Sat
-            const daysSinceDueDay = (currentDay - dueDay + 7) % 7;
-            endDate = new Date(currentDate);
-            endDate.setDate(currentDate.getDate() - daysSinceDueDay);
-            startDate = new Date(endDate);
-            startDate.setDate(endDate.getDate() - 6);
-            break;
-        case 'MONTHLY':
-            startDate = new Date(currentYear, currentMonth - 1, bill.dueDay + 1);
-            endDate = new Date(currentYear, currentMonth, bill.dueDay);
-            break;
-        case 'YEARLY':
-            startDate = new Date(currentYear - 1, currentMonth, bill.dueDay + 1);
-            endDate = new Date(currentYear, currentMonth, bill.dueDay);
-            break;
-    }
-
-    const formatOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-    return `${startDate.toLocaleDateString('en-US', formatOptions)} - ${endDate.toLocaleDateString('en-US', formatOptions)}`;
-};
-
-export const findLastPayment = (billId: string, transactions: Transaction[]): number | undefined => {
-    const billPayments = transactions
-        .filter(t => t.billId === billId)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    return billPayments.length > 0 ? billPayments[0].amount : undefined;
 };

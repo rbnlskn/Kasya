@@ -6,15 +6,13 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
-  cardHeight?: number;
 }
 
-export const CommitmentStack = <T extends { id:string }>({
+export const CommitmentStack = <T extends { id: string }>({
   items,
   renderItem,
   maxVisible = 2,
   placeholder,
-  cardHeight = 120,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -44,12 +42,10 @@ export const CommitmentStack = <T extends { id:string }>({
   };
 
   const cardSpacing = 12;
-  const containerHeight = cardHeight + (maxVisible * cardSpacing);
 
   return (
     <div
       className="relative"
-      style={{ height: `${containerHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

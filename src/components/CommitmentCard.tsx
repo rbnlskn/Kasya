@@ -30,7 +30,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   onViewDetails,
   instanceStatus,
   billingPeriod,
-  lastPayment
+  lastPayment,
 }) => {
   const isCommitment = 'principal' in item;
   const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
@@ -54,63 +54,74 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     displayAmount = (item as Bill).amount;
   }
 
-  const amountColor = 'text-pink-600';
+  const iconBgColor = category?.color || '#E5E7EB';
+  const iconColor = category?.icon === '🏦' ? '#000000' : '#FFFFFF';
 
   return (
     <div
         onClick={onViewDetails}
-        className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col gap-4 w-full flex-shrink-0"
+        className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex items-center gap-4 w-full flex-shrink-0"
     >
-        {/* Header Zone */}
-        <div className="flex justify-between items-start">
-            <div className="flex items-center">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-                    {category?.icon}
+        {/* Left Column: Details */}
+        <div className="flex-grow flex flex-col gap-3">
+            {/* Header */}
+            <div className="flex justify-between items-start">
+                <div className="flex items-center">
+                    <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                        style={{ backgroundColor: isLending ? '#000000' : iconBgColor }}
+                    >
+                        <span style={{ color: iconColor }}>{category?.icon}</span>
+                    </div>
+                    <div className="ml-3">
+                        <h4 className="font-bold text-gray-800 text-md leading-tight">{name}</h4>
+                        <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+                    </div>
                 </div>
-                <div className="ml-3">
-                    <h4 className="font-bold text-gray-800 text-md leading-tight">{name}</h4>
-                    <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
-                </div>
+                <p className="font-bold text-lg text-pink-600">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</p>
             </div>
-            <p className={`font-bold text-lg ${amountColor}`}>{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</p>
+
+            {/* Info Block */}
+            <div className="bg-gray-50 rounded-lg p-3 text-xs">
+                {isCommitment ? (
+                    <>
+                        <div className="flex justify-between font-bold text-gray-500 uppercase">
+                            <span>Progress</span>
+                            <span>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 my-1">
+                            <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${progress}%` }}></div>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                            <span className="text-gray-800">Paid: {currencySymbol}{formatCurrency(paidAmount)}</span>
+                            <span className="text-gray-500">/ {currencySymbol}{formatCurrency(totalObligation)}</span>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="flex justify-between">
+                            <span className="font-bold text-gray-500 uppercase">Period</span>
+                            <span className="font-medium text-gray-800">{billingPeriod}</span>
+                        </div>
+                        <div className="border-t border-gray-200 my-2"></div>
+                        <div className="flex justify-between">
+                            <span className="font-bold text-gray-500 uppercase">Last Pay</span>
+                            <span className="font-medium text-gray-800">{lastPayment ? `${currencySymbol}${formatCurrency(lastPayment)}` : 'N/A'}</span>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
 
-        {/* Progress Block (Loans & Lending only) */}
-        {isCommitment ? (
-            <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex justify-between text-xs font-bold text-gray-500 mb-1 uppercase">
-                    <span>REPAYMENT PROGRESS</span>
-                    <span>{Math.round(progress)}% Paid</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
-                </div>
-                <div className="flex justify-between text-xs font-medium mt-1 truncate">
-                    <span className="text-gray-800 font-semibold">{currencySymbol}{formatCurrency(paidAmount)}</span>
-                    <span className="text-gray-500 ml-1">/ {currencySymbol}{formatCurrency(totalObligation)}</span>
-                </div>
-            </div>
-        ) : (
-            <div className="bg-gray-50 rounded-lg p-3 text-xs">
-                <div className="flex justify-between">
-                    <span className="font-bold text-gray-500 uppercase">Period</span>
-                    <span className="font-medium text-gray-800">{billingPeriod}</span>
-                </div>
-                <div className="border-t border-gray-200 my-2"></div>
-                <div className="flex justify-between">
-                    <span className="font-bold text-gray-500 uppercase">Last Pay</span>
-                    <span className="font-medium text-gray-800">{lastPayment ? `${currencySymbol}${formatCurrency(lastPayment)}` : 'N/A'}</span>
-                </div>
-            </div>
-        )}
-
-        {/* Action Footer */}
-        <button
-            onClick={(e) => { e.stopPropagation(); onPay(); }}
-            className="w-full bg-blue-100 text-blue-800 font-bold py-3 rounded-xl active:scale-95 transition-transform text-sm"
-        >
-            {isCommitment ? (isLending ? 'Collect Loan ->' : 'Pay Loan ->') : 'Pay Bill ->'}
-        </button>
+        {/* Right Column: Action Button */}
+        <div className="flex-shrink-0">
+            <button
+                onClick={(e) => { e.stopPropagation(); onPay(); }}
+                className="bg-blue-500 text-white font-bold px-6 py-3 rounded-lg active:scale-95 transition-transform text-sm"
+            >
+                {isLending ? 'Collect' : 'Pay'}
+            </button>
+        </div>
     </div>
   );
 };
