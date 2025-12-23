@@ -12,9 +12,9 @@ interface SectionHeaderProps {
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd }) => {
   return (
     <div className="flex justify-between items-center mb-2 px-1">
-      <h2 className="text-sm font-extrabold text-gray-400 uppercase tracking-widest flex items-center">
+      <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center">
         {title}
-        {count !== undefined && count > 0 && <span className="text-xs font-bold text-gray-400 ml-2">({count})</span>}
+        {count !== undefined && count > 0 && <span className="text-xs font-bold text-gray-800 ml-2">({count})</span>}
       </h2>
       <div className="flex items-center space-x-3">
         {onAdd && (

@@ -76,16 +76,16 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             {wallet.name}
           </span>
         </div>
-        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
-          &bull;&bull;&bull;&bull;
-        </div>
       </div>
 
       {/* Card Footer */}
-      <div className="relative z-10">
+      <div className="relative z-10 flex justify-between items-baseline">
         <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
+        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
+          &bull;&bull;&bull;&bull;
+        </div>
       </div>
     </div>
     </div>
