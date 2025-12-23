@@ -43,36 +43,7 @@ export const INITIAL_WALLETS: Wallet[] = [
 
 export const INITIAL_BUDGETS: Budget[] = [];
 
-export const INITIAL_COMMITMENTS: Commitment[] = [
-  {
-    id: 'c1',
-    name: 'Test Loan',
-    type: CommitmentType.LOAN,
-    principal: 1000,
-    interest: 200,
-    fee: 50,
-    categoryId: 'cat_loans',
-    recurrence: 'ONE_TIME',
-    dueDay: 0,
-    startDate: new Date().toISOString(),
-    duration: 1,
-    durationUnit: 'MONTHS',
-    icon: '💷'
-  }
-];
+export const INITIAL_COMMITMENTS: Commitment[] = [];
 
-export const INITIAL_TRANSACTIONS: Transaction[] = [
-    {
-        id: 't1',
-        amount: 950,
-        type: TransactionType.INCOME,
-        categoryId: 'cat_loans',
-        walletId: 'w1',
-        date: new Date().toISOString(),
-        title: 'Loan Disbursement',
-        description: 'Test Loan',
-        commitmentId: 'c1',
-        createdAt: Date.now(),
-    }
-];
+export const INITIAL_TRANSACTIONS: Transaction[] = [];
 export const INITIAL_BILLS: Bill[] = [];

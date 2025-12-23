@@ -15,7 +15,7 @@ const AddCommitmentCard: React.FC<AddCommitmentCardProps> = ({
   type,
   height: customHeight,
 }) => {
-  const defaultHeight = type === 'bill' ? '92px' : '116px';
+  const defaultHeight = type === 'bill' ? '92px' : '100%';
   const height = customHeight || defaultHeight;
 
   return (
