@@ -1,5 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+// Exit if the last commit was a version bump from the CI
+const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
+if (lastCommitMessage.startsWith('build: 🤖 bump version')) {
+  console.log('Skipping patch increment for a CI version bump.');
+  process.exit(0);
+}
 
 const packageJsonPath = path.resolve(__dirname, '../package.json');
 const constantsPath = path.resolve(__dirname, '../src/constants.ts');

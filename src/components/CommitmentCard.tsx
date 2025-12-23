@@ -101,18 +101,16 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       onClick={onViewDetails}
       className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
     >
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex gap-4 items-center">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-            {category?.icon}
-          </div>
-          <div>
-            <h3 className="font-bold text-slate-800 text-lg">{item.name}</h3>
-            <p className="text-slate-400 text-xs font-medium">{dueDateText}</p>
-          </div>
+      <div className="flex items-center mb-3">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+          {category?.icon}
         </div>
-        <div className="text-right">
-          <h3 className="font-extrabold text-lg text-pink-600">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-baseline">
+            <h3 className="font-bold text-slate-800 text-lg truncate">{item.name}</h3>
+            <h3 className="font-extrabold text-lg text-pink-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
+          </div>
+          <p className="text-slate-400 text-xs font-medium">{dueDateText}</p>
         </div>
       </div>
 
