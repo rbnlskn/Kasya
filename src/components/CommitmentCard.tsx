@@ -71,22 +71,24 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
         <div className="flex items-center gap-3">
             <div className="flex-grow flex items-center">
-              <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">
-                  <div
-                    className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-2 rounded-full`}
-                    style={{ width: `${progress}%` }}
-                  ></div>
-              </div>
-              {commitment.recurrence !== 'NO_DUE_DATE' && (
-                <span className="text-xs font-bold text-gray-400 ml-2">{paymentsMade}/{paymentsTotal}</span>
-              )}
+                <div className="w-full bg-gray-200 rounded-full h-2 flex-grow">
+                    <div
+                        className={`${paidAmount > 0 ? (isLending ? 'bg-green-500' : 'bg-blue-500') : 'bg-gray-300'} h-2 rounded-full`}
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+                {commitment.recurrence !== 'NO_DUE_DATE' && (
+                    <span className="text-xs font-bold text-gray-400 ml-2">{paymentsMade}/{paymentsTotal}</span>
+                )}
             </div>
-            <button
-              onClick={(e) => { e.stopPropagation(); onPay(); }}
-              className={`text-sm font-black px-5 py-2.5 rounded-xl active:scale-95 transition-transform h-full ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
-            >
-                {isLending ? 'Collect' : 'Pay'}
-            </button>
+            <div className="w-24 text-right">
+                <button
+                    onClick={(e) => { e.stopPropagation(); onPay(); }}
+                    className={`text-sm font-black px-5 py-2.5 rounded-xl active:scale-95 transition-transform h-full ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
+                >
+                    {isLending ? 'Collect' : 'Pay'}
+                </button>
+            </div>
         </div>
       </div>
     );
@@ -109,9 +111,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
           <div className="flex justify-between items-baseline mt-1">
             <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
-            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className="text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform bg-blue-100 text-blue-800">
-              Pay
-            </button>
+            <div className="w-16 text-right">
+              <button onClick={(e) => { e.stopPropagation(); onPay(); }} className="text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform bg-blue-100 text-blue-800">
+                Pay
+              </button>
+            </div>
           </div>
         </div>
       </div>
