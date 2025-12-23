@@ -12,7 +12,7 @@ import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
-import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance } from '../utils/commitment';
+import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance, findLastPayment } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 
 interface CommitmentsViewProps {
@@ -259,23 +259,28 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           count={upcomingBills.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
-        <div data-testid="commitment-stack-bills" className="h-[120px]">
+        <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={upcomingBills}
-            renderItem={(bill) => (
-              <CommitmentCard
-              item={bill}
-              category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
-              paidAmount={isBillPaid(bill) ? bill.amount : 0}
-              paymentsMade={isBillPaid(bill) ? 1 : 0}
-              dueDateText={getBillDueDateText(bill)}
-              currencySymbol={currencySymbol}
-              onPay={() => onPayBill(bill)}
-              onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
-            />
-          )}
+            cardHeight={178}
+            renderItem={(bill) => {
+              const lastPayment = findLastPayment(bill.id, transactions);
+              return (
+                <CommitmentCard
+                  item={bill}
+                  category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+                  paidAmount={isBillPaid(bill) ? bill.amount : 0}
+                  paymentsMade={isBillPaid(bill) ? 1 : 0}
+                  dueDateText={getBillDueDateText(bill)}
+                  currencySymbol={currencySymbol}
+                  onPay={() => onPayBill(bill)}
+                  onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
+                  lastPaymentAmount={lastPayment?.amount}
+                />
+              );
+            }}
           placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" type="bill" />
+            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
           }
         />
         </div>
@@ -287,9 +292,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
-        <div data-testid="commitment-stack-loans" className="h-[170px]">
+        <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
+              cardHeight={178}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
@@ -310,7 +316,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 )
               }}
               placeholder={
-                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" type="loan" height="170px" />
+                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" />
               }
             />
         </div>

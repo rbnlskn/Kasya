@@ -15,6 +15,7 @@ interface CommitmentCardProps {
   onPay: () => void;
   onViewDetails: () => void;
   instanceStatus?: CommitmentInstanceStatus;
+  lastPaymentAmount?: number;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
@@ -70,7 +71,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <div className="w-full border-t border-dashed border-slate-300/60"></div>
             <div className="flex justify-between items-center leading-none">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last Pay</span>
-                <span className="text-[11px] font-bold text-slate-500">{currencySymbol}{formatCurrency(bill.amount)}</span>
+                <span className="text-[11px] font-bold text-slate-500">
+                  {lastPaymentAmount !== undefined ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}
+                </span>
             </div>
         </div>
     );
@@ -97,7 +100,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       onClick={onViewDetails}
       className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
     >
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex gap-4 items-center">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
             {category?.icon}
