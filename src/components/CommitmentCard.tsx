@@ -102,6 +102,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     <div
       onClick={onViewDetails}
       className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200"
+      style={{ minHeight: '178px' }}
     >
       <div className="flex items-center mb-3">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
