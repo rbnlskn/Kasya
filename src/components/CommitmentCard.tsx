@@ -50,13 +50,17 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         onClick={onViewDetails}
         className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col w-full flex-shrink-0 gap-3"
       >
-        <div>
-            <div className="flex justify-between items-baseline">
-                <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
-                <p className="font-bold text-gray-800 text-md whitespace-nowrap">
-                    {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
-                </p>
+        <div className="flex items-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+                {category?.icon}
             </div>
+            <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-baseline">
+                    <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{commitment.name}</h4>
+                    <p className="font-bold text-gray-800 text-md whitespace-nowrap">
+                        {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
+                    </p>
+                </div>
             <div className="flex justify-between items-baseline mt-1">
                 <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
                 <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
@@ -87,29 +91,29 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   }
 
-  // Bill section remains unchanged
+  // Bill section
   const bill = item as Bill;
   return (
     <div onClick={onViewDetails} className="bg-white rounded-3xl p-4 shadow-lg border border-gray-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex items-center justify-between w-full flex-shrink-0">
-        <div className="flex items-center flex-1 min-w-0">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
-                {category?.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
-                <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
-            </div>
+      <div className="flex items-center flex-1 min-w-0">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 mr-3" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+          {category?.icon}
         </div>
-        <div className="flex flex-col items-end ml-2 flex-shrink-0">
-            <p className="font-bold text-gray-800 text-lg text-right whitespace-nowrap">
-                {currencySymbol}{formatCurrency(bill.amount)}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-baseline">
+            <h4 className="font-bold text-gray-800 text-md leading-tight truncate">{bill.name}</h4>
+            <p className="font-bold text-gray-800 text-md text-right whitespace-nowrap">
+              {currencySymbol}{formatCurrency(bill.amount)}
             </p>
-            <div className="mt-1">
-                <button onClick={(e) => { e.stopPropagation(); onPay(); }} className="text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform bg-blue-100 text-blue-800">
-                    Pay
-                </button>
-            </div>
+          </div>
+          <div className="flex justify-between items-baseline mt-1">
+            <p className="text-xs text-gray-500 font-medium">{dueDateText}</p>
+            <button onClick={(e) => { e.stopPropagation(); onPay(); }} className="text-xs font-bold px-4 py-1.5 rounded-lg active:scale-95 transition-transform bg-blue-100 text-blue-800">
+              Pay
+            </button>
+          </div>
         </div>
+      </div>
     </div>
   );
 };

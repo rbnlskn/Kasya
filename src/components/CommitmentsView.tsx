@@ -216,32 +216,40 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
           <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
-              {creditCards.map(cc => {
-                  const currentBalance = (cc.creditLimit || 0) - cc.balance;
-                  const walletWithBalance = { ...cc, balance: currentBalance };
-                  return (
-                      <div key={cc.id} className="relative flex-shrink-0 group">
-                          <WalletCard
-                              wallet={{...walletWithBalance, label: 'BALANCE'}}
-                              currencySymbol={currencySymbol}
-                              onClick={(w) => onWalletClick && onWalletClick(w)}
-                              scale={0.75}
-                              dueDate={getCCDueText(cc.statementDay)}
-                          />
-                          <div className="absolute bottom-4 right-4 z-20">
-                              <button
-                                  onClick={() => onPayCC(cc)}
-                                  className="px-4 py-2 bg-white/20 rounded-full text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
-                              >
-                                 Pay
-                              </button>
+              {creditCards.length === 0 ? (
+                  <div className="w-full">
+                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height="120px" />
+                  </div>
+              ) : (
+                <>
+                  {creditCards.map(cc => {
+                      const currentBalance = (cc.creditLimit || 0) - cc.balance;
+                      const walletWithBalance = { ...cc, balance: currentBalance };
+                      return (
+                          <div key={cc.id} className="relative flex-shrink-0 group">
+                              <WalletCard
+                                  wallet={{...walletWithBalance, label: 'BALANCE'}}
+                                  currencySymbol={currencySymbol}
+                                  onClick={(w) => onWalletClick && onWalletClick(w)}
+                                  scale={0.75}
+                                  dueDate={getCCDueText(cc.statementDay)}
+                              />
+                              <div className="absolute bottom-4 right-4 z-20">
+                                  <button
+                                      onClick={() => onPayCC(cc)}
+                                      className="px-4 py-2 bg-white/20 rounded-full text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
+                                  >
+                                     Pay
+                                  </button>
+                              </div>
                           </div>
-                      </div>
-                  )
-              })}
-              <div className="w-[255px] h-[150px] flex-shrink-0">
-                <AddCard onClick={onAddCreditCard} label="Add Credit Card" />
-              </div>
+                      )
+                  })}
+                  <div className="w-[120px] flex-shrink-0">
+                    <AddCard onClick={onAddCreditCard} label="Add Card" height="150px" />
+                  </div>
+                </>
+              )}
           </div>
       </section>
 
