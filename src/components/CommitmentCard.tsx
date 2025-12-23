@@ -101,10 +101,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
+      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col"
       style={{ minHeight: '178px' }}
     >
-      <div className="flex items-center">
+      <div className="flex items-center mb-3">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
           {category?.icon}
         </div>
