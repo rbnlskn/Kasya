@@ -281,7 +281,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={upcomingBills}
-            cardHeight={178}
+            cardHeight={172}
             maxVisible={3}
             renderItem={(bill) => {
               const lastPayment = findLastPayment(bill.id, transactions);
@@ -321,7 +321,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
-              cardHeight={178}
+              cardHeight={172}
               maxVisible={3}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
