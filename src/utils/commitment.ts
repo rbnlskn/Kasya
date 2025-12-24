@@ -233,11 +233,11 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
 };
 
 export const getBillingPeriod = (
-    commitmentInstance: CommitmentInstance,
+    item: { recurrence: RecurrenceFrequency, dueDate: Date },
 ): string => {
-    const { commitment, dueDate } = commitmentInstance;
+    const { recurrence, dueDate } = item;
 
-    if (commitment.recurrence === 'NO_DUE_DATE' || commitment.recurrence === 'ONE_TIME') {
+    if (recurrence === 'NO_DUE_DATE' || recurrence === 'ONE_TIME') {
         return 'One-Time Payment';
     }
 
@@ -245,7 +245,7 @@ export const getBillingPeriod = (
     const periodStart = new Date(periodEnd);
 
     // Calculate the start of the billing period based on the due date
-    switch (commitment.recurrence) {
+    switch (recurrence) {
         case 'WEEKLY':
             periodStart.setDate(periodEnd.getDate() - 7);
             break;

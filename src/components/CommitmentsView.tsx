@@ -316,7 +316,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
                   paidAmount={isBillPaid(bill) ? bill.amount : 0}
                   paymentsMade={isBillPaid(bill) ? 1 : 0}
-                  dueDateText={getBillingPeriod({ commitment: { ...bill, type: 'BILL' }, dueDate, status: 'UPCOMING' })}
+                  dueDateText={getBillingPeriod({ recurrence: bill.recurrence, dueDate })}
                   currencySymbol={currencySymbol}
                   onPay={() => onPayBill(bill)}
                   onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
