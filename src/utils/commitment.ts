@@ -56,7 +56,7 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
 export const getActiveCommitmentInstance = (
   commitment: Commitment,
   transactions: Transaction[],
-  currentDate: Date,
+  currentDate: Date, // Keep this for "No Due Date" logic which depends on the calendar view
 ): CommitmentInstance | null => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -89,12 +89,15 @@ export const getActiveCommitmentInstance = (
         // Assuming 'duration' for ONE_TIME is in months.
         dueDate.setMonth(startDate.getMonth() + commitment.duration);
 
-        const lookaheadDate = new Date(dueDate);
-        lookaheadDate.setDate(dueDate.getDate() - 7);
-
-        // Hide if current date is before the 1-week lookahead window
-        if (today < lookaheadDate) {
-            return null;
+        // If due date is in a future month, apply lookahead. Otherwise, show it.
+        if (dueDate.getFullYear() > today.getFullYear() || dueDate.getMonth() > today.getMonth()) {
+            const lookaheadDate = new Date(dueDate);
+            lookaheadDate.setDate(dueDate.getDate() - 7);
+            if (today < lookaheadDate) {
+                return null;
+            }
+        } else if (today < startDate) {
+             return null;
         }
 
         if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;

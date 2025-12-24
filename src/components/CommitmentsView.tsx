@@ -239,13 +239,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="pt-4 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0 h-[60px] flex items-center">
-        <div className="flex justify-between items-center w-full">
-             <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
-        </div>
-    </div>
-
-    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
       <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">

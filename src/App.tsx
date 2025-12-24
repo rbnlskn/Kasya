@@ -434,13 +434,13 @@ const App: React.FC = () => {
   const selectedWalletForDetail = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
 
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
-      <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
-         <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
-            {rightAction}
-         </div>
-      </div>
-  );
+    <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
+       <div className="flex justify-between items-center w-full">
+          <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
+          {rightAction}
+       </div>
+    </div>
+);
 
   if (isLoading) {
       return (
@@ -455,8 +455,8 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="pt-8 px-6 pb-4 z-20 sticky top-0 bg-app-bg/80 backdrop-blur-md">
-                 <div className="flex justify-between items-center"><Logo size="2rem" /></div>
+              <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
+                  <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
               <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
                  <div className="grid grid-cols-1 gap-4 content-start">
@@ -518,14 +518,16 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'COMMITMENTS' && (
-           <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-             <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
-           </div>
+            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+              <PageHeader title="Commitments" />
+              <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
+            </div>
         )}
 
         {activeTab === 'SETTINGS' && (
             <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <SettingsView data={data} onBack={() => handleTabChange('HOME')} onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')} onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')} onImport={(newData) => setData(newData)} onReset={async () => { await clearData(); window.location.reload(); }} onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))} />
+               <PageHeader title="Settings" />
+               <SettingsView data={data} onBack={() => handleTabChange('HOME')} onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')} onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')} onImport={(newData) => setData(newData)} onReset={async () => { await clearData(); window.location.reload(); }} onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))} />
             </div>
         )}
       </div>

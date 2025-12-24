@@ -63,28 +63,31 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
         {emoji}
       </div>
 
-      {/* Card Header */}
-      <div className="relative z-10 flex justify-between items-start">
-        <div className="flex flex-col gap-0">
-          <div className="flex items-center gap-2">
-            <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
-              {label}
+      {/* Card Header & Footer Combined for Alignment */}
+      <div className="relative z-10 flex flex-col justify-between h-full">
+        {/* Top Section */}
+        <div className="flex justify-between items-start">
+            <span className="text-xl font-bold truncate max-w-[240px]">
+              {wallet.name}
             </span>
-            {dueDate && <span className="text-[10px] font-bold opacity-60 bg-white/10 px-1.5 py-0.5 rounded-md">{dueDate}</span>}
-          </div>
-          <span className="text-xl font-bold truncate max-w-[180px]">
-            {wallet.name}
-          </span>
         </div>
-      </div>
 
-      {/* Card Footer */}
-      <div className="relative z-10 flex justify-between items-baseline">
-        <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
-          {currencySymbol}{formatCurrency(wallet.balance)}
-        </p>
-        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
-          &bull;&bull;&bull;&bull;
+        {/* Bottom Section */}
+        <div>
+            <div className="flex justify-between items-baseline">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
+                    {label}
+                  </span>
+                  {dueDate && <span className="text-[10px] font-bold opacity-60 bg-white/10 px-1.5 py-0.5 rounded-md">{dueDate}</span>}
+                </div>
+                <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
+                  &bull;&bull;&bull;&bull;
+                </div>
+            </div>
+            <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
+              {currencySymbol}{formatCurrency(wallet.balance)}
+            </p>
         </div>
       </div>
     </div>
