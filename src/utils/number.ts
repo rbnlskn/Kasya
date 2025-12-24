@@ -5,8 +5,8 @@ export const formatCurrency = (value: number | string): string => {
     return '0.00';
   }
 
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numericValue);
+  const fixedValue = numericValue.toFixed(2);
+  const parts = fixedValue.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
 };

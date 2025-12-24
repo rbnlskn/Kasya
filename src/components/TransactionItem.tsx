@@ -18,10 +18,9 @@ interface TransactionItemProps {
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol }) => {
   const isTransfer = transaction.type === TransactionType.TRANSFER;
   let isPositive = transaction.type === TransactionType.INCOME;
-  
-  if (isTransfer && currentWalletId) {
-    if (currentWalletId === transaction.walletId) isPositive = false;
-    else if (currentWalletId === transaction.transferToWalletId) isPositive = true;
+
+  if (isTransfer) {
+    isPositive = currentWalletId ? currentWalletId === transaction.transferToWalletId : false;
   }
 
   const isCreditCardPayment =
@@ -94,7 +93,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
             </p>
             {transaction.fee && transaction.fee > 0 && (
               <p className="font-bold text-xs text-red-500">
-                &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
+                - {currencySymbol}{formatCurrency(transaction.fee)}
               </p>
             )}
           </div>
