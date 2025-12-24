@@ -112,7 +112,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col"
+      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
       style={{ minHeight: '172px' }}
     >
       <div className="flex items-center">
@@ -128,7 +128,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-3 h-[68px] mt-auto">
+      <div className="flex gap-3 h-[68px]">
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}

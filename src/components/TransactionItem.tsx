@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Transaction, Category, TransactionType, Wallet, Commitment } from '../types';
+import { Transaction, Category, TransactionType, Wallet, Commitment, WalletType } from '../types';
 import { ArrowRightLeft, DollarSign } from 'lucide-react';
 import { formatCurrency } from '../utils/number';
 
@@ -24,6 +24,12 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
     else if (currentWalletId === transaction.transferToWalletId) isPositive = true;
   }
 
+  const isCreditCardPayment =
+    isTransfer &&
+    transaction.transferToWalletId &&
+    walletMap &&
+    walletMap[transaction.transferToWalletId]?.type === WalletType.CREDIT_CARD;
+
   const renderIcon = () => {
     if (isTransfer) return <ArrowRightLeft className="w-6 h-6 text-gray-600" />;
     if (category?.icon) return <span className="text-2xl leading-none">{category.icon}</span>;
@@ -37,12 +43,16 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   
   const getMainText = () => {
     if (transaction.title) return transaction.title;
+    if (isCreditCardPayment) return "Payment";
     if (isTransfer) return "Transfer";
     return category?.name || 'Uncategorized';
   };
 
   const getSubText = () => {
     if (transaction.commitmentId) return transaction.description || commitment?.name;
+    if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
+      return walletMap[transaction.transferToWalletId]?.name || 'Credit Card';
+    }
     if (isTransfer && walletMap) {
         const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
         const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
@@ -52,6 +62,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   }
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  const amountColorClass = isPositive
+    ? (isTransfer ? 'text-blue-500' : 'text-emerald-500')
+    : 'text-red-500';
 
   return (
     <div className="w-full">
@@ -74,10 +88,17 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         </div>
         
         <div className="text-right flex-shrink-0 pl-2">
-            <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+          <div className="flex items-baseline justify-end gap-1.5">
+            <p className={`font-bold text-sm ${amountColorClass}`}>
                 {isPositive ? '+' : '-'}{currencySymbol}{formatCurrency(transaction.amount)}
             </p>
-             <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
+            {transaction.fee && transaction.fee > 0 && (
+              <p className="font-bold text-xs text-red-500">
+                &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
+              </p>
+            )}
+          </div>
+          <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
         </div>
       </div>
     </div>
