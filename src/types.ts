@@ -75,6 +75,7 @@ export interface Bill {
   icon: string;
   type: BillType;
   startDate: string; // ISO String
+  firstPaymentDate?: string; // ISO String, explicit first due date override
   lastPaidDate?: string; // ISO String of last payment
   endDate?: string; // ISO String
 }

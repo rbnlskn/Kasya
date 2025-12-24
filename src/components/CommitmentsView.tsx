@@ -12,7 +12,7 @@ import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
-import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
+import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
 
@@ -73,11 +73,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const lookaheadBills = nextMonthInstances.filter(instance => {
+    // Only perform lookahead if we are viewing the Current Real-World Month.
+    // If we are looking at History, we do not want future bills showing up.
+    const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+
+    const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
         const lookaheadDate = new Date(instance.dueDate);
         lookaheadDate.setDate(lookaheadDate.getDate() - 7);
         return today >= lookaheadDate;
-    });
+    }) : [];
 
     // Combine and remove duplicates
     const combined = [...currentMonthInstances, ...lookaheadBills];
@@ -90,14 +94,27 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
   }, [bills, transactions, currentDate, billFilter]);
   
-  const getCCDueText = (day?: number) => {
+  // Refactored to accept viewingDate or default to current viewing date logic
+  const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
       if (!day) return 'No Due Date';
-      const today = new Date();
+      const today = new Date(); // Real Today
       today.setHours(0,0,0,0);
-      let dueDate = new Date(today.getFullYear(), today.getMonth(), day);
-      if (dueDate < today) {
-          dueDate.setMonth(dueDate.getMonth() + 1);
-      }
+
+      const viewingMonth = viewingDate.getMonth();
+      const viewingYear = viewingDate.getFullYear();
+
+      // Construct due date based on the viewing month
+      let dueDate = new Date(viewingYear, viewingMonth, day);
+
+      // Credit Card specific logic:
+      // Typically, if statement day is X, the due date is usually X+Period.
+      // But assuming 'day' here is the Due Day as stored.
+
+      // If the due day (e.g. 5th) is BEFORE the current day of real-time month,
+      // AND we are viewing the real-time month, it might show "Next Month's Due Date"?
+      // But the requirement is to show the due date for the VIEWING month.
+      // So if I view Jan 2026, I want to see Jan 5 (or whatever).
+
       return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }
 
@@ -117,7 +134,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                  </div>
                  <div className="flex flex-col">
                      <h3 className="font-bold text-gray-800 text-sm truncate">{cc.name}</h3>
-                     <p className="text-xs text-gray-400 font-medium">{getCCDueText(cc.statementDay)}</p>
+                     <p className="text-xs text-gray-400 font-medium">{getCCDueText(cc.statementDay, currentDate)}</p>
                  </div>
             </div>
             <div className="text-right flex-shrink-0 relative z-10 flex flex-col items-end">
@@ -163,19 +180,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .map(c => getActiveCommitmentInstance(c, transactions, currentDate))
-      .filter((c): c is NonNullable<typeof c> => c !== null);
+      .flatMap(c => getCommitmentInstances(c, transactions, currentDate)); // Use flatMap to allow multiple instances
 
     const sortedInstances = sortUnified(instances);
 
-    return sortedInstances.map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` }));
+    return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
   }, [commitments, transactions, currentDate]);
 
   const settledCommitments = useMemo(() => {
       const settled = commitments.filter(c => {
         const totalPaid = calculateTotalPaid(c.id, transactions);
         const totalObligation = c.principal + c.interest;
-        return totalPaid >= totalObligation;
+        return totalPaid >= totalObligation - 0.01;
       });
       return sortUnified(settled);
   }, [commitments, transactions]);
@@ -190,8 +206,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
+    // For specific instances, we want to show instance-specific data if available (e.g. amount due)
+    // but the original design relies on total stats.
+    // We will keep standard display but ensure status is correct.
+
+    // If it's an instance, we can calculate installment amount
+    const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
+
     return (
-      <div key={commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
+      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -204,7 +227,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status, commitment.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(displayAmount || 0)}</span>
             {status !== 'SETTLED' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
@@ -253,7 +276,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                   currencySymbol={currencySymbol}
                                   onClick={(w) => onWalletClick && onWalletClick(w)}
                                   scale={0.75}
-                                  dueDate={getCCDueText(cc.statementDay)}
+                                  dueDate={getCCDueText(cc.statementDay, currentDate)}
                               />
                               <div className="absolute bottom-4 right-4 z-20">
                                   <button
@@ -292,6 +315,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   paidAmount={0}
                   paymentsMade={0}
                   dueDateText={getBillingPeriod({ recurrence: bill.recurrence, dueDate })}
+                  headerSubtitle={generateDueDateText(dueDate, status, bill.recurrence)}
                   currencySymbol={currencySymbol}
                   onPay={() => onPayBill(bill)}
                   onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}

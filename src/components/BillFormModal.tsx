@@ -65,6 +65,33 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     if (!name || amountInput.rawValue <= 0 || !dueDay || !occurrence) return;
     if (recordInitialPayment && !selectedWalletId) return;
 
+    let firstPaymentDate: string | undefined;
+
+    // "Magic" Logic: If NOT recording initial payment for a new bill, assume first payment is SKIPPED/DUE NEXT CYCLE.
+    // If we ARE recording initial payment, the system creates a transaction for the start date, so firstPaymentDate = startDate is implied/handled.
+    if (!initialBill && !recordInitialPayment) {
+        const start = new Date(startDate);
+        let nextDate = new Date(start);
+
+        switch (occurrence) {
+            case 'WEEKLY':
+                nextDate.setDate(nextDate.getDate() + 7);
+                break;
+            case 'MONTHLY':
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                break;
+            case 'YEARLY':
+                nextDate.setFullYear(nextDate.getFullYear() + 1);
+                break;
+            case 'ONE_TIME':
+                 // For one time, start date usually IS the due date.
+                 // If not paid, it is due. We don't push it.
+                 nextDate = start;
+                 break;
+        }
+        firstPaymentDate = nextDate.toISOString();
+    }
+
     onSave({
       name,
       amount: amountInput.rawValue,
@@ -72,7 +99,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       recurrence: occurrence,
       icon,
       type,
-      startDate: new Date(startDate).toISOString()
+      startDate: new Date(startDate).toISOString(),
+      firstPaymentDate
     }, initialBill?.id, recordInitialPayment ? { walletId: selectedWalletId } : undefined);
     onClose();
   };
