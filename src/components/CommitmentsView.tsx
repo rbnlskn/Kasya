@@ -59,7 +59,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       .map(b => getActiveBillInstance(b, transactions, currentDate))
       .filter((b): b is NonNullable<typeof b> => b !== null);
 
-    return sortUnified(instances);
+    const sortedInstances = sortUnified(instances);
+
+    return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
   }, [bills, transactions, currentDate]);
   
   const getCCDueText = (day?: number) => {
