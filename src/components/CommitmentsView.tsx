@@ -73,11 +73,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const lookaheadBills = nextMonthInstances.filter(instance => {
+    // Only perform lookahead if we are viewing the Current Real-World Month.
+    // If we are looking at History, we do not want future bills showing up.
+    const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+
+    const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
         const lookaheadDate = new Date(instance.dueDate);
         lookaheadDate.setDate(lookaheadDate.getDate() - 7);
         return today >= lookaheadDate;
-    });
+    }) : [];
 
     // Combine and remove duplicates
     const combined = [...currentMonthInstances, ...lookaheadBills];

@@ -442,17 +442,23 @@ export const getActiveBillInstance = (
              const diffTime = nextDueDate.getTime() - today.getTime();
              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-             if (diffDays <= 3 && diffDays > 0) {
-                 // Check if Next Instance is Paid
-                 const isNextPaid = transactions.some(t =>
-                    t.billId === bill.id &&
-                    new Date(t.date).getMonth() === nextDueDate.getMonth() &&
-                    new Date(t.date).getFullYear() === nextDueDate.getFullYear()
-                 );
+             // Only perform lookahead if we are viewing the Current Real-World Month.
+             // If we are looking at History, we do not want future bills showing up.
+             const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
 
-                 if (!isNextPaid) {
-                     // SHOW NEXT INSTANCE
-                     return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
+             if (isViewingCurrentRealMonth) {
+                 if (diffDays <= 3 && diffDays > 0) {
+                     // Check if Next Instance is Paid
+                     const isNextPaid = transactions.some(t =>
+                        t.billId === bill.id &&
+                        new Date(t.date).getMonth() === nextDueDate.getMonth() &&
+                        new Date(t.date).getFullYear() === nextDueDate.getFullYear()
+                     );
+
+                     if (!isNextPaid) {
+                         // SHOW NEXT INSTANCE
+                         return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
+                     }
                  }
              }
         }
