@@ -348,9 +348,27 @@ const App: React.FC = () => {
   const handleDeleteWallet = (id: string) => setData(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
-  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string) => {
-    id ? setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }))
-       : setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }] }));
+  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: { walletId: string }) => {
+    let newBillId = id;
+    if (id) {
+        setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }));
+    } else {
+        newBillId = `bill_${Date.now()}`;
+        setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: newBillId! }] }));
+        if (recordInitialPayment) {
+            const tx: Omit<Transaction, 'id'> = {
+                amount: billData.amount,
+                type: TransactionType.EXPENSE,
+                categoryId: billData.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6',
+                walletId: recordInitialPayment.walletId,
+                date: billData.startDate,
+                title: billData.type === 'SUBSCRIPTION' ? 'Subscription' : 'Bill',
+                description: billData.name,
+                billId: newBillId
+            };
+            handleSaveTransaction(tx);
+        }
+    }
   };
   const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
   
@@ -543,7 +561,7 @@ const App: React.FC = () => {
       {(modal === 'TX_FORM' || (modal === 'NONE' && isModalExiting && selectedTxId !== undefined)) && (<TransactionFormModal isOpen={modal === 'TX_FORM'} onClose={handleBack} categories={data.categories} wallets={data.wallets} onSave={handleSaveTransaction} onDelete={handleDeleteTransaction} initialTransaction={editingTransaction} currencySymbol={currentCurrency.symbol} title={transactionModalTitle} isExiting={isModalExiting} />)}
       {(modal === 'WALLET_FORM' || (modal === 'NONE' && isModalExiting && selectedWalletId !== undefined)) && (<WalletFormModal isOpen={modal === 'WALLET_FORM'} onClose={handleBack} onSave={handleSaveWallet} onDelete={handleDeleteWallet} initialWallet={editingWallet} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
       {(modal === 'BUDGET_FORM' || (modal === 'NONE' && isModalExiting && selectedBudgetId !== undefined)) && (<BudgetFormModal isOpen={modal === 'BUDGET_FORM'} onClose={handleBack} onSave={handleSaveBudget} onDelete={handleDeleteBudget} categories={data.categories} initialBudget={editingBudget} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
-      {(modal === 'BILL_FORM' || (modal === 'NONE' && isModalExiting && selectedBillId !== undefined)) && (<BillFormModal isOpen={modal === 'BILL_FORM'} onClose={handleBack} onSave={handleSaveBill} onDelete={handleDeleteBill} initialBill={editingBill} currencySymbol={currentCurrency.symbol} isExiting={isModalExiting} />)}
+      {(modal === 'BILL_FORM' || (modal === 'NONE' && isModalExiting && selectedBillId !== undefined)) && (<BillFormModal isOpen={modal === 'BILL_FORM'} onClose={handleBack} onSave={handleSaveBill} onDelete={handleDeleteBill} initialBill={editingBill} currencySymbol={currentCurrency.symbol} wallets={data.wallets} isExiting={isModalExiting} />)}
       {(modal === 'COMMITMENT_FORM' || (modal === 'NONE' && isModalExiting && selectedCommitmentId !== undefined)) && (<CommitmentFormModal isOpen={modal === 'COMMITMENT_FORM'} onClose={handleBack} onSave={handleSaveCommitment} onDelete={handleDeleteCommitment} initialCommitment={editingCommitment} currencySymbol={currentCurrency.symbol} wallets={data.wallets} categories={data.categories} isExiting={isModalExiting} />)}
       {modal === 'CATEGORY_MANAGER' && (<CategoryManager categories={data.categories} onSave={(cat) => {if (data.categories.find(c => c.id === cat.id)) setData(prev => ({ ...prev, categories: prev.categories.map(c => c.id === cat.id ? cat : c) })); else setData(prev => ({ ...prev, categories: [...prev.categories, cat] }));}} onDelete={(id) => setData(prev => ({ ...prev, categories: prev.categories.filter(c => c.id !== id) }))} onReorder={(newCats) => setData(prev => ({ ...prev, categories: newCats }))} onClose={handleBack} isExiting={isModalExiting} />)}
     </div>
