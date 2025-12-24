@@ -79,8 +79,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
     // --- Calculate first actual due date ---
     let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), b.dueDay);
-    if (firstDueDate < startDate) {
-        // If the due day in the start month is before the start date, the first due date is next month.
+    if (firstDueDate <= startDate) {
+        // If the due day in the start month is on or before the start date, the first due date is next month.
         firstDueDate.setMonth(firstDueDate.getMonth() + 1);
     }
     const firstDueMonthStart = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
