@@ -366,12 +366,12 @@ export const getActiveBillInstance = (
     const startDate = new Date(bill.startDate);
     startDate.setHours(0, 0, 0, 0);
 
-    // --- Visibility Rule: Must be on or after the start date's month ---
+    // --- Visibility Rule 1: Must be on or after the start date's month/year ---
     if (viewingYear < startDate.getFullYear() || (viewingYear === startDate.getFullYear() && viewingMonth < startDate.getMonth())) {
         return null;
     }
 
-    // --- Visibility Rule: Must be before the end date's month ---
+    // --- Visibility Rule 2: Must be before the end date's month/year (if exists) ---
     if (bill.endDate) {
         const endDate = new Date(bill.endDate);
         endDate.setHours(0, 0, 0, 0);
@@ -384,7 +384,24 @@ export const getActiveBillInstance = (
 
     // Safety check for invalid dates (e.g. Feb 30) -> Move to last day of month
     if (dueDate.getMonth() !== viewingMonth) {
-         dueDate.setDate(0); // Set to last day of previous month (which is the intended month)
+         dueDate.setDate(0);
+    }
+
+    // --- Visibility Rule 3: STRICT START DATE CHECK ---
+    // Even if we are in the same month, if the constructed due date is BEFORE the start date,
+    // it implies the cycle hasn't started yet.
+    // Example: Start Jan 15. Due Day 10.
+    // Viewing Jan. Constructed Due Date: Jan 10.
+    // Jan 10 < Jan 15. Should NOT be visible in Jan (first payment due Feb 10?).
+    // OR does "Start Date" mean "First Payment Date"?
+    // Typically, if Start Date is Jan 15, and Due Day is 10. First due date is likely Feb 10.
+    // Let's implement this logic: If calculated due date < start date, return null.
+
+    // Wait, if Start Date is Jan 15. Due Day is 15. Due Date Jan 15. >= Start Date. Visible.
+    // If Start Date is Jan 15. Due Day is 20. Due Date Jan 20. >= Start Date. Visible.
+
+    if (dueDate.getTime() < startDate.getTime()) {
+        return null;
     }
 
 
@@ -401,6 +418,12 @@ export const getActiveBillInstance = (
 
     // --- Determine Status ---
     let status: CommitmentInstanceStatus = 'UPCOMING';
+
+    // OVERDUE CHECK:
+    // Only 'OVERDUE' if viewing date is NOT in the future relative to real today.
+    // If I view Jan 2026, and today is Dec 2025. Jan 15 2026 is NOT overdue.
+    // But `dueDate < today` would be false anyway.
+
     if (dueDate < today) {
         status = 'OVERDUE';
     } else if (dueDate.getTime() === today.getTime()) {

@@ -10,7 +10,8 @@ interface CommitmentCardProps {
   category?: Category;
   paidAmount: number;
   paymentsMade: number;
-  dueDateText: string;
+  dueDateText: string; // Used for "Period" in Bills, or Header in Loans (Legacy/Mixed usage)
+  headerSubtitle?: string; // New prop for the text under the title
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
@@ -25,6 +26,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   paidAmount,
   paymentsMade,
   dueDateText,
+  headerSubtitle,
   currencySymbol,
   onPay,
   onViewDetails,
@@ -97,6 +99,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       displayAmount = (item as Bill).amount;
   }
 
+  // Determine the subtitle text.
+  // If headerSubtitle is provided, use it.
+  // Fallback for Loans: Use dueDateText (legacy behavior where dueDateText was passed as the subtitle).
+  // Fallback for Bills: Use the old calculation (only if headerSubtitle is missing, but we aim to always provide it).
+  const subtitle = headerSubtitle
+    ? headerSubtitle
+    : (isCommitment
+        ? dueDateText
+        : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), (item as Bill).dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
 
   return (
     <div
@@ -113,7 +124,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <h3 className="font-bold text-slate-800 text-lg truncate">{item.name}</h3>
             <h3 className="font-extrabold text-lg text-blue-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
-          <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), (item as Bill).dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}</p>
+          <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{subtitle}</p>
         </div>
       </div>
 

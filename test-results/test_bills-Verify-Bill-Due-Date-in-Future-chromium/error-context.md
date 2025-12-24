@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - heading "ka ⚡ ya" [level=1] [ref=e8]:
+      - text: ka
+      - generic [ref=e9]: ⚡
+      - text: ya
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - heading "WALLETS" [level=2] [ref=e14]
+          - button "VIEW ALL" [ref=e16] [cursor=pointer]
+        - generic [ref=e17]:
+          - generic [ref=e20] [cursor=pointer]:
+            - generic: 💵
+            - generic [ref=e22]:
+              - generic [ref=e23]:
+                - generic [ref=e25]: Balance
+                - generic [ref=e26]: Cash
+              - generic [ref=e27]: ••••
+            - paragraph [ref=e29]: ₱0.00
+          - generic [ref=e32] [cursor=pointer]:
+            - img [ref=e33]
+            - paragraph [ref=e34]: Add Wallet
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - heading "BUDGETS" [level=2] [ref=e37]
+          - button "VIEW ALL" [ref=e39] [cursor=pointer]
+        - generic [ref=e43] [cursor=pointer]:
+          - img [ref=e44]
+          - paragraph [ref=e45]: Add Budget
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "RECENT TRANSACTIONS" [level=2] [ref=e48]
+          - button "VIEW ALL" [ref=e50] [cursor=pointer]
+        - generic [ref=e52]: No recent transactions
+  - generic [ref=e54]:
+    - button [ref=e55] [cursor=pointer]:
+      - img [ref=e56]
+    - button [ref=e59] [cursor=pointer]:
+      - img [ref=e60]
+    - button [ref=e62] [cursor=pointer]:
+      - img [ref=e63]
+    - button [ref=e64] [cursor=pointer]:
+      - img [ref=e65]
+    - button [ref=e67] [cursor=pointer]:
+      - img [ref=e68]
+```
