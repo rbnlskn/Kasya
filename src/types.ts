@@ -86,7 +86,7 @@ export enum CommitmentType {
 
 export interface Commitment {
   id: string;
-  type: CommitmentType;
+  type: CommitmentType | 'BILL';
   name: string;
   principal: number;
   interest: number;

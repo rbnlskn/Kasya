@@ -10,15 +10,22 @@ export interface CommitmentInstance {
   status: CommitmentInstanceStatus;
 }
 
-const addInterval = (date: Date, recurrence: RecurrenceFrequency, duration: number = 1): Date => {
+const addInterval = (
+    date: Date,
+    unit: RecurrenceFrequency | 'WEEKS' | 'MONTHS' | 'YEARS',
+    duration: number,
+): Date => {
     const newDate = new Date(date);
-    switch (recurrence) {
+    switch (unit) {
+        case 'WEEKS':
         case 'WEEKLY':
             newDate.setDate(newDate.getDate() + 7 * duration);
             break;
+        case 'MONTHS':
         case 'MONTHLY':
             newDate.setMonth(newDate.getMonth() + duration);
             break;
+        case 'YEARS':
         case 'YEARLY':
             newDate.setFullYear(newDate.getFullYear() + duration);
             break;
@@ -65,66 +72,54 @@ export const getActiveCommitmentInstance = (
         return null; // Fully paid
     }
 
-    const today = new Date();
+    const today = new Date(currentDate);
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(commitment.startDate);
     startDate.setHours(0, 0, 0, 0);
 
     if (commitment.recurrence === 'NO_DUE_DATE') {
-        const relevantDate = new Date(currentDate);
-        relevantDate.setHours(0, 0, 0, 0);
-        if (relevantDate < startDate) {
+        if (today < startDate) {
             return null;
         }
-        return { commitment, dueDate: relevantDate, status: 'UPCOMING' };
+        return { commitment, dueDate: today, status: 'UPCOMING' };
     }
 
-    if (commitment.recurrence === 'ONE_TIME') {
-        let dueDate = new Date(startDate);
-        dueDate.setMonth(startDate.getMonth() + commitment.duration);
-        const lookaheadDate = new Date(dueDate);
-        lookaheadDate.setDate(dueDate.getDate() - 7);
-        if (today < startDate && today < lookaheadDate) {
-            return null;
-        }
-        if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
-        const status = dueDate < today ? 'OVERDUE' : 'UPCOMING';
-        return { commitment, dueDate, status };
-    }
+    // --- Universal Due Date Calculation ---
 
-    // --- Logic for recurring commitments ---
-    let nextDueDate = new Date(startDate);
-    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
-        nextDueDate.setDate(commitment.dueDay);
-        // If due day this month is before start date, start from next month
-        if (nextDueDate < startDate) {
-            nextDueDate = addInterval(nextDueDate, commitment.recurrence);
-        }
-    } else if (commitment.recurrence === 'WEEKLY') {
-        // Find the first due day on or after the start date
-        const startDay = startDate.getDay();
-        const diff = (commitment.dueDay - startDay + 7) % 7;
-        nextDueDate.setDate(startDate.getDate() + diff);
-    }
+    // 1. Calculate the very first due date.
+    // For ONE_TIME, it's Start Date + Duration.
+    // For recurring, it's also Start Date + the standard interval (e.g., 1 month).
+    const firstDueDate = addInterval(
+        startDate,
+        commitment.recurrence === 'ONE_TIME' ? commitment.durationUnit! : commitment.recurrence,
+        commitment.recurrence === 'ONE_TIME' ? commitment.duration : 1
+    );
 
-    // Find the first unpaid installment
-    let i = 0; // Safety break
-    while (getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
-        nextDueDate = addInterval(nextDueDate, commitment.recurrence);
+    // 2. Find the next unpaid due date, starting from the first calculated due date.
+    let nextDueDate = new Date(firstDueDate);
+    let i = 0; // Safety break for the loop
+    while (nextDueDate < today && getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
+        nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
         i++;
     }
 
-    // Logic to show card only 1 week before the 1st of the next month
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const oneWeekBeforeNextMonth = new Date(nextMonth);
-    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+    // Edge case: If all past payments are made, check the current one.
+    if (getPaymentStatusForDate(commitment, nextDueDate, transactions)) {
+         // If even the current `nextDueDate` is paid, advance to the next one.
+        nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
+    }
 
-    // If the due date is in a future month, and we're not yet in the last week of this month, hide it.
-    if (nextDueDate >= nextMonth && today < oneWeekBeforeNextMonth) {
+    // --- Visibility & Status Logic ---
+
+    // 3. Apply the lookahead window. Hide if it's too far in the future.
+    const lookaheadDate = new Date(nextDueDate);
+    lookaheadDate.setDate(lookaheadDate.getDate() - 7); // 7-day lookahead window
+
+    if (today < lookaheadDate) {
         return null;
     }
 
-    // Determine status
+    // 4. Determine the final status based on the calculated `nextDueDate`.
     let status: CommitmentInstanceStatus = 'UPCOMING';
     if (nextDueDate.getTime() < today.getTime()) {
         status = 'OVERDUE';
@@ -137,11 +132,38 @@ export const getActiveCommitmentInstance = (
 
 export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus, recurrence?: RecurrenceFrequency): string => {
     if (recurrence === 'NO_DUE_DATE') return 'No Due Date';
-    const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-    if (status === 'OVERDUE') return `Overdue • ${specificDate}`;
-    if (status === 'DUE') return `Due Today • ${specificDate}`;
-    if (status === 'UPCOMING') return `Due ${specificDate}`;
-    return specificDate;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isToday = dueDate.getTime() === today.getTime();
+
+    // Get the difference in days
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let relativeText = '';
+    if (status === 'OVERDUE') {
+        const daysOverdue = Math.abs(diffDays);
+        relativeText = `Overdue by ${daysOverdue} day${daysOverdue > 1 ? 's' : ''}`;
+    } else if (isToday) {
+        relativeText = 'Due Today';
+    } else {
+        if (diffDays > 0) {
+            if (diffDays === 1) {
+                relativeText = 'Due Tomorrow';
+            } else if (diffDays <= 7) {
+                relativeText = `Due in ${diffDays} days`;
+            }
+        }
+    }
+
+    const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+    if (relativeText) {
+        return `${relativeText} • ${specificDate}`;
+    }
+    return `Due ${specificDate}`;
 };
 
 export const findLastPayment = (billId: string, transactions: Transaction[]): Transaction | null => {
@@ -210,33 +232,36 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
   });
 };
 
-export const getBillingPeriod = (bill: any, currentDate: Date = new Date()): string => {
-  if (bill.dueDay === 0) return 'No Due Date';
+export const getBillingPeriod = (
+    commitmentInstance: CommitmentInstance,
+): string => {
+    const { commitment, dueDate } = commitmentInstance;
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const dueDay = bill.dueDay;
+    if (commitment.recurrence === 'NO_DUE_DATE' || commitment.recurrence === 'ONE_TIME') {
+        return 'One-Time Payment';
+    }
 
-  const dueDate = new Date(year, month, dueDay);
+    const periodEnd = new Date(dueDate);
+    const periodStart = new Date(periodEnd);
 
-  // Calculate the start date of the period
-  let startDate = new Date(dueDate);
-  switch (bill.recurrence) {
-    case 'WEEKLY':
-      startDate.setDate(dueDate.getDate() - 6);
-      break;
-    case 'MONTHLY':
-      startDate.setMonth(dueDate.getMonth() - 1);
-      startDate.setDate(dueDate.getDate() + 1);
-      break;
-    case 'YEARLY':
-      startDate.setFullYear(dueDate.getFullYear() - 1);
-      startDate.setDate(dueDate.getDate() + 1);
-      break;
-    default: // one-time or others
-      return dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
+    // Calculate the start of the billing period based on the due date
+    switch (commitment.recurrence) {
+        case 'WEEKLY':
+            periodStart.setDate(periodEnd.getDate() - 7);
+            break;
+        case 'MONTHLY':
+            periodStart.setMonth(periodEnd.getMonth() - 1);
+            break;
+        case 'YEARLY':
+            periodStart.setFullYear(periodEnd.getFullYear() - 1);
+            break;
+    }
+    // Increment the start date by one day to get the beginning of the coverage period
+    periodStart.setDate(periodStart.getDate() + 1);
 
-  const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-  return `${startDate.toLocaleDateString('en-US', options)} - ${dueDate.toLocaleDateString('en-US', options)}`;
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const formattedStart = periodStart.toLocaleDateString('en-US', options);
+    const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
+
+    return `Period: ${formattedStart} - ${formattedEnd}`;
 };
