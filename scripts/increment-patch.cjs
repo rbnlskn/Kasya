@@ -3,6 +3,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 // Exit if the last commit was a version bump from the CI
+// Note: We deliberately allow bumping after a 'feat(version)' commit to ensure the user's first commit bumps Z.
 const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
 if (lastCommitMessage.startsWith('build: 🤖 bump version')) {
   console.log('Skipping patch increment for a CI version bump.');
