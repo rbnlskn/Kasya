@@ -62,18 +62,41 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const validBills = bills.filter(b => {
-      const startDate = new Date(b.startDate);
-      const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const startDate = new Date(b.startDate);
+    startDate.setHours(0, 0, 0, 0);
 
-      const endDate = b.endDate ? new Date(b.endDate) : null;
-      const endMonthStart = endDate ? new Date(endDate.getFullYear(), endDate.getMonth(), 1) : null;
+    const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-      if (endMonthStart && currentMonthStart > endMonthStart) {
-          return false;
-      }
+    // --- End Date constraint ---
+    const endDate = b.endDate ? new Date(b.endDate) : null;
+    if (endDate) {
+        endDate.setHours(0,0,0,0);
+        const endMonthStart = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        if (currentMonthStart > endMonthStart) {
+            return false; // Bill has ended in a previous month
+        }
+    }
 
-      return currentMonthStart >= startMonthStart;
+    // --- Calculate first actual due date ---
+    let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), b.dueDay);
+    if (firstDueDate < startDate) {
+        // If the due day in the start month is before the start date, the first due date is next month.
+        firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
+    const firstDueMonthStart = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
+
+    // --- Visibility Rule ---
+    // The month being viewed must be on or after the first due month.
+    if (currentMonthStart < firstDueMonthStart) {
+        return false;
+    }
+
+    // For yearly bills, only show them on their due month.
+    if (b.recurrence === 'YEARLY' && currentDate.getMonth() !== firstDueDate.getMonth()) {
+        return false;
+    }
+
+    return true;
   });
 
   const sortedBills = useMemo(() => sortUnified(validBills, currentDate), [validBills, currentDate]);
