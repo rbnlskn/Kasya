@@ -96,7 +96,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const renderCreditCardItem = (cc: Wallet) => {
     const currentBalance = (cc.creditLimit || 0) - cc.balance;
     return (
-        <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-white border">
+        <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-4 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-white border">
             <div className="flex items-center flex-1 mr-4 relative z-10">
                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white mr-3 shadow-sm`} style={{backgroundColor: cc.color}}>
                      <div className={`opacity-50`}>
@@ -406,26 +406,46 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-2">
                 <CommitmentList
                     items={commitmentFilter === 'ACTIVE' ? activeCommitmentInstances : settledCommitments}
-                    renderItem={(item) => {
+                    renderItem={(item: CommitmentInstance | Commitment) => {
                         const isInstance = 'commitment' in item;
-                        const commitment = isInstance ? item.commitment : item;
-                        const paidAmount = calculateTotalPaid(commitment.id, transactions);
-                        const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
-                        return (
-                            <CommitmentCard
-                                key={isInstance ? item.id : item.id}
-                                item={commitment}
-                                category={categories.find(c => c.id === commitment.categoryId)}
-                                paidAmount={paidAmount}
-                                paymentsMade={paymentsMade}
-                                dueDateText={isInstance ? generateDueDateText(item.dueDate, item.status, commitment.recurrence) : 'Settled'}
-                                currencySymbol={currencySymbol}
-                                onPay={() => onPayCommitment(commitment)}
-                                onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
-                                instanceStatus={isInstance ? item.status : undefined}
-                                isOverdue={isInstance ? item.status === 'OVERDUE' : false}
-                            />
-                        );
+                        if (isInstance) {
+                            const { commitment, dueDate, status } = item;
+                            const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                            const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                            return (
+                                <CommitmentCard
+                                    key={item.id}
+                                    item={commitment}
+                                    category={categories.find(c => c.id === commitment.categoryId)}
+                                    paidAmount={paidAmount}
+                                    paymentsMade={paymentsMade}
+                                    dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
+                                    currencySymbol={currencySymbol}
+                                    onPay={() => onPayCommitment(commitment)}
+                                    onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                                    instanceStatus={status}
+                                    isOverdue={status === 'OVERDUE'}
+                                />
+                            );
+                        } else {
+                            const commitment = item;
+                            const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                            const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                            return (
+                                <CommitmentCard
+                                    key={commitment.id}
+                                    item={commitment}
+                                    category={categories.find(c => c.id === commitment.categoryId)}
+                                    paidAmount={paidAmount}
+                                    paymentsMade={paymentsMade}
+                                    dueDateText="Settled"
+                                    currencySymbol={currencySymbol}
+                                    onPay={() => onPayCommitment(commitment)}
+                                    onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                                    isOverdue={false}
+                                />
+                            );
+                        }
                     }}
                     placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No commitments found</div>}
                 />
