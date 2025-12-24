@@ -1,5 +1,5 @@
 
-import { Commitment, Transaction, RecurrenceFrequency } from '../types';
+import { Bill, Commitment, Transaction, RecurrenceFrequency } from '../types';
 import { calculateTotalPaid, calculateTotalObligation } from './math';
 
 export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
@@ -8,6 +8,12 @@ export interface CommitmentInstance {
   commitment: Commitment;
   dueDate: Date;
   status: CommitmentInstanceStatus;
+}
+
+export interface BillInstance {
+    bill: Bill;
+    dueDate: Date;
+    status: CommitmentInstanceStatus;
 }
 
 const addInterval = (
@@ -63,7 +69,7 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
 export const getActiveCommitmentInstance = (
   commitment: Commitment,
   transactions: Transaction[],
-  currentDate: Date,
+  viewingDate: Date, // The date the user is looking at in the UI
 ): CommitmentInstance | null => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -72,56 +78,56 @@ export const getActiveCommitmentInstance = (
         return null; // Fully paid
     }
 
-    const today = new Date(currentDate);
+    const today = new Date(); // The actual current date
     today.setHours(0, 0, 0, 0);
+    const viewingDateClean = new Date(viewingDate);
+    viewingDateClean.setHours(0, 0, 0, 0);
+
     const startDate = new Date(commitment.startDate);
     startDate.setHours(0, 0, 0, 0);
 
     if (commitment.recurrence === 'NO_DUE_DATE') {
-        if (today < startDate) {
+        if (viewingDateClean < startDate) {
             return null;
         }
-        return { commitment, dueDate: today, status: 'UPCOMING' };
+        return { commitment, dueDate: viewingDateClean, status: 'UPCOMING' };
     }
 
-    // --- Universal Due Date Calculation ---
-
-    // 1. Calculate the very first due date.
-    // For ONE_TIME, it's Start Date + Duration.
-    // For recurring, it's also Start Date + the standard interval (e.g., 1 month).
     const firstDueDate = addInterval(
         startDate,
         commitment.recurrence === 'ONE_TIME' ? commitment.durationUnit! : commitment.recurrence,
         commitment.recurrence === 'ONE_TIME' ? commitment.duration : 1
     );
 
-    // 2. Find the next unpaid due date, starting from the first calculated due date.
     let nextDueDate = new Date(firstDueDate);
-    let i = 0; // Safety break for the loop
-    while (nextDueDate < today && getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
+    let i = 0;
+    while (nextDueDate < viewingDateClean && getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
+        if (commitment.recurrence === 'ONE_TIME') break; // Don't loop for one-time payments
         nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
         i++;
     }
 
-    // Edge case: If all past payments are made, check the current one.
     if (getPaymentStatusForDate(commitment, nextDueDate, transactions)) {
-         // If even the current `nextDueDate` is paid, advance to the next one.
-        nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
+       if (commitment.recurrence !== 'ONE_TIME') {
+         nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
+       } else {
+         return null; // One-time and paid
+       }
     }
 
-    // --- Visibility & Status Logic ---
-
-    // 3. Apply the lookahead window. Hide if it's too far in the future.
-    const lookaheadDate = new Date(nextDueDate);
-    lookaheadDate.setDate(lookaheadDate.getDate() - 7); // 7-day lookahead window
-
-    if (today < lookaheadDate) {
+    if (commitment.recurrence === 'ONE_TIME' && viewingDateClean.getMonth() !== nextDueDate.getMonth()) {
         return null;
     }
 
-    // 4. Determine the final status based on the calculated `nextDueDate`.
+    const lookaheadDate = new Date(nextDueDate);
+    lookaheadDate.setDate(lookaheadDate.getDate() - 7);
+
+    if (viewingDateClean < lookaheadDate) {
+        return null;
+    }
+
     let status: CommitmentInstanceStatus = 'UPCOMING';
-    if (nextDueDate.getTime() < today.getTime()) {
+    if (nextDueDate < today) {
         status = 'OVERDUE';
     } else if (nextDueDate.getTime() === today.getTime()) {
         status = 'DUE';
@@ -264,4 +270,58 @@ export const getBillingPeriod = (
     const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
 
     return `Period: ${formattedStart} - ${formattedEnd}`;
+};
+
+export const getActiveBillInstance = (
+    bill: Bill,
+    transactions: Transaction[],
+    viewingDate: Date,
+): BillInstance | null => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const viewingDateClean = new Date(viewingDate);
+    viewingDateClean.setHours(0, 0, 0, 0);
+    const viewingMonth = viewingDateClean.getMonth();
+    const viewingYear = viewingDateClean.getFullYear();
+
+    const startDate = new Date(bill.startDate);
+    startDate.setHours(0, 0, 0, 0);
+
+    // --- Visibility Rule: Must be on or after the start date's month ---
+    if (viewingYear < startDate.getFullYear() || (viewingYear === startDate.getFullYear() && viewingMonth < startDate.getMonth())) {
+        return null;
+    }
+
+    // --- Visibility Rule: Must be before the end date's month ---
+    if (bill.endDate) {
+        const endDate = new Date(bill.endDate);
+        endDate.setHours(0, 0, 0, 0);
+        if (viewingYear > endDate.getFullYear() || (viewingYear === endDate.getFullYear() && viewingMonth > endDate.getMonth())) {
+            return null;
+        }
+    }
+
+    const dueDate = new Date(viewingYear, viewingMonth, bill.dueDay);
+
+    // --- Payment Status ---
+    const isPaidThisMonth = transactions.some(t =>
+        t.billId === bill.id &&
+        new Date(t.date).getMonth() === viewingMonth &&
+        new Date(t.date).getFullYear() === viewingYear
+    );
+
+    if (isPaidThisMonth) {
+        return null;
+    }
+
+    // --- Determine Status ---
+    let status: CommitmentInstanceStatus = 'UPCOMING';
+    if (dueDate < today) {
+        status = 'OVERDUE';
+    } else if (dueDate.getTime() === today.getTime()) {
+        status = 'DUE';
+    }
+
+    return { bill, dueDate, status };
 };
