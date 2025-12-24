@@ -101,12 +101,19 @@ export const getCommitmentInstances = (
 
     // Special handling for NO_DUE_DATE
     if (commitment.recurrence === 'NO_DUE_DATE') {
-         // It's always "UPCOMING" or "DUE" depending on how you see it.
-         // User said: "just be a one time payment type on the calculated due date"
-         // For NO_DUE_DATE, we use today or viewing date?
-         // Logic: It should just appear. We use the calculated "Start Date" as the anchor?
-         // Or just Viewing Date.
-         // Let's use viewingDateClean to ensure it shows up in the current view.
+         // Strict Visibility Check: Only visible if viewing date is ON or AFTER the start month/year
+         const start = new Date(commitment.startDate);
+         start.setHours(0,0,0,0);
+
+         const viewingYear = viewingDateClean.getFullYear();
+         const viewingMonth = viewingDateClean.getMonth();
+         const startYear = start.getFullYear();
+         const startMonth = start.getMonth();
+
+         if (viewingYear < startYear || (viewingYear === startYear && viewingMonth < startMonth)) {
+             return [];
+         }
+
          return [{
              commitment,
              dueDate: viewingDateClean,
