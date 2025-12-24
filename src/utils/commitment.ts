@@ -93,18 +93,12 @@ export const getActiveCommitmentInstance = (
     }
 
     // --- Logic for recurring commitments ---
-    let nextDueDate = new Date(startDate);
-    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
-        nextDueDate.setDate(commitment.dueDay);
-        // If due day this month is before start date, start from next month
-        if (nextDueDate < startDate) {
-            nextDueDate = addInterval(nextDueDate, commitment.recurrence);
-        }
-    } else if (commitment.recurrence === 'WEEKLY') {
-        // Find the first due day on or after the start date
-        const startDay = startDate.getDay();
-        const diff = (commitment.dueDay - startDay + 7) % 7;
-        nextDueDate.setDate(startDate.getDate() + diff);
+    // The first due date is always one interval after the start date.
+    let nextDueDate = addInterval(startDate, commitment.recurrence);
+
+    // A commitment should not be visible before its start date.
+    if (today < startDate) {
+        return null;
     }
 
     // Find the first unpaid installment
@@ -114,13 +108,12 @@ export const getActiveCommitmentInstance = (
         i++;
     }
 
-    // Logic to show card only 1 week before the 1st of the next month
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const oneWeekBeforeNextMonth = new Date(nextMonth);
-    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+    // #4: Lookahead Logic: If a loan is due in the following month, only show it in the current month
+    // if the Current Date is within 7 days of that specific Due Date.
+    const lookaheadDate = new Date(nextDueDate);
+    lookaheadDate.setDate(lookaheadDate.getDate() - 7);
 
-    // If the due date is in a future month, and we're not yet in the last week of this month, hide it.
-    if (nextDueDate >= nextMonth && today < oneWeekBeforeNextMonth) {
+    if (today < lookaheadDate) {
         return null;
     }
 
