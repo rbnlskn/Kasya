@@ -362,7 +362,7 @@ const App: React.FC = () => {
                 categoryId: billData.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6',
                 walletId: recordInitialPayment.walletId,
                 date: billData.startDate,
-                title: billData.name,
+                title: billData.type === 'SUBSCRIPTION' ? 'Subscription' : 'Bill',
                 description: billData.name,
                 billId: newBillId
             };

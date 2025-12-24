@@ -56,12 +56,36 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const activeBillInstances = useMemo(() => {
-    const instances = bills
+    // Get instances for the currently viewed month
+    const currentMonthInstances = bills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
-      .filter((b): b is NonNullable<typeof b> => b !== null)
-      .filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
+      .filter((b): b is BillInstance => b !== null);
 
-    const sortedInstances = sortUnified(instances);
+    // Get instances for the next month to check for lookahead
+    const nextMonthDate = new Date(currentDate);
+    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+
+    const nextMonthInstances = bills
+        .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
+        .filter((b): b is BillInstance => b !== null);
+
+    // Filter next month's instances for the lookahead window (7 days)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const lookaheadBills = nextMonthInstances.filter(instance => {
+        const lookaheadDate = new Date(instance.dueDate);
+        lookaheadDate.setDate(lookaheadDate.getDate() - 7);
+        return today >= lookaheadDate;
+    });
+
+    // Combine and remove duplicates
+    const combined = [...currentMonthInstances, ...lookaheadBills];
+    const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
+
+    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
+
+    const sortedInstances = sortUnified(filteredByStatus);
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
   }, [bills, transactions, currentDate, billFilter]);

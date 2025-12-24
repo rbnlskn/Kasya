@@ -1,6 +1,5 @@
-
 import { Bill, Commitment, Transaction, RecurrenceFrequency } from '../types';
-import { calculateTotalPaid, calculateTotalObligation } from './math';
+import { calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade } from './math';
 
 export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
 
@@ -14,6 +13,7 @@ export interface BillInstance {
     bill: Bill;
     dueDate: Date;
     status: CommitmentInstanceStatus;
+    id: string;
 }
 
 const addInterval = (
@@ -46,10 +46,10 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
             periodStart.setDate(dueDate.getDate() - 7);
             break;
         case 'MONTHLY':
-            periodStart.setMonth(dueDate.getMonth() - 1);
+            periodStart.setMonth(periodStart.getMonth() - 1);
             break;
         case 'YEARLY':
-            periodStart.setFullYear(dueDate.getFullYear() - 1);
+            periodStart.setFullYear(periodStart.getFullYear() - 1);
             break;
         case 'ONE_TIME':
              const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -86,11 +86,21 @@ export const getActiveCommitmentInstance = (
     const startDate = new Date(commitment.startDate);
     startDate.setHours(0, 0, 0, 0);
 
+    // A loan should not be visible before its start date.
+    if (viewingDateClean < startDate) {
+        return null;
+    }
+
     if (commitment.recurrence === 'NO_DUE_DATE') {
-        if (viewingDateClean < startDate) {
-            return null;
-        }
         return { commitment, dueDate: viewingDateClean, status: 'UPCOMING' };
+    }
+
+    // --- Core Due Date Logic ---
+    const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+
+    // Stop if all installments are paid
+    if (commitment.recurrence !== 'ONE_TIME' && paymentsMade >= commitment.duration) {
+        return null;
     }
 
     const firstDueDate = addInterval(
@@ -100,26 +110,32 @@ export const getActiveCommitmentInstance = (
     );
 
     let nextDueDate = new Date(firstDueDate);
-    let i = 0;
-    while (nextDueDate < viewingDateClean && getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
-        if (commitment.recurrence === 'ONE_TIME') break; // Don't loop for one-time payments
-        nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
-        i++;
+    if (commitment.recurrence !== 'ONE_TIME') {
+        for (let i = 0; i < paymentsMade; i++) {
+            nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
+        }
     }
 
-    if (getPaymentStatusForDate(commitment, nextDueDate, transactions)) {
-       if (commitment.recurrence !== 'ONE_TIME') {
-         nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
-       } else {
-         return null; // One-time and paid
-       }
-    }
+    // --- Visibility Logic ---
 
-    if (commitment.recurrence === 'ONE_TIME' && viewingDateClean.getMonth() !== nextDueDate.getMonth()) {
+    // Don't show paid one-time loans
+    if (commitment.recurrence === 'ONE_TIME' && paymentsMade > 0) {
         return null;
     }
 
-    if (viewingDateClean.getMonth() !== nextDueDate.getMonth()) {
+    // A loan is only visible in its due month, or the month before if within the lookahead window.
+    const isSameMonth = viewingDateClean.getFullYear() === nextDueDate.getFullYear() && viewingDateClean.getMonth() === nextDueDate.getMonth();
+
+    const prevMonth = new Date(nextDueDate);
+    prevMonth.setMonth(prevMonth.getMonth() - 1);
+    const isPreviousMonth = viewingDateClean.getFullYear() === prevMonth.getFullYear() && viewingDateClean.getMonth() === prevMonth.getMonth();
+
+    if (!isSameMonth && !isPreviousMonth) {
+        return null;
+    }
+
+    // Apply lookahead if we are in the month before the due date
+    if (isPreviousMonth) {
         const lookaheadDate = new Date(nextDueDate);
         lookaheadDate.setDate(lookaheadDate.getDate() - 7);
         if (today < lookaheadDate) {
@@ -127,10 +143,12 @@ export const getActiveCommitmentInstance = (
         }
     }
 
+
+    // --- Status Calculation ---
     let status: CommitmentInstanceStatus = 'UPCOMING';
     if (nextDueDate < today) {
         status = 'OVERDUE';
-    } else if (nextDueDate.getTime() === today.getTime()) {
+    } else if (nextDueDate.getFullYear() === today.getFullYear() && nextDueDate.getMonth() === today.getMonth() && nextDueDate.getDate() === today.getDate()) {
         status = 'DUE';
     }
 
@@ -248,21 +266,11 @@ export const getBillingPeriod = (
         return 'One-Time Payment';
     }
 
-    const periodEnd = new Date(dueDate);
+    // Per user feedback, the period is from the current due date to the day before the next one.
     const periodStart = new Date(dueDate);
-
-    switch (recurrence) {
-        case 'WEEKLY':
-            periodStart.setDate(periodStart.getDate() - 7);
-            break;
-        case 'MONTHLY':
-            periodStart.setMonth(periodStart.getMonth() - 1);
-            break;
-        case 'YEARLY':
-            periodStart.setFullYear(periodStart.getFullYear() - 1);
-            break;
-    }
-    periodStart.setDate(periodStart.getDate() + 1);
+    const nextDueDate = addInterval(dueDate, recurrence, 1);
+    const periodEnd = new Date(nextDueDate);
+    periodEnd.setDate(periodEnd.getDate() - 1);
 
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
@@ -303,6 +311,8 @@ export const getActiveBillInstance = (
 
     const dueDate = new Date(viewingYear, viewingMonth, bill.dueDay);
 
+
+
     // --- Payment Status ---
     const isPaidThisMonth = transactions.some(t =>
         t.billId === bill.id &&
@@ -311,7 +321,7 @@ export const getActiveBillInstance = (
     );
 
     if (isPaidThisMonth) {
-        return { bill, dueDate, status: 'PAID' };
+        return { bill, dueDate, status: 'PAID', id: bill.id };
     }
 
     // --- Determine Status ---
@@ -322,5 +332,5 @@ export const getActiveBillInstance = (
         status = 'DUE';
     }
 
-    return { bill, dueDate, status };
+    return { bill, dueDate, status, id: bill.id };
 };
