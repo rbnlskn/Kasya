@@ -12,7 +12,7 @@ import { CommitmentStack } from './CommitmentStack';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
-import { getActiveCommitmentInstance, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
+import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
 
@@ -163,19 +163,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .map(c => getActiveCommitmentInstance(c, transactions, currentDate))
-      .filter((c): c is NonNullable<typeof c> => c !== null);
+      .flatMap(c => getCommitmentInstances(c, transactions, currentDate)); // Use flatMap to allow multiple instances
 
     const sortedInstances = sortUnified(instances);
 
-    return sortedInstances.map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` }));
+    return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
   }, [commitments, transactions, currentDate]);
 
   const settledCommitments = useMemo(() => {
       const settled = commitments.filter(c => {
         const totalPaid = calculateTotalPaid(c.id, transactions);
         const totalObligation = c.principal + c.interest;
-        return totalPaid >= totalObligation;
+        return totalPaid >= totalObligation - 0.01;
       });
       return sortUnified(settled);
   }, [commitments, transactions]);
@@ -190,8 +189,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
 
+    // For specific instances, we want to show instance-specific data if available (e.g. amount due)
+    // but the original design relies on total stats.
+    // We will keep standard display but ensure status is correct.
+
+    // If it's an instance, we can calculate installment amount
+    const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
+
     return (
-      <div key={commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
+      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -204,7 +210,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status, commitment.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(calculateInstallment(commitment) || 0)}</span>
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(displayAmount || 0)}</span>
             {status !== 'SETTLED' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}

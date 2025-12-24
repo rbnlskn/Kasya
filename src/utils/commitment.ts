@@ -1,5 +1,5 @@
 import { Bill, Commitment, Transaction, RecurrenceFrequency } from '../types';
-import { calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade } from './math';
+import { calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade, calculateInstallment } from './math';
 
 export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
 
@@ -7,6 +7,9 @@ export interface CommitmentInstance {
   commitment: Commitment;
   dueDate: Date;
   status: CommitmentInstanceStatus;
+  instanceId: string; // Unique ID for this specific installment (e.g., loanId_1)
+  amount: number; // Amount due for this specific instance
+  paidAmount: number; // Amount paid towards this specific instance
 }
 
 export interface BillInstance {
@@ -39,120 +42,188 @@ const addInterval = (
     return newDate;
 };
 
-const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transactions: Transaction[]): boolean => {
-    const periodStart = new Date(dueDate);
-    switch (commitment.recurrence) {
-        case 'WEEKLY':
-            periodStart.setDate(dueDate.getDate() - 7);
-            break;
-        case 'MONTHLY':
-            periodStart.setMonth(periodStart.getMonth() - 1);
-            break;
-        case 'YEARLY':
-            periodStart.setFullYear(periodStart.getFullYear() - 1);
-            break;
-        case 'ONE_TIME':
-             const totalPaid = calculateTotalPaid(commitment.id, transactions);
-             return totalPaid > 0;
-        default:
-            return false;
+// Generates all theoretical due dates for the commitment
+const generateSchedule = (commitment: Commitment): Date[] => {
+    const dates: Date[] = [];
+
+    // Normalize start date to midnight
+    const startDate = new Date(commitment.startDate);
+    startDate.setHours(0, 0, 0, 0);
+
+    if (commitment.recurrence === 'NO_DUE_DATE') {
+        // For no due date, we treat it as a single instance due "now" (or whenever viewing)
+        // effectively handled by logic downstream, but here we can return just the start date or one placeholder.
+        return [startDate];
     }
 
-    return transactions.some(t =>
-        t.commitmentId === commitment.id &&
-        (t.title === 'Loan Payment' || t.title === 'Lending Payment') &&
-        new Date(t.date) >= periodStart &&
-        new Date(t.date) <= dueDate
-    );
+    if (commitment.recurrence === 'ONE_TIME') {
+        const dueDate = addInterval(startDate, commitment.durationUnit!, commitment.duration);
+        return [dueDate];
+    }
+
+    // Recurring (Installments)
+    // The first due date is 1 period AFTER the start date.
+    // e.g. Start Jan 1, Monthly -> First due Feb 1.
+    let currentDueDate = addInterval(startDate, commitment.recurrence, 1);
+
+    for (let i = 0; i < commitment.duration; i++) {
+        dates.push(new Date(currentDueDate));
+        currentDueDate = addInterval(currentDueDate, commitment.recurrence, 1);
+    }
+
+    return dates;
 };
 
-export const getActiveCommitmentInstance = (
+export const getCommitmentInstances = (
   commitment: Commitment,
   transactions: Transaction[],
-  viewingDate: Date, // The date the user is looking at in the UI
-): CommitmentInstance | null => {
+  viewingDate: Date,
+): CommitmentInstance[] => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
+    const installmentAmount = calculateInstallment(commitment);
 
-    if (totalPaid >= totalObligation) {
-        return null; // Fully paid
+    // If fully paid, no instances to show.
+    if (totalPaid >= totalObligation - 0.01) { // tolerance for float errors
+        return [];
     }
 
-    const today = new Date(); // The actual current date
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
     const viewingDateClean = new Date(viewingDate);
     viewingDateClean.setHours(0, 0, 0, 0);
 
-    const startDate = new Date(commitment.startDate);
-    startDate.setHours(0, 0, 0, 0);
+    const schedule = generateSchedule(commitment);
 
-    // A loan should not be visible before its start date.
-    if (viewingDateClean < startDate) {
-        return null;
-    }
+    // Distribute payments FIFO to schedule
+    let remainingTotalPaid = totalPaid;
+    const instances: CommitmentInstance[] = [];
 
+    // Special handling for NO_DUE_DATE
     if (commitment.recurrence === 'NO_DUE_DATE') {
-        return { commitment, dueDate: viewingDateClean, status: 'UPCOMING' };
+         // It's always "UPCOMING" or "DUE" depending on how you see it.
+         // User said: "just be a one time payment type on the calculated due date"
+         // For NO_DUE_DATE, we use today or viewing date?
+         // Logic: It should just appear. We use the calculated "Start Date" as the anchor?
+         // Or just Viewing Date.
+         // Let's use viewingDateClean to ensure it shows up in the current view.
+         return [{
+             commitment,
+             dueDate: viewingDateClean,
+             status: 'UPCOMING',
+             instanceId: `${commitment.id}_nodue`,
+             amount: totalObligation,
+             paidAmount: totalPaid
+         }];
     }
 
-    // --- Core Due Date Logic ---
-    const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+    schedule.forEach((dueDate, index) => {
+        // Calculate amount due for this specific installment
+        let amountDue = installmentAmount;
 
-    // Stop if all installments are paid
-    if (commitment.recurrence !== 'ONE_TIME' && paymentsMade >= commitment.duration) {
-        return null;
-    }
-
-    const firstDueDate = addInterval(
-        startDate,
-        commitment.recurrence === 'ONE_TIME' ? commitment.durationUnit! : commitment.recurrence,
-        commitment.recurrence === 'ONE_TIME' ? commitment.duration : 1
-    );
-
-    let nextDueDate = new Date(firstDueDate);
-    if (commitment.recurrence !== 'ONE_TIME') {
-        for (let i = 0; i < paymentsMade; i++) {
-            nextDueDate = addInterval(nextDueDate, commitment.recurrence, 1);
+        // Adjust last installment for rounding differences
+        if (index === schedule.length - 1) {
+             const previousInstallmentsTotal = installmentAmount * (schedule.length - 1);
+             amountDue = totalObligation - previousInstallmentsTotal;
         }
-    }
 
-    // --- Visibility Logic ---
-
-    // Don't show paid one-time loans
-    if (commitment.recurrence === 'ONE_TIME' && paymentsMade > 0) {
-        return null;
-    }
-
-    // A loan is only visible in its due month, or the month before if within the lookahead window.
-    const isSameMonth = viewingDateClean.getFullYear() === nextDueDate.getFullYear() && viewingDateClean.getMonth() === nextDueDate.getMonth();
-
-    const prevMonth = new Date(nextDueDate);
-    prevMonth.setMonth(prevMonth.getMonth() - 1);
-    const isPreviousMonth = viewingDateClean.getFullYear() === prevMonth.getFullYear() && viewingDateClean.getMonth() === prevMonth.getMonth();
-
-    if (!isSameMonth && !isPreviousMonth) {
-        return null;
-    }
-
-    // Apply lookahead if we are in the month before the due date
-    if (isPreviousMonth) {
-        const lookaheadDate = new Date(nextDueDate);
-        lookaheadDate.setDate(lookaheadDate.getDate() - 7);
-        if (today < lookaheadDate) {
-            return null;
+        // Apply payments to this installment
+        let paidForThis = 0;
+        if (remainingTotalPaid >= amountDue) {
+            paidForThis = amountDue;
+            remainingTotalPaid -= amountDue;
+        } else {
+            paidForThis = remainingTotalPaid;
+            remainingTotalPaid = 0;
         }
-    }
 
+        // Determine Status
+        let status: CommitmentInstanceStatus = 'UPCOMING';
+        if (Math.abs(paidForThis - amountDue) < 0.01) {
+            status = 'PAID';
+        } else if (dueDate < today) {
+            status = 'OVERDUE';
+        } else if (dueDate.getTime() === today.getTime()) {
+            status = 'DUE';
+        }
 
-    // --- Status Calculation ---
-    let status: CommitmentInstanceStatus = 'UPCOMING';
-    if (nextDueDate < today) {
-        status = 'OVERDUE';
-    } else if (nextDueDate.getFullYear() === today.getFullYear() && nextDueDate.getMonth() === today.getMonth() && nextDueDate.getDate() === today.getDate()) {
-        status = 'DUE';
-    }
+        // Visibility Logic
+        // 1. If PAID, usually hidden unless we want to show history.
+        //    Requirement: "should be gone for the meantime" -> Hide PAID.
+        if (status === 'PAID') return;
 
-    return { commitment, dueDate: nextDueDate, status };
+        // 2. If OVERDUE, always show (regardless of viewing date).
+        // 3. If UPCOMING/DUE, show if it falls in the viewing month.
+
+        const isSameMonth = viewingDateClean.getFullYear() === dueDate.getFullYear() && viewingDateClean.getMonth() === dueDate.getMonth();
+
+        // 4. Lookahead Logic: If it's due early next month, and we are viewing current month.
+        //    (Existing logic preserved/improved)
+        const isNextMonth = (
+            (viewingDateClean.getFullYear() === dueDate.getFullYear() && dueDate.getMonth() === viewingDateClean.getMonth() + 1) ||
+            (viewingDateClean.getFullYear() + 1 === dueDate.getFullYear() && viewingDateClean.getMonth() === 11 && dueDate.getMonth() === 0)
+        );
+
+        // Simple Lookahead: If viewing current month, and item is due within next 7 days (even if next month)
+        // Actually, user requirement: "Next Month view should show next month items".
+        // Current Month view should show Current Month Items + Overdue.
+
+        if (status === 'OVERDUE') {
+            instances.push({
+                commitment,
+                dueDate,
+                status,
+                instanceId: `${commitment.id}_${index}`,
+                amount: amountDue,
+                paidAmount: paidForThis
+            });
+        } else if (isSameMonth) {
+            instances.push({
+                commitment,
+                dueDate,
+                status,
+                instanceId: `${commitment.id}_${index}`,
+                amount: amountDue,
+                paidAmount: paidForThis
+            });
+        } else if (isNextMonth) {
+             // Optional: Lookahead logic.
+             // If today is Aug 30, and due Sept 2. Viewing Aug. Should I see Sept 2?
+             // Yes, typically.
+             // We check if viewingDate is "Current Month" relative to real time.
+             const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
+
+             if (isViewingCurrentRealMonth) {
+                 const diffTime = dueDate.getTime() - today.getTime();
+                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                 if (diffDays <= 7 && diffDays > 0) {
+                     instances.push({
+                        commitment,
+                        dueDate,
+                        status,
+                        instanceId: `${commitment.id}_${index}`,
+                        amount: amountDue,
+                        paidAmount: paidForThis
+                    });
+                 }
+             }
+        }
+    });
+
+    return instances;
+};
+
+// Kept for compatibility but redirects to new logic if needed,
+// or mostly unused now for Loans.
+// We will deprecate this for Loans but keep for API shape if needed.
+export const getActiveCommitmentInstance = (
+  commitment: Commitment,
+  transactions: Transaction[],
+  viewingDate: Date,
+): CommitmentInstance | null => {
+    const instances = getCommitmentInstances(commitment, transactions, viewingDate);
+    // Return the most urgent one (first one) if any
+    return instances.length > 0 ? instances[0] : null;
 };
 
 export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus, recurrence?: RecurrenceFrequency): string => {
@@ -183,7 +254,7 @@ export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceSta
         }
     }
 
-    const specificDate = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const specificDate = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     if (relativeText) {
         return `${relativeText} • ${specificDate}`;
@@ -311,6 +382,10 @@ export const getActiveBillInstance = (
 
     const dueDate = new Date(viewingYear, viewingMonth, bill.dueDay);
 
+    // Safety check for invalid dates (e.g. Feb 30) -> Move to last day of month
+    if (dueDate.getMonth() !== viewingMonth) {
+         dueDate.setDate(0); // Set to last day of previous month (which is the intended month)
+    }
 
 
     // --- Payment Status ---
