@@ -56,6 +56,7 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
 export const getActiveCommitmentInstance = (
   commitment: Commitment,
   transactions: Transaction[],
+  currentDate: Date,
 ): CommitmentInstance | null => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -67,15 +68,26 @@ export const getActiveCommitmentInstance = (
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(commitment.startDate);
-    startDate.setHours(0,0,0,0);
+    startDate.setHours(0, 0, 0, 0);
 
-    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
-        const dueDate = commitment.recurrence === 'NO_DUE_DATE'
-            ? new Date() // Or some other logic for no-due-date
-            : addInterval(new Date(commitment.startDate), 'MONTHLY', commitment.duration);
+    if (commitment.recurrence === 'NO_DUE_DATE') {
+        const relevantDate = new Date(currentDate);
+        relevantDate.setHours(0, 0, 0, 0);
+        if (relevantDate < startDate) {
+            return null;
+        }
+        return { commitment, dueDate: relevantDate, status: 'UPCOMING' };
+    }
 
+    if (commitment.recurrence === 'ONE_TIME') {
+        let dueDate = new Date(startDate);
+        dueDate.setMonth(startDate.getMonth() + commitment.duration);
+        const lookaheadDate = new Date(dueDate);
+        lookaheadDate.setDate(dueDate.getDate() - 7);
+        if (today < startDate && today < lookaheadDate) {
+            return null;
+        }
         if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
-
         const status = dueDate < today ? 'OVERDUE' : 'UPCOMING';
         return { commitment, dueDate, status };
     }

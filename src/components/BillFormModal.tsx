@@ -38,12 +38,18 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setType('BILL');
         setName('');
         amountInput.setValue('');
-        setDueDay('');
+        setDueDay(new Date().getDate());
         setStartDate(new Date());
         setOccurrence('');
       }
     }
   }, [isOpen, initialBill]);
+
+  useEffect(() => {
+    if (!initialBill) {
+        setDueDay(startDate.getDate());
+    }
+  }, [startDate, initialBill]);
 
   useEffect(() => {
     setIcon(type === 'BILL' ? '⚡' : '💬');

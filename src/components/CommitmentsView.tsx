@@ -62,18 +62,41 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const validBills = bills.filter(b => {
-      const startDate = new Date(b.startDate);
-      const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const startMonthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const startDate = new Date(b.startDate);
+    startDate.setHours(0, 0, 0, 0);
 
-      const endDate = b.endDate ? new Date(b.endDate) : null;
-      const endMonthStart = endDate ? new Date(endDate.getFullYear(), endDate.getMonth(), 1) : null;
+    const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
 
-      if (endMonthStart && currentMonthStart > endMonthStart) {
-          return false;
-      }
+    // --- End Date constraint ---
+    const endDate = b.endDate ? new Date(b.endDate) : null;
+    if (endDate) {
+        endDate.setHours(0,0,0,0);
+        const endMonthStart = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        if (currentMonthStart > endMonthStart) {
+            return false; // Bill has ended in a previous month
+        }
+    }
 
-      return currentMonthStart >= startMonthStart;
+    // --- Calculate first actual due date ---
+    let firstDueDate = new Date(startDate.getFullYear(), startDate.getMonth(), b.dueDay);
+    if (firstDueDate <= startDate) {
+        // If the due day in the start month is on or before the start date, the first due date is next month.
+        firstDueDate.setMonth(firstDueDate.getMonth() + 1);
+    }
+    const firstDueMonthStart = new Date(firstDueDate.getFullYear(), firstDueDate.getMonth(), 1);
+
+    // --- Visibility Rule ---
+    // The month being viewed must be on or after the first due month.
+    if (currentMonthStart < firstDueMonthStart) {
+        return false;
+    }
+
+    // For yearly bills, only show them on their due month.
+    if (b.recurrence === 'YEARLY' && currentDate.getMonth() !== firstDueDate.getMonth()) {
+        return false;
+    }
+
+    return true;
   });
 
   const sortedBills = useMemo(() => sortUnified(validBills, currentDate), [validBills, currentDate]);
@@ -81,10 +104,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const upcomingBills = sortedBills.filter(b => !isBillPaid(b));
   
   const getBillDueDateText = (bill: Bill, isOverdue: boolean) => {
-    if (isBillPaid(bill)) return 'Paid';
-    if (isOverdue) return `Overdue since ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    return `Due ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  };
+    const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay);
+    if (isBillPaid(bill)) return `Paid on ${new Date(bill.lastPaidDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+    if (isOverdue) return `Overdue since ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+    return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+};
   
   const getCCDueText = (day?: number) => {
       if (!day) return 'No Due Date';
@@ -158,13 +184,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .map(c => getActiveCommitmentInstance(c, transactions))
+      .map(c => getActiveCommitmentInstance(c, transactions, currentDate))
       .filter((c): c is NonNullable<typeof c> => c !== null);
 
     const sortedInstances = sortUnified(instances);
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` }));
-  }, [commitments, transactions]);
+  }, [commitments, transactions, currentDate]);
 
   const settledCommitments = useMemo(() => {
       const settled = commitments.filter(c => {
@@ -216,13 +242,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
-        <div className="flex justify-between items-center mb-4">
-             <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
-        </div>
-    </div>
-
-    <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
       <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">

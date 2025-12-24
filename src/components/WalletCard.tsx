@@ -66,7 +66,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       {/* Card Header */}
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-baseline gap-2">
             <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
               {label}
             </span>
@@ -76,6 +76,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
             {wallet.name}
           </span>
         </div>
+        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px] mt-1">
+          &bull;&bull;&bull;&bull;
+        </div>
       </div>
 
       {/* Card Footer */}
@@ -83,9 +86,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
         <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
-        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px]">
-          &bull;&bull;&bull;&bull;
-        </div>
       </div>
     </div>
     </div>
