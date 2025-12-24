@@ -348,7 +348,7 @@ const App: React.FC = () => {
   const handleDeleteWallet = (id: string) => setData(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
-  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: boolean) => {
+  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: { walletId: string }) => {
     let newBillId = id;
     if (id) {
         setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }));
@@ -360,9 +360,9 @@ const App: React.FC = () => {
                 amount: billData.amount,
                 type: TransactionType.EXPENSE,
                 categoryId: billData.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6',
-                walletId: data.wallets[0].id, // Default to first wallet
+                walletId: recordInitialPayment.walletId,
                 date: billData.startDate,
-                title: 'Initial Payment',
+                title: billData.name,
                 description: billData.name,
                 billId: newBillId
             };

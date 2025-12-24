@@ -8,23 +8,25 @@ import { useCurrencyInput } from '../hooks/useCurrencyInput';
 interface BillFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string, recordInitialPayment?: boolean) => void;
+  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string, recordInitialPayment?: { walletId: string }) => void;
   onDelete: (id: string) => void;
   initialBill?: Bill;
   currencySymbol: string;
+  wallets: Wallet[];
   isExiting?: boolean;
 }
 
-const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialBill, currencySymbol, isExiting }) => {
+const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, onDelete, initialBill, currencySymbol, wallets, isExiting }) => {
   const [type, setType] = useState<'BILL' | 'SUBSCRIPTION'>('BILL');
   const [name, setName] = useState('');
   const amountInput = useCurrencyInput('');
   const [dueDay, setDueDay] = useState<number | ''>('');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
-  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE'>('NONE');
+  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE' | 'WALLET'>('NONE');
   const [icon, setIcon] = useState('⚡');
   const [recordInitialPayment, setRecordInitialPayment] = useState(false);
+  const [selectedWalletId, setSelectedWalletId] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -61,6 +63,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || amountInput.rawValue <= 0 || !dueDay || !occurrence) return;
+    if (recordInitialPayment && !selectedWalletId) return;
 
     onSave({
       name,
@@ -70,7 +73,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       icon,
       type,
       startDate: new Date(startDate).toISOString()
-    }, initialBill?.id, recordInitialPayment);
+    }, initialBill?.id, recordInitialPayment ? { walletId: selectedWalletId } : undefined);
     onClose();
   };
 
@@ -149,6 +152,17 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                     <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
                     <input id="record-tx-checkbox" type="checkbox" checked={recordInitialPayment} onChange={(e) => setRecordInitialPayment(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
                 </div>
+                {recordInitialPayment && (
+                    <div className="mt-3">
+                        <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">From Wallet</label>
+                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                            <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
+                                {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
+                            </span>
+                            <ChevronDown className="w-4 h-4 text-text-secondary" />
+                        </button>
+                    </div>
+                )}
             </div>
           )}
 
@@ -188,6 +202,18 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                 {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                     <button key={day} onClick={() => { setDueDay(day); setSelectorView('NONE'); }} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
                         {day}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )}
+    {selectorView === 'WALLET' && (
+        <div>
+            <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+                {wallets.map(w => (
+                    <button key={w.id} onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${selectedWalletId === w.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                        {w.name}
                     </button>
                 ))}
             </div>

@@ -248,28 +248,26 @@ export const getBillingPeriod = (
     }
 
     const periodEnd = new Date(dueDate);
-    const periodStart = new Date(periodEnd);
+    periodEnd.setDate(periodEnd.getDate() - 1);
 
-    // Calculate the start of the billing period based on the due date
+    const periodStart = new Date(dueDate);
     switch (recurrence) {
         case 'WEEKLY':
-            periodStart.setDate(periodEnd.getDate() - 7);
+            periodStart.setDate(periodStart.getDate() - 7);
             break;
         case 'MONTHLY':
-            periodStart.setMonth(periodEnd.getMonth() - 1);
+            periodStart.setMonth(periodStart.getMonth() - 1);
             break;
         case 'YEARLY':
-            periodStart.setFullYear(periodEnd.getFullYear() - 1);
+            periodStart.setFullYear(periodStart.getFullYear() - 1);
             break;
     }
-    // Increment the start date by one day to get the beginning of the coverage period
-    periodStart.setDate(periodStart.getDate() + 1);
 
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
     const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
 
-    return `Period: ${formattedStart} - ${formattedEnd}`;
+    return `${formattedStart} - ${formattedEnd}`;
 };
 
 export const getActiveBillInstance = (
