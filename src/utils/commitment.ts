@@ -119,11 +119,12 @@ export const getActiveCommitmentInstance = (
         return null;
     }
 
-    const lookaheadDate = new Date(nextDueDate);
-    lookaheadDate.setDate(lookaheadDate.getDate() - 7);
-
-    if (viewingDateClean < lookaheadDate) {
-        return null;
+    if (viewingDateClean.getMonth() !== nextDueDate.getMonth()) {
+        const lookaheadDate = new Date(nextDueDate);
+        lookaheadDate.setDate(lookaheadDate.getDate() - 7);
+        if (today < lookaheadDate) {
+            return null;
+        }
     }
 
     let status: CommitmentInstanceStatus = 'UPCOMING';
@@ -248,9 +249,8 @@ export const getBillingPeriod = (
     }
 
     const periodEnd = new Date(dueDate);
-    periodEnd.setDate(periodEnd.getDate() - 1);
-
     const periodStart = new Date(dueDate);
+
     switch (recurrence) {
         case 'WEEKLY':
             periodStart.setDate(periodStart.getDate() - 7);
@@ -262,6 +262,7 @@ export const getBillingPeriod = (
             periodStart.setFullYear(periodStart.getFullYear() - 1);
             break;
     }
+    periodStart.setDate(periodStart.getDate() + 1);
 
     const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
     const formattedStart = periodStart.toLocaleDateString('en-US', options);

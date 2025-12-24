@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, FileText, Repeat, Calendar, ChevronDown } from 'lucide-react';
-import { Bill, RecurrenceFrequency } from '../types';
+import { Bill, RecurrenceFrequency, Wallet } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
