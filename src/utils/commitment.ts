@@ -56,7 +56,7 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
 export const getActiveCommitmentInstance = (
   commitment: Commitment,
   transactions: Transaction[],
-  currentDate: Date, // Keep this for "No Due Date" logic which depends on the calendar view
+  currentDate: Date,
 ): CommitmentInstance | null => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -70,38 +70,24 @@ export const getActiveCommitmentInstance = (
     const startDate = new Date(commitment.startDate);
     startDate.setHours(0, 0, 0, 0);
 
-    // --- Logic for "No Due Date" ---
     if (commitment.recurrence === 'NO_DUE_DATE') {
         const relevantDate = new Date(currentDate);
         relevantDate.setHours(0, 0, 0, 0);
-
-        // Visibility starts on the start date and never expires
         if (relevantDate < startDate) {
             return null;
         }
-        // Considered "UPCOMING" until fully paid.
         return { commitment, dueDate: relevantDate, status: 'UPCOMING' };
     }
 
-    // --- Logic for One-Time commitments ---
     if (commitment.recurrence === 'ONE_TIME') {
         let dueDate = new Date(startDate);
-        // Assuming 'duration' for ONE_TIME is in months.
         dueDate.setMonth(startDate.getMonth() + commitment.duration);
-
-        // If due date is in a future month, apply lookahead. Otherwise, show it.
-        if (dueDate.getFullYear() > today.getFullYear() || dueDate.getMonth() > today.getMonth()) {
-            const lookaheadDate = new Date(dueDate);
-            lookaheadDate.setDate(dueDate.getDate() - 7);
-            if (today < lookaheadDate) {
-                return null;
-            }
-        } else if (today < startDate) {
-             return null;
+        const lookaheadDate = new Date(dueDate);
+        lookaheadDate.setDate(dueDate.getDate() - 7);
+        if (today < startDate && today < lookaheadDate) {
+            return null;
         }
-
         if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
-
         const status = dueDate < today ? 'OVERDUE' : 'UPCOMING';
         return { commitment, dueDate, status };
     }
@@ -110,18 +96,16 @@ export const getActiveCommitmentInstance = (
     let nextDueDate = new Date(startDate);
     if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
         nextDueDate.setDate(commitment.dueDay);
-        if (nextDueDate <= startDate) {
+        // If due day this month is before start date, start from next month
+        if (nextDueDate < startDate) {
             nextDueDate = addInterval(nextDueDate, commitment.recurrence);
         }
     } else if (commitment.recurrence === 'WEEKLY') {
+        // Find the first due day on or after the start date
         const startDay = startDate.getDay();
         const diff = (commitment.dueDay - startDay + 7) % 7;
         nextDueDate.setDate(startDate.getDate() + diff);
-        if (nextDueDate <= startDate) {
-            nextDueDate.setDate(nextDueDate.getDate() + 7);
-        }
     }
-
 
     // Find the first unpaid installment
     let i = 0; // Safety break
@@ -130,17 +114,15 @@ export const getActiveCommitmentInstance = (
         i++;
     }
 
-    // If due date is in a future month, apply lookahead. Otherwise, show it.
-    if (nextDueDate.getFullYear() > today.getFullYear() || nextDueDate.getMonth() > today.getMonth()) {
-        const lookaheadDate = new Date(nextDueDate);
-        lookaheadDate.setDate(nextDueDate.getDate() - 7);
-        if (today < lookaheadDate) {
-            return null;
-        }
-    } else if (today < startDate) {
+    // Logic to show card only 1 week before the 1st of the next month
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+    const oneWeekBeforeNextMonth = new Date(nextMonth);
+    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+
+    // If the due date is in a future month, and we're not yet in the last week of this month, hide it.
+    if (nextDueDate >= nextMonth && today < oneWeekBeforeNextMonth) {
         return null;
     }
-
 
     // Determine status
     let status: CommitmentInstanceStatus = 'UPCOMING';

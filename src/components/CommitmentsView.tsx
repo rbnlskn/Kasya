@@ -109,14 +109,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
     if (isOverdue) return `Overdue since ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
-    // For future months, ensure the year is correctly displayed if it wraps over.
-    const today = new Date();
-    if (dueDate < today && !isOverdue) { // It means the due date is for a future year or month
-        const futureDate = new Date(today.getFullYear(), today.getMonth() + 1, bill.dueDay);
-        // This is a simplification; a more robust logic might be needed for more complex scenarios
-        return `Due ${futureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    }
-
     return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 };
   
