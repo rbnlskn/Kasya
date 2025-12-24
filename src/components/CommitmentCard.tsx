@@ -113,7 +113,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <h3 className="font-bold text-slate-800 text-lg truncate">{item.name}</h3>
             <h3 className="font-extrabold text-lg text-blue-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
-          <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), (item as Bill).dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}</p>
+          <p className={`text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{dueDateText}</p>
         </div>
       </div>
 

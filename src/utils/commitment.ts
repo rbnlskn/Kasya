@@ -65,47 +65,40 @@ export const getActiveCommitmentInstance = (
         return null; // Fully paid
     }
 
-    const today = new Date();
+    const today = new Date(currentDate);
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(commitment.startDate);
     startDate.setHours(0, 0, 0, 0);
 
+    // --- Start Date Constraint ---
+    // Strictly hide any loan card if the current date is before the start date.
+    if (today < startDate) {
+        return null;
+    }
+
     if (commitment.recurrence === 'NO_DUE_DATE') {
-        const relevantDate = new Date(currentDate);
-        relevantDate.setHours(0, 0, 0, 0);
-        if (relevantDate < startDate) {
-            return null;
-        }
-        return { commitment, dueDate: relevantDate, status: 'UPCOMING' };
+        return { commitment, dueDate: today, status: 'UPCOMING' };
     }
 
     if (commitment.recurrence === 'ONE_TIME') {
-        let dueDate = new Date(startDate);
-        dueDate.setMonth(startDate.getMonth() + commitment.duration);
-        const lookaheadDate = new Date(dueDate);
-        lookaheadDate.setDate(dueDate.getDate() - 7);
-        if (today < startDate && today < lookaheadDate) {
+        let dueDate = addInterval(startDate, 'MONTHLY', commitment.duration); // Assume duration is in months for ONE_TIME
+        if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
+
+        const timeDiff = dueDate.getTime() - today.getTime();
+        const daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+        // Hide if it's more than 7 days away
+        if (daysUntilDue > 7) {
             return null;
         }
-        if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
+
         const status = dueDate < today ? 'OVERDUE' : 'UPCOMING';
         return { commitment, dueDate, status };
     }
 
     // --- Logic for recurring commitments ---
-    let nextDueDate = new Date(startDate);
-    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
-        nextDueDate.setDate(commitment.dueDay);
-        // If due day this month is before start date, start from next month
-        if (nextDueDate < startDate) {
-            nextDueDate = addInterval(nextDueDate, commitment.recurrence);
-        }
-    } else if (commitment.recurrence === 'WEEKLY') {
-        // Find the first due day on or after the start date
-        const startDay = startDate.getDay();
-        const diff = (commitment.dueDay - startDay + 7) % 7;
-        nextDueDate.setDate(startDate.getDate() + diff);
-    }
+    // Ensure the first due date is calculated as Start Date + Duration.
+    let nextDueDate = addInterval(startDate, commitment.recurrence);
 
     // Find the first unpaid installment
     let i = 0; // Safety break
@@ -114,13 +107,12 @@ export const getActiveCommitmentInstance = (
         i++;
     }
 
-    // Logic to show card only 1 week before the 1st of the next month
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const oneWeekBeforeNextMonth = new Date(nextMonth);
-    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+    // --- Lookahead Logic ---
+    // Only show next month's payment in the current month IF Current Date is within 7 days of the Next Due Date.
+    const timeDiff = nextDueDate.getTime() - today.getTime();
+    const daysUntilNextDueDate = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-    // If the due date is in a future month, and we're not yet in the last week of this month, hide it.
-    if (nextDueDate >= nextMonth && today < oneWeekBeforeNextMonth) {
+    if (daysUntilNextDueDate > 7) {
         return null;
     }
 
