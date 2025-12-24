@@ -216,8 +216,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="pt-8 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0">
-        <div className="flex justify-between items-center mb-4">
+    <div data-testid="commitments-view" className="pt-4 px-6 pb-2 bg-app-bg z-20 flex-shrink-0 sticky top-0 h-[60px] flex items-center">
+        <div className="flex justify-between items-center w-full">
              <h1 className="text-2xl font-black text-gray-800 tracking-tight">Commitments</h1>
         </div>
     </div>

@@ -67,12 +67,31 @@ export const getActiveCommitmentInstance = (
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(commitment.startDate);
-    startDate.setHours(0,0,0,0);
+    startDate.setHours(0, 0, 0, 0);
 
-    if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
-        const dueDate = commitment.recurrence === 'NO_DUE_DATE'
-            ? new Date() // Or some other logic for no-due-date
-            : addInterval(new Date(commitment.startDate), 'MONTHLY', commitment.duration);
+    // --- Logic for "No Due Date" ---
+    if (commitment.recurrence === 'NO_DUE_DATE') {
+        // Visibility starts on the start date and never expires
+        if (today < startDate) {
+            return null;
+        }
+        // Considered "UPCOMING" until fully paid.
+        return { commitment, dueDate: today, status: 'UPCOMING' };
+    }
+
+    // --- Logic for One-Time commitments ---
+    if (commitment.recurrence === 'ONE_TIME') {
+        let dueDate = new Date(startDate);
+        // Assuming 'duration' for ONE_TIME is in months.
+        dueDate.setMonth(startDate.getMonth() + commitment.duration);
+
+        const lookaheadDate = new Date(dueDate);
+        lookaheadDate.setDate(dueDate.getDate() - 7);
+
+        // Hide if current date is before the 1-week lookahead window
+        if (today < lookaheadDate) {
+            return null;
+        }
 
         if (getPaymentStatusForDate(commitment, dueDate, transactions)) return null;
 
@@ -82,7 +101,7 @@ export const getActiveCommitmentInstance = (
 
     // --- Logic for recurring commitments ---
     let nextDueDate = new Date(startDate);
-    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
+     if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
         nextDueDate.setDate(commitment.dueDay);
         // If due day this month is before start date, start from next month
         if (nextDueDate < startDate) {
@@ -95,6 +114,7 @@ export const getActiveCommitmentInstance = (
         nextDueDate.setDate(startDate.getDate() + diff);
     }
 
+
     // Find the first unpaid installment
     let i = 0; // Safety break
     while (getPaymentStatusForDate(commitment, nextDueDate, transactions) && i < 240) {
@@ -102,15 +122,14 @@ export const getActiveCommitmentInstance = (
         i++;
     }
 
-    // Logic to show card only 1 week before the 1st of the next month
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-    const oneWeekBeforeNextMonth = new Date(nextMonth);
-    oneWeekBeforeNextMonth.setDate(oneWeekBeforeNextMonth.getDate() - 7);
+    const lookaheadDate = new Date(nextDueDate);
+    lookaheadDate.setDate(nextDueDate.getDate() - 7);
 
-    // If the due date is in a future month, and we're not yet in the last week of this month, hide it.
-    if (nextDueDate >= nextMonth && today < oneWeekBeforeNextMonth) {
+    // Hide if current date is before the 1-week lookahead window
+    if (today < lookaheadDate) {
         return null;
     }
+
 
     // Determine status
     let status: CommitmentInstanceStatus = 'UPCOMING';
