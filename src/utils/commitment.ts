@@ -108,17 +108,18 @@ export const getActiveCommitmentInstance = (
 
     // --- Logic for recurring commitments ---
     let nextDueDate = new Date(startDate);
-     if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
+    if (commitment.recurrence === 'MONTHLY' || commitment.recurrence === 'YEARLY') {
         nextDueDate.setDate(commitment.dueDay);
-        // If due day this month is before start date, start from next month
-        if (nextDueDate < startDate) {
+        if (nextDueDate <= startDate) {
             nextDueDate = addInterval(nextDueDate, commitment.recurrence);
         }
     } else if (commitment.recurrence === 'WEEKLY') {
-        // Find the first due day on or after the start date
         const startDay = startDate.getDay();
         const diff = (commitment.dueDay - startDay + 7) % 7;
         nextDueDate.setDate(startDate.getDate() + diff);
+        if (nextDueDate <= startDate) {
+            nextDueDate.setDate(nextDueDate.getDate() + 7);
+        }
     }
 
 
@@ -129,11 +130,14 @@ export const getActiveCommitmentInstance = (
         i++;
     }
 
-    const lookaheadDate = new Date(nextDueDate);
-    lookaheadDate.setDate(nextDueDate.getDate() - 7);
-
-    // Hide if current date is before the 1-week lookahead window
-    if (today < lookaheadDate) {
+    // If due date is in a future month, apply lookahead. Otherwise, show it.
+    if (nextDueDate.getFullYear() > today.getFullYear() || nextDueDate.getMonth() > today.getMonth()) {
+        const lookaheadDate = new Date(nextDueDate);
+        lookaheadDate.setDate(nextDueDate.getDate() - 7);
+        if (today < lookaheadDate) {
+            return null;
+        }
+    } else if (today < startDate) {
         return null;
     }
 

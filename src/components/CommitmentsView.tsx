@@ -104,10 +104,21 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const upcomingBills = sortedBills.filter(b => !isBillPaid(b));
   
   const getBillDueDateText = (bill: Bill, isOverdue: boolean) => {
-    if (isBillPaid(bill)) return 'Paid';
-    if (isOverdue) return `Overdue since ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-    return `Due ${new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  };
+    const dueDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), bill.dueDay);
+    if (isBillPaid(bill)) return `Paid on ${new Date(bill.lastPaidDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+    if (isOverdue) return `Overdue since ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+    // For future months, ensure the year is correctly displayed if it wraps over.
+    const today = new Date();
+    if (dueDate < today && !isOverdue) { // It means the due date is for a future year or month
+        const futureDate = new Date(today.getFullYear(), today.getMonth() + 1, bill.dueDay);
+        // This is a simplification; a more robust logic might be needed for more complex scenarios
+        return `Due ${futureDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+    }
+
+    return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+};
   
   const getCCDueText = (day?: number) => {
       if (!day) return 'No Due Date';
