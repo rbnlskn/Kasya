@@ -122,7 +122,7 @@ export const getActiveCommitmentInstance = (
     const lookaheadDate = new Date(nextDueDate);
     lookaheadDate.setDate(lookaheadDate.getDate() - 7);
 
-    if (today < lookaheadDate) {
+    if (viewingDateClean < lookaheadDate) {
         return null;
     }
 
