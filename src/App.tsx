@@ -348,9 +348,27 @@ const App: React.FC = () => {
   const handleDeleteWallet = (id: string) => setData(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
-  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string) => {
-    id ? setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }))
-       : setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: `bill_${Date.now()}` }] }));
+  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: boolean) => {
+    let newBillId = id;
+    if (id) {
+        setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }));
+    } else {
+        newBillId = `bill_${Date.now()}`;
+        setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: newBillId! }] }));
+        if (recordInitialPayment) {
+            const tx: Omit<Transaction, 'id'> = {
+                amount: billData.amount,
+                type: TransactionType.EXPENSE,
+                categoryId: billData.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6',
+                walletId: data.wallets[0].id, // Default to first wallet
+                date: billData.startDate,
+                title: 'Initial Payment',
+                description: billData.name,
+                billId: newBillId
+            };
+            handleSaveTransaction(tx);
+        }
+    }
   };
   const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
   

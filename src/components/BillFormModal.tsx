@@ -8,7 +8,7 @@ import { useCurrencyInput } from '../hooks/useCurrencyInput';
 interface BillFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string) => void;
+  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string, recordInitialPayment?: boolean) => void;
   onDelete: (id: string) => void;
   initialBill?: Bill;
   currencySymbol: string;
@@ -24,6 +24,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
   const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE'>('NONE');
   const [icon, setIcon] = useState('⚡');
+  const [recordInitialPayment, setRecordInitialPayment] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -69,7 +70,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       icon,
       type,
       startDate: new Date(startDate).toISOString()
-    }, initialBill?.id);
+    }, initialBill?.id, recordInitialPayment);
     onClose();
   };
 
@@ -141,6 +142,15 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                   </button>
               </div>
           </div>
+
+          {!initialBill && (
+            <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
+                    <input id="record-tx-checkbox" type="checkbox" checked={recordInitialPayment} onChange={(e) => setRecordInitialPayment(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                </div>
+            </div>
+          )}
 
 <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBill ? 'Save Changes' : 'Add Item'}</button>
 </form>

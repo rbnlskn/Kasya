@@ -39,6 +39,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
+  const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const creditCards = useMemo(() => {
@@ -57,12 +58,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const activeBillInstances = useMemo(() => {
     const instances = bills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
-      .filter((b): b is NonNullable<typeof b> => b !== null);
+      .filter((b): b is NonNullable<typeof b> => b !== null)
+      .filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
 
     const sortedInstances = sortUnified(instances);
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
-  }, [bills, transactions, currentDate]);
+  }, [bills, transactions, currentDate, billFilter]);
   
   const getCCDueText = (day?: number) => {
       if (!day) return 'No Due Date';
@@ -105,27 +107,30 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const renderBillItem = (instance: BillInstance) => {
     const { bill, dueDate, status } = instance;
     const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
+    const lastPayment = findLastPayment(bill.id, transactions);
     return (
       <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: category?.color || '#E5E7EB' }}
+            style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
           >
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate`}>{bill.name}</h4>
-            <p className="text-xs text-gray-400">{generateDueDateText(dueDate, status, bill.recurrence)}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'PAID' ? 'line-through' : ''}`}>{bill.name}</h4>
+            <p className="text-xs text-gray-400">{status === 'PAID' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'PAID' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
+            {status !== 'PAID' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayBill(bill); }}
                 className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
               >
                 Pay
               </button>
+            )}
           </div>
         </div>
       </div>
@@ -262,7 +267,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
                   paidAmount={0}
                   paymentsMade={0}
-                  dueDateText={generateDueDateText(dueDate, status, bill.recurrence)}
+                  dueDateText={getBillingPeriod({ recurrence: bill.recurrence, dueDate })}
                   currencySymbol={currencySymbol}
                   onPay={() => onPayBill(bill)}
                   onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
@@ -393,6 +398,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
             
             <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
+                <div className="flex space-x-2 mb-4">
+                    <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
+                    <button onClick={() => setBillFilter('PAID')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PAID' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
+                </div>
                 <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
                     <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
                     <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -401,11 +410,19 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                <CommitmentList
-                    items={activeBillInstances}
-                    renderItem={renderBillItem}
-                    placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
-                />
+                {billFilter === 'PENDING' ? (
+                    <CommitmentList
+                        items={activeBillInstances.filter(b => b.status !== 'PAID')}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
+                    />
+                ) : (
+                    <CommitmentList
+                        items={activeBillInstances.filter(b => b.status === 'PAID')}
+                        renderItem={renderBillItem}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No payment history for this month</div>}
+                    />
+                )}
             </div>
         </div>
     )}

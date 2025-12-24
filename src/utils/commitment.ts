@@ -122,7 +122,7 @@ export const getActiveCommitmentInstance = (
     const lookaheadDate = new Date(nextDueDate);
     lookaheadDate.setDate(lookaheadDate.getDate() - 7);
 
-    if (viewingDateClean < lookaheadDate) {
+    if (today < lookaheadDate) {
         return null;
     }
 
@@ -312,7 +312,7 @@ export const getActiveBillInstance = (
     );
 
     if (isPaidThisMonth) {
-        return null;
+        return { bill, dueDate, status: 'PAID' };
     }
 
     // --- Determine Status ---
