@@ -404,9 +404,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-2">
-                <CommitmentList
-                    items={commitmentFilter === 'ACTIVE' ? activeCommitmentInstances : settledCommitments}
-                    renderItem={(item: CommitmentInstance | Commitment) => {
+                {(commitmentFilter === 'ACTIVE' ? activeCommitmentInstances : settledCommitments).length > 0 ? (
+                    (commitmentFilter === 'ACTIVE' ? activeCommitmentInstances : settledCommitments).map((item: CommitmentInstance | Commitment) => {
                         const isInstance = 'commitment' in item;
                         if (isInstance) {
                             const { commitment, dueDate, status } = item;
@@ -414,7 +413,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
                             return (
                                 <CommitmentCard
-                                    key={item.id}
+                                    key={item.instanceId}
                                     item={commitment}
                                     category={categories.find(c => c.id === commitment.categoryId)}
                                     paidAmount={paidAmount}
@@ -446,9 +445,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                 />
                             );
                         }
-                    }}
-                    placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No commitments found</div>}
-                />
+                    })
+                ) : (
+                    <div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No commitments found</div>
+                )}
             </div>
         </div>
     )}
