@@ -158,13 +158,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .map(c => getActiveCommitmentInstance(c, transactions))
+      .map(c => getActiveCommitmentInstance(c, transactions, currentDate))
       .filter((c): c is NonNullable<typeof c> => c !== null);
 
     const sortedInstances = sortUnified(instances);
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.commitment.id}_${instance.dueDate.toISOString()}` }));
-  }, [commitments, transactions]);
+  }, [commitments, transactions, currentDate]);
 
   const settledCommitments = useMemo(() => {
       const settled = commitments.filter(c => {

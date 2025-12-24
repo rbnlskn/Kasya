@@ -56,6 +56,7 @@ const getPaymentStatusForDate = (commitment: Commitment, dueDate: Date, transact
 export const getActiveCommitmentInstance = (
   commitment: Commitment,
   transactions: Transaction[],
+  currentDate: Date,
 ): CommitmentInstance | null => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -71,12 +72,15 @@ export const getActiveCommitmentInstance = (
 
     // --- Logic for "No Due Date" ---
     if (commitment.recurrence === 'NO_DUE_DATE') {
+        const relevantDate = new Date(currentDate);
+        relevantDate.setHours(0, 0, 0, 0);
+
         // Visibility starts on the start date and never expires
-        if (today < startDate) {
+        if (relevantDate < startDate) {
             return null;
         }
         // Considered "UPCOMING" until fully paid.
-        return { commitment, dueDate: today, status: 'UPCOMING' };
+        return { commitment, dueDate: relevantDate, status: 'UPCOMING' };
     }
 
     // --- Logic for One-Time commitments ---
