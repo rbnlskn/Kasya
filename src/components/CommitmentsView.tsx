@@ -276,7 +276,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                   currencySymbol={currencySymbol}
                                   onClick={(w) => onWalletClick && onWalletClick(w)}
                                   onPay={() => onPayCC(cc)}
-                                  scale={0.75}
                                   dueDate={getCCDueText(cc.statementDay, currentDate)}
                               />
                           </div>

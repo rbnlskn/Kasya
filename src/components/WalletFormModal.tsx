@@ -6,6 +6,7 @@ import { WALLET_TEMPLATES } from '../data/templates';
 import DayPicker from './DayPicker';
 import WalletCard, { getWalletIcon } from './WalletCard';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import useResponsive from '../hooks/useResponsive';
 
 interface WalletFormModalProps {
   isOpen: boolean;
