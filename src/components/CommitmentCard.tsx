@@ -83,8 +83,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
+      className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col"
       style={{
+        gap: scale(8),
         borderRadius: scale(20),
         padding: scale(12),
         aspectRatio: '300 / 160',
