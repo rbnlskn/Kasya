@@ -472,47 +472,47 @@ const App: React.FC = () => {
     <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
-           <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
+           <div className={`h-full flex flex-col overflow-hidden ${getTabAnimationClass()}`}>
+              <div className="h-[60px] flex items-center px-6 z-20 bg-app-bg flex-shrink-0">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
-                 <div className="grid grid-cols-1 gap-4 content-start">
-                     <section>
+              <div className="flex-1 flex flex-col min-h-0 px-4 pt-2 pb-24 space-y-1">
+                 <div className="flex flex-col h-full">
+                     <section className="flex-shrink-0 mb-2">
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
-                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                         <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                             {data.wallets.map((w) => (
-                                <div key={w.id} className="w-[255px] h-[150px] flex-shrink-0">
+                                <div key={w.id} className="w-[240px] h-[140px] flex-shrink-0">
                                     <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} scale={0.75} />
                                 </div>
                             ))}
-                            <div className="w-[255px] h-[150px] flex-shrink-0">
-                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
+                            <div className="w-[240px] h-[140px] flex-shrink-0">
+                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" height="140px" />
                             </div>
                          </div>
                      </section>
 
-                    <section>
+                    <section className="flex-shrink-0 mb-2">
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                        <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="w-40 h-20 flex-shrink-0">
+                                <div key={b.id} className="w-36 h-20 flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
-                            <div className="w-40 h-20 flex-shrink-0">
+                            <div className="w-36 h-20 flex-shrink-0">
                                 <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>
                     </section>
 
-                    <section>
+                    <section className="flex-1 min-h-0 flex flex-col">
                         <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
-                        <div>
+                        <div className="flex-1 min-h-0 overflow-hidden relative">
                             {data.transactions.length === 0 ? (
-                                <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
+                                <div className="text-center py-8 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
                             ) : (
-                                <div className="grid gap-0">
+                                <div className="flex flex-col">
                                     {recentTransactionsWithHeaders.map((item) => (
                                     <TransactionItem key={item.tx.id} transaction={item.tx} category={data.categories.find(c => c.id === item.tx.categoryId)} commitment={item.tx.commitmentId ? data.commitments.find(c => c.id === item.tx.commitmentId) : undefined} onClick={(tx) => { setSelectedTxId(tx.id); handleOpenModal('TX_FORM'); }} walletMap={data.wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as any)} dateHeader={item.header} currencySymbol={currentCurrency.symbol} />
                                 ))}
