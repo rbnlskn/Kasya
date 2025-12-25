@@ -488,7 +488,7 @@ const App: React.FC = () => {
                                     <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} />
                                 </div>
                             ))}
-                            <div className="flex-shrink-0" style={{ height: scale(150) }}>
+                            <div className="flex-shrink-0 flex" style={{ width: scale(255), flex: '1' }}>
                                 <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
                             </div>
                          </div>

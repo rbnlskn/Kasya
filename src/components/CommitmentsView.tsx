@@ -318,7 +318,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               );
             }}
           placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
+              <div style={{ flex: 1 }}>
+                <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
+              </div>
           }
         />
         </div>
@@ -356,7 +358,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 )
               }}
               placeholder={
-                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" />
+                <div style={{ flex: 1 }}>
+                  <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" />
+                </div>
               }
             />
         </div>
