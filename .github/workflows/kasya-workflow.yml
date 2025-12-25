@@ -70,7 +70,7 @@ jobs:
             await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['context'] });
             console.log("Added 'context' label.");
 
-  # 3. Generate Context (Context -> Jules)
+  # 3. Generate Context (Context -> Jules + Planning)
   generate-context:
     name: Generate Context
     if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'context'
@@ -102,7 +102,7 @@ jobs:
               try {
                 // Update Sub-issue State
                 try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: 'backlog' }); } catch(e){}
-                await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['in progress'] });
+                await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['planning'] });
                 await github.rest.issues.addAssignees({ owner, repo, issue_number: id, assignees: [actor] });
 
                 // Fetch Details
@@ -121,15 +121,69 @@ jobs:
                });
             }
 
-            // 4. Transition Labels (Remove 'context', Add 'jules', 'in progress')
+            // 4. Transition Labels (Remove 'context', Add 'jules', 'planning')
             try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'context' }); } catch(e){}
-            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['jules', 'in progress'] });
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['jules', 'planning'] });
 
             // 5. Trigger Jules
             await github.rest.issues.createComment({
               owner, repo, issue_number,
-              body: "Batch ready. Jules please post the plan."
+              body: "Batch ready. Jules, please review and propose a plan."
             });
+
+  # 3.5. Approve Plan (Planning -> In Progress)
+  approve-plan:
+    name: Approve Plan
+    if: github.event_name == 'issue_comment' && github.event.action == 'created'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process Approval
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.JULES_PAT }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const commentBody = context.payload.comment.body.toLowerCase();
+
+            // Check if issue is in 'planning'
+            const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number });
+            const isPlanning = issue.labels.some(l => l.name === 'planning');
+
+            if (!isPlanning) return;
+
+            // Check for approval keywords
+            if (commentBody.includes('approved') || commentBody.includes('approve') || commentBody.includes('lgtm')) {
+               console.log("Plan approved. Transitioning to 'in progress'.");
+
+               // 1. Transition Parent
+               try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'planning' }); } catch(e){}
+               await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in progress'] });
+
+               // 2. Identify Sub-issues
+               const body = issue.body || "";
+               const issueMatches = body.match(/#(\d+)/g) || [];
+               const subIssueIds = [...new Set(issueMatches
+                 .map(s => parseInt(s.replace('#', ''), 10))
+                 .filter(id => id !== issue_number)
+               )];
+
+               // 3. Sync Sub-issues
+               for (const id of subIssueIds) {
+                 try {
+                   try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: 'planning' }); } catch(e){}
+                   await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['in progress'] });
+                 } catch (e) {
+                   console.log(`Error updating sub-issue #${id}: ${e.message}`);
+                 }
+               }
+
+               // 4. Confirmation Comment
+               await github.rest.issues.createComment({
+                 owner, repo, issue_number,
+                 body: "Plan approved. Switching to In Progress."
+               });
+            }
 
   # 4. Review Transition (In Progress -> In Review)
   review-transition:
@@ -154,8 +208,27 @@ jobs:
             // Check keywords
             if (commentBody.includes('pull request') || commentBody.includes('/pull/')) {
                console.log("PR detected. Transitioning to 'in review'.");
+
+               // Transition Parent
                try { await github.rest.issues.removeLabel({ owner, repo, issue_number, name: 'in progress' }); } catch(e){}
                await github.rest.issues.addLabels({ owner, repo, issue_number, labels: ['in review'] });
+
+               // Sync Sub-issues
+               const body = issue.body || "";
+               const issueMatches = body.match(/#(\d+)/g) || [];
+               const subIssueIds = [...new Set(issueMatches
+                 .map(s => parseInt(s.replace('#', ''), 10))
+                 .filter(id => id !== issue_number)
+               )];
+
+               for (const id of subIssueIds) {
+                 try {
+                   try { await github.rest.issues.removeLabel({ owner, repo, issue_number: id, name: 'in progress' }); } catch(e){}
+                   await github.rest.issues.addLabels({ owner, repo, issue_number: id, labels: ['in review'] });
+                 } catch (e) {
+                   console.log(`Error updating sub-issue #${id}: ${e.message}`);
+                 }
+               }
             }
 
   # 5. Assign PR
