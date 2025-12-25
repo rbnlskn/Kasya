@@ -3,7 +3,6 @@ import React from 'react';
 import { Wallet, WalletType } from '../types';
 import { isColorLight } from '../utils/color';
 import { formatCurrency } from '../utils/number';
-import useResponsiveScaling from '../hooks/useResponsiveScaling';
 
 interface WalletCardProps {
   wallet: Wallet & { label?: string };
@@ -27,7 +26,6 @@ const getWalletTypeDetails = (type: string) => {
 };
 
 const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, dueDate }) => {
-  const { scale } = useResponsiveScaling();
   const { emoji, label: defaultLabel } = getWalletTypeDetails(wallet.type);
   const label = wallet.label || defaultLabel;
 
@@ -35,7 +33,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const cardStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
-    padding: `${24 * scale}px`,
   };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
 
@@ -47,13 +44,12 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`relative rounded-3xl ${finalBgColor} ${textColor} shadow-lg shadow-black/10 transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
+      className={`relative rounded-3xl ${finalBgColor} ${textColor} shadow-lg shadow-black/10 transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between p-4 sm:p-5`}
       style={cardStyle}
     >
-      <div className={`absolute w-[280px] h-[280px] rounded-full top-5 right-[-80px] z-0 ${watermarkBg}`} style={{ top: `${20 * scale}px`, right: `${-80 * scale}px`, width: `${280 * scale}px`, height: `${280 * scale}px` }}></div>
+      <div className={`absolute w-3/4 h-3/4 rounded-full top-5 right-[-80px] z-0 ${watermarkBg}`}></div>
       <div
-        className={`absolute text-[160px] filter saturate-0 pointer-events-none user-select-none z-[1] leading-none opacity-20`}
-        style={{ fontSize: `${160 * scale}px`, bottom: `${-10 * scale}px`, right: `${-30 * scale}px` }}
+        className={`absolute text-[clamp(8rem,25vw,10rem)] filter saturate-0 pointer-events-none user-select-none z-[1] leading-none opacity-20 bottom-[-10%] right-[-10%]`}
       >
         {emoji}
       </div>
@@ -61,33 +57,32 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
           <div className="flex items-center gap-2">
-            <span className="font-normal uppercase tracking-wider opacity-90" style={{ fontSize: `${13 * scale}px` }}>
+            <span className="text-xs sm:text-sm font-normal uppercase tracking-wider opacity-90">
               {label}
             </span>
-            {dueDate && <span className="font-bold bg-red-500 text-white rounded-md shadow" style={{ fontSize: `${10 * scale}px`, padding: `${2*scale}px ${8*scale}px` }}>{dueDate}</span>}
+            {dueDate && <span className="text-[10px] sm:text-xs font-bold bg-red-500 text-white rounded-md shadow px-2 py-0.5">{dueDate}</span>}
           </div>
-          <span className="font-bold truncate" style={{ fontSize: `${20 * scale}px`, maxWidth: `${180 * scale}px` }}>
+          <span className="text-lg sm:text-xl font-bold truncate max-w-[180px]">
             {wallet.name}
           </span>
         </div>
-        <div className="opacity-80 font-mono" style={{ fontSize: `${24 * scale}px`, letterSpacing: `${2*scale}px`, marginTop: `${4*scale}px` }}>
+        <div className="text-xl sm:text-2xl opacity-80 font-mono tracking-[2px] mt-1">
           &bull;&bull;&bull;&bull;
         </div>
       </div>
 
       <div className="relative z-10 flex justify-between items-center">
-        <p className="font-bold leading-tight" style={{ fontSize: `${38 * scale}px`, letterSpacing: `${-0.5 * scale}px` }}>
+        <p className="font-bold leading-tight -tracking-tighter" style={{ fontSize: 'clamp(1.75rem, 5vw, 2.25rem)' }}>
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
         {onPay && (
             <button
               onClick={(e) => { e.stopPropagation(); onPay(); }}
-              className={`rounded-xl transition-all active:scale-90 font-bold ${
+              className={`rounded-xl transition-all active:scale-90 font-bold text-xs px-3 py-1.5 sm:px-4 sm:py-2 ${
                 isDarkBg
                   ? 'bg-white/20 hover:bg-white/30 text-white'
                   : 'bg-black/10 hover:bg-black/20 text-slate-800'
               }`}
-              style={{ fontSize: `${12 * scale}px`, padding: `${8*scale}px ${16*scale}px` }}
             >
               Pay
             </button>

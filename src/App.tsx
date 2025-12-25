@@ -29,7 +29,6 @@ import { Capacitor } from '@capacitor/core';
 import { requestInitialPermissions } from './services/permissionService';
 import { calculateNetProceeds, calculateInstallment } from './utils/math';
 import WalletCarousel from './components/WalletCarousel';
-import useResponsiveScaling from './hooks/useResponsiveScaling';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
@@ -41,9 +40,6 @@ const TAB_ORDER: Record<Tab, number> = {
   'COMMITMENTS': 2,
   'SETTINGS': 3
 };
-
-const BASE_BUDGET_CARD_WIDTH = 180;
-const BASE_BUDGET_CARD_HEIGHT = 80;
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -68,10 +64,6 @@ const App: React.FC = () => {
 
   const [presetTransaction, setPresetTransaction] = useState<Partial<Transaction> | undefined>(undefined);
   const [transactionModalTitle, setTransactionModalTitle] = useState<string | undefined>(undefined);
-
-  const { scale } = useResponsiveScaling();
-  const budgetCardWidth = BASE_BUDGET_CARD_WIDTH * scale;
-  const budgetCardHeight = BASE_BUDGET_CARD_HEIGHT * scale;
 
   useEffect(() => {
     const initApp = async () => {
@@ -479,12 +471,12 @@ const App: React.FC = () => {
     <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
-           <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
+           <div data-testid="home-view" className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+              <div className="h-[60px] flex items-center px-4 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 flex flex-col p-6 pt-2 pb-24">
-                 <div className="flex flex-col justify-between h-full">
+              <div className="flex-1 flex flex-col p-4 pt-0 pb-24">
+                 <div className="flex flex-col justify-between h-full space-y-4">
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <WalletCarousel
@@ -497,13 +489,13 @@ const App: React.FC = () => {
 
                     <section>
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-2" style={{ height: budgetCardHeight + 8 }}>
+                        <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="flex-shrink-0" style={{ width: budgetCardWidth, height: budgetCardHeight }}>
+                                <div key={b.id} className="w-[180px] h-[72px] flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
-                            <div className="flex-shrink-0" style={{ width: budgetCardWidth, height: budgetCardHeight }}>
+                            <div className="w-[180px] h-[72px] flex-shrink-0">
                                 <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>

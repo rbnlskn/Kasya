@@ -1,6 +1,5 @@
 
 import React, { useState, useMemo } from 'react';
-import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import WalletCard from './WalletCard';
 import AddCard from './AddCard';
@@ -15,7 +14,7 @@ import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
-import useResponsiveScaling from '../hooks/useResponsiveScaling';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -36,106 +35,108 @@ interface CommitmentsViewProps {
   onTransactionClick: (transaction: Transaction) => void;
 }
 
-const BASE_COMMITMENT_CARD_HEIGHT = 160;
-const BASE_COMMITMENT_CARD_SPACING = 8;
-const BASE_WALLET_CARD_WIDTH = 255;
-const WALLET_CARD_ASPECT_RATIO = 340 / 200;
+const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
+    const {
+        wallets, currencySymbol, bills, commitments, transactions, categories,
+        onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment,
+        onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick
+    } = props;
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
-  const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
-  const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
-  const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
-  const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
-  const [currentDate, setCurrentDate] = useState(new Date());
+    const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
+    const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
+    const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
+    const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
+    const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { scale } = useResponsiveScaling();
-  const commitmentCardHeight = BASE_COMMITMENT_CARD_HEIGHT * scale;
-  const commitmentCardSpacing = BASE_COMMITMENT_CARD_SPACING * scale;
-  const walletCardWidth = BASE_WALLET_CARD_WIDTH * scale;
-  const walletCardHeight = walletCardWidth / WALLET_CARD_ASPECT_RATIO;
+    const handleDateNav = (direction: 'PREV' | 'NEXT') => {
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() + (direction === 'PREV' ? -1 : 1));
+        setCurrentDate(newDate);
+    };
 
-  const creditCards = useMemo(() => {
-      const cards = wallets.filter(w => w.type === WalletType.CREDIT_CARD);
-      return sortUnified(cards);
-  }, [wallets]);
+    const creditCards = useMemo(() => {
+        const cards = wallets.filter(w => w.type === WalletType.CREDIT_CARD);
+        return sortUnified(cards);
+    }, [wallets]);
 
-  const totalCreditCardDebt = creditCards.reduce((total, cc) => total + ((cc.creditLimit || 0) - cc.balance), 0);
+    const totalCreditCardDebt = creditCards.reduce((total, cc) => total + ((cc.creditLimit || 0) - cc.balance), 0);
 
-  const handleDateNav = (direction: 'PREV' | 'NEXT') => {
-    const newDate = new Date(currentDate);
-    newDate.setMonth(newDate.getMonth() + (direction === 'PREV' ? -1 : 1));
-    setCurrentDate(newDate);
-  };
+    const activeBillInstances = useMemo(() => {
+        const currentMonthInstances = bills
+          .map(b => getActiveBillInstance(b, transactions, currentDate))
+          .filter((b): b is BillInstance => b !== null);
 
-  const activeBillInstances = useMemo(() => {
-    const currentMonthInstances = bills
-      .map(b => getActiveBillInstance(b, transactions, currentDate))
-      .filter((b): b is BillInstance => b !== null);
+        const nextMonthDate = new Date(currentDate);
+        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
-    const nextMonthDate = new Date(currentDate);
-    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+        const nextMonthInstances = bills
+            .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
+            .filter((b): b is BillInstance => b !== null);
 
-    const nextMonthInstances = bills
-        .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
-        .filter((b): b is BillInstance => b !== null);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
 
-    const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+        const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
+            const lookaheadDate = new Date(instance.dueDate);
+            lookaheadDate.setDate(lookaheadDate.getDate() - 7);
+            return today >= lookaheadDate;
+        }) : [];
 
-    const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
-        const lookaheadDate = new Date(instance.dueDate);
-        lookaheadDate.setDate(lookaheadDate.getDate() - 7);
-        return today >= lookaheadDate;
-    }) : [];
+        const combined = [...currentMonthInstances, ...lookaheadBills];
+        const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
 
-    const combined = [...currentMonthInstances, ...lookaheadBills];
-    const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
+        const filteredByStatus = uniqueInstances.filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
 
-    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
+        const sortedInstances = sortUnified(filteredByStatus);
 
-    const sortedInstances = sortUnified(filteredByStatus);
+        return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
+      }, [bills, transactions, currentDate, billFilter]);
 
-    return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
-  }, [bills, transactions, currentDate, billFilter]);
-  
-  const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
-      if (!day) return 'No Due Date';
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      const viewingMonth = viewingDate.getMonth();
-      const viewingYear = viewingDate.getFullYear();
-      let dueDate = new Date(viewingYear, viewingMonth, day);
-      return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
-  }
+      const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
+          if (!day) return 'No Due Date';
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const viewingMonth = viewingDate.getMonth();
+          const viewingYear = viewingDate.getFullYear();
+          let dueDate = new Date(viewingYear, viewingMonth, day);
+          return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      }
 
-  const renderCreditCardItem = (cc: Wallet) => {
-    const currentBalance = (cc.creditLimit || 0) - cc.balance;
+      const activeCommitmentInstances = useMemo(() => {
+        const instances = commitments
+          .flatMap(c => getCommitmentInstances(c, transactions, currentDate));
+        const sortedInstances = sortUnified(instances);
+        return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
+      }, [commitments, transactions, currentDate]);
 
-    return (
-        <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-2 flex justify-between items-center cursor-pointer">
-            <div className="flex items-center flex-1 mr-4">
-                 <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-white mr-3`}
-                    style={{ backgroundColor: cc.color }}
-                 >
-                     <div className={`opacity-60`}>
-                        {getWalletIcon(cc.type, "w-5 h-5")}
-                     </div>
-                 </div>
-                 <div className="flex flex-col">
-                     <h3 className="font-bold text-gray-800 text-sm truncate">{cc.name}</h3>
-                     <p className="text-xs text-gray-400 font-medium">{getCCDueText(cc.statementDay, currentDate)}</p>
-                 </div>
-            </div>
-            <div className="text-right flex-shrink-0 relative z-10 flex flex-col items-end">
-              <span className="block font-bold text-gray-800">{currencySymbol}{formatCurrency(currentBalance)}</span>
-            </div>
-          </div>
-    );
-  };
+      const settledCommitments = useMemo(() => {
+          const settled = commitments.filter(c => {
+            const totalPaid = calculateTotalPaid(c.id, transactions);
+            const totalObligation = c.principal + c.interest;
+            return totalPaid >= totalObligation - 0.01;
+          });
+          return sortUnified(settled);
+      }, [commitments, transactions]);
 
+
+  const renderCreditCardItem = (cc: Wallet) => (
+    <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-2 flex justify-between items-center cursor-pointer">
+      <div className="flex items-center flex-1 mr-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white mr-3`} style={{ backgroundColor: cc.color }}>
+          <div className={`opacity-60`}>{getWalletIcon(cc.type, "w-5 h-5")}</div>
+        </div>
+        <div className="flex flex-col">
+          <h3 className="font-bold text-gray-800 text-sm truncate">{cc.name}</h3>
+          <p className="text-xs text-gray-400 font-medium">{getCCDueText(cc.statementDay, currentDate)}</p>
+        </div>
+      </div>
+      <div className="text-right flex-shrink-0 relative z-10 flex flex-col items-end">
+        <span className="block font-bold text-gray-800">{currencySymbol}{formatCurrency((cc.creditLimit || 0) - cc.balance)}</span>
+      </div>
+    </div>
+  );
 
   const renderBillItem = (instance: BillInstance) => {
     const { bill, dueDate, status } = instance;
@@ -144,10 +145,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return (
       <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer">
         <div className="flex items-center">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
-          >
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4" style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}>
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
@@ -157,12 +155,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <div className="flex flex-col items-end ml-2">
             <span className={`block font-bold text-sm text-gray-800 ${status === 'PAID' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
             {status !== 'PAID' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onPayBill(bill); }}
-                className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
-              >
-                Pay
-              </button>
+              <button onClick={(e) => { e.stopPropagation(); onPayBill(bill); }} className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1">Pay</button>
             )}
           </div>
         </div>
@@ -170,28 +163,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-  const activeCommitmentInstances = useMemo(() => {
-    const instances = commitments
-      .flatMap(c => getCommitmentInstances(c, transactions, currentDate));
-    const sortedInstances = sortUnified(instances);
-    return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
-  }, [commitments, transactions, currentDate]);
-
-  const settledCommitments = useMemo(() => {
-      const settled = commitments.filter(c => {
-        const totalPaid = calculateTotalPaid(c.id, transactions);
-        const totalObligation = c.principal + c.interest;
-        return totalPaid >= totalObligation - 0.01;
-      });
-      return sortUnified(settled);
-  }, [commitments, transactions]);
-
   const renderCommitmentItem = (item: (CommitmentInstance & { id: string }) | Commitment) => {
     const isInstance = 'commitment' in item;
     const commitment = isInstance ? item.commitment : item;
     const dueDate = isInstance ? item.dueDate : new Date();
     const status = isInstance ? item.status : 'SETTLED';
-
     const isLending = commitment.type === CommitmentType.LENDING;
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -200,10 +176,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return (
       <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
         <div className="flex items-center">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: category?.color || '#E5E7EB' }}
-          >
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
@@ -213,10 +186,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <div className="flex flex-col items-end ml-2">
             <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(displayAmount || 0)}</span>
             {status !== 'SETTLED' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
-                className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
-              >
+              <button onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }} className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                 {isLending ? 'Collect' : 'Pay'}
               </button>
             )}
@@ -228,36 +198,31 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col px-6 pb-20 pt-2">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-          <div className="flex flex-col items-center">
-              <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          </div>
-          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
-      </div>
+      <div data-testid="commitments-view" className="flex-1 flex flex-col px-4 pb-20 pt-2 space-y-3">
+        {/* HEADER */}
+        <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm p-2 rounded-xl shadow-sm border w-full sticky top-2 z-20">
+            <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50 active:scale-95 transition-transform"><ChevronLeft className="w-5 h-5" /></button>
+            <div className="flex flex-col items-center">
+                <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+            </div>
+            <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50 active:scale-95 transition-transform"><ChevronRight className="w-5 h-5" /></button>
+        </div>
 
-      <div className="flex-1 flex flex-col justify-between min-h-0">
-        <section>
-            <SectionHeader
-              title="CREDIT CARDS"
-            count={creditCards.length}
-            onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-          />
-          <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4" style={{ height: walletCardHeight + 16 }}>
-              {creditCards.length === 0 ? (
-                  <div className="w-full h-full">
-                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" />
-                  </div>
-              ) : (
-                <>
-                  {creditCards.map(cc => {
-                      const currentBalance = (cc.creditLimit || 0) - cc.balance;
-                      const walletWithBalance = { ...cc, balance: currentBalance };
-                      const BASE_WALLET_CARD_HEIGHT = BASE_WALLET_CARD_WIDTH / WALLET_CARD_ASPECT_RATIO;
-                      return (
-                          <div key={cc.id} className="flex-shrink-0" style={{ width: walletCardWidth, height: walletCardHeight }}>
-                            <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: BASE_WALLET_CARD_WIDTH, height: BASE_WALLET_CARD_HEIGHT }}>
+        {/* MAIN CONTENT */}
+        <div className="flex-1 flex flex-col justify-between min-h-0 space-y-2">
+          <section>
+              <SectionHeader title="CREDIT CARDS" count={creditCards.length} onViewAll={() => setOverlay('ALL_CREDIT_CARDS')} />
+              <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
+                  {creditCards.length === 0 ? (
+                      <div className="w-full">
+                          <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" />
+                      </div>
+                  ) : (
+                    creditCards.map(cc => {
+                        const currentBalance = (cc.creditLimit || 0) - cc.balance;
+                        const walletWithBalance = { ...cc, balance: currentBalance };
+                        return (
+                            <div key={cc.id} className="w-[85%] flex-shrink-0 aspect-[340/200]">
                                 <WalletCard
                                     wallet={{...walletWithBalance, label: 'BALANCE'}}
                                     currencySymbol={currencySymbol}
@@ -266,92 +231,78 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                     dueDate={getCCDueText(cc.statementDay, currentDate)}
                                 />
                             </div>
-                          </div>
-                      )
-                  })}
-                </>
-              )}
-          </div>
-      </section>
+                        )
+                    })
+                  )}
+              </div>
+          </section>
 
-      <section className="flex-1 flex flex-col min-h-0">
-        <SectionHeader
-          title="BILLS & SUBSCRIPTIONS"
-          count={activeBillInstances.length}
-          onViewAll={() => setOverlay('ALL_BILLS')}
-        />
-        <div data-testid="commitment-stack-bills" className="flex-1 flex items-center justify-center">
-          <CommitmentStack
-            items={activeBillInstances}
-            maxVisible={3}
-            cardHeight={commitmentCardHeight}
-            cardSpacing={commitmentCardSpacing}
-            renderItem={(instance) => {
-                const { bill, dueDate, status } = instance;
-                const lastPayment = findLastPayment(bill.id, transactions);
-              return (
-                <CommitmentCard
-                  item={bill}
-                  category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
-                  paidAmount={0}
-                  paymentsMade={0}
-                  dueDateText={getBillingPeriod({ recurrence: bill.recurrence, dueDate })}
-                  headerSubtitle={generateDueDateText(dueDate, status, bill.recurrence)}
-                  currencySymbol={currencySymbol}
-                  onPay={() => onPayBill(bill)}
-                  onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
-                  lastPaymentAmount={lastPayment?.amount}
-                  isOverdue={status === 'OVERDUE'}
+          <section className="flex-1 flex flex-col min-h-0">
+            <SectionHeader title="BILLS & SUBSCRIPTIONS" count={activeBillInstances.length} onViewAll={() => setOverlay('ALL_BILLS')} />
+            <div data-testid="commitment-stack-bills" className="flex-1 flex items-center justify-center">
+              <CommitmentStack
+                items={activeBillInstances}
+                maxVisible={2}
+                cardHeight={150}
+                cardSpacing={10}
+                renderItem={(instance) => {
+                    const { bill, dueDate, status } = instance;
+                    const lastPayment = findLastPayment(bill.id, transactions);
+                  return (
+                    <CommitmentCard
+                      item={bill}
+                      category={categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+                      paidAmount={0}
+                      paymentsMade={0}
+                      dueDateText={getBillingPeriod({ recurrence: bill.recurrence, dueDate })}
+                      headerSubtitle={generateDueDateText(dueDate, status, bill.recurrence)}
+                      currencySymbol={currencySymbol}
+                      onPay={() => onPayBill(bill)}
+                      onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
+                      lastPaymentAmount={lastPayment?.amount}
+                      isOverdue={status === 'OVERDUE'}
+                    />
+                  );
+                }}
+                placeholder={<AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />}
+              />
+            </div>
+          </section>
+
+          <section className="flex-1 flex flex-col min-h-0">
+              <SectionHeader title="LOANS & LENDING" count={activeCommitmentInstances.length} onViewAll={() => setOverlay('ALL_COMMITMENTS')} />
+            <div data-testid="commitment-stack-loans" className="flex-1 flex items-center justify-center">
+                <CommitmentStack
+                  items={activeCommitmentInstances}
+                  maxVisible={2}
+                  cardHeight={150}
+                  cardSpacing={10}
+                  renderItem={(instance) => {
+                    const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
+                    const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                    const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                    return (
+                      <CommitmentCard
+                        key={instance.id}
+                        item={commitment}
+                        category={categories.find(c => c.id === commitment.categoryId)}
+                        paidAmount={paidAmount}
+                        paymentsMade={paymentsMade}
+                        dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
+                        currencySymbol={currencySymbol}
+                        onPay={() => onPayCommitment(commitment)}
+                        onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                        instanceStatus={status}
+                        isOverdue={status === 'OVERDUE'}
+                      />
+                    )
+                  }}
+                  placeholder={<AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" />}
                 />
-              );
-            }}
-            placeholder={
-              <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
-            }
-          />
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section className="flex-1 flex flex-col min-h-0">
-          <SectionHeader
-            title="LOANS & LENDING"
-            count={activeCommitmentInstances.length}
-            onViewAll={() => setOverlay('ALL_COMMITMENTS')}
-          />
-        <div data-testid="commitment-stack-loans" className="flex-1 flex items-center justify-center">
-            <CommitmentStack
-              items={activeCommitmentInstances}
-              maxVisible={3}
-              cardHeight={commitmentCardHeight}
-              cardSpacing={commitmentCardSpacing}
-              renderItem={(instance) => {
-                const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
-                const paidAmount = calculateTotalPaid(commitment.id, transactions);
-                const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
-                return (
-                  <CommitmentCard
-                    key={instance.id}
-                    item={commitment}
-                    category={categories.find(c => c.id === commitment.categoryId)}
-                    paidAmount={paidAmount}
-                    paymentsMade={paymentsMade}
-                    dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
-                    currencySymbol={currencySymbol}
-                    onPay={() => onPayCommitment(commitment)}
-                    onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
-                    instanceStatus={status}
-                    isOverdue={status === 'OVERDUE'}
-                  />
-                )
-              }}
-              placeholder={
-                <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Debt" />
-              }
-            />
-        </div>
-      </section>
       </div>
-    </div>
 
     {detailsModal?.type === 'COMMITMENT' && (
         <CommitmentDetailsModal
@@ -362,14 +313,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             wallets={wallets}
             categories={categories}
             currencySymbol={currencySymbol}
-            onEdit={(c) => {
-                onEditCommitment(c);
-                setDetailsModal(null);
-            }}
-            onTransactionClick={(t) => {
-                onTransactionClick(t);
-                setDetailsModal(null);
-            }}
+            onEdit={(c) => { onEditCommitment(c); setDetailsModal(null); }}
+            onTransactionClick={(t) => { onTransactionClick(t); setDetailsModal(null); }}
         />
     )}
 
@@ -382,119 +327,97 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             wallets={wallets}
             categories={categories}
             currencySymbol={currencySymbol}
-            onEdit={(b) => {
-                onEditBill(b);
-                setDetailsModal(null);
-            }}
-            onTransactionClick={(t) => {
-                onTransactionClick(t);
-                setDetailsModal(null);
-            }}
+            onEdit={(b) => { onEditBill(b); setDetailsModal(null); }}
+            onTransactionClick={(t) => { onTransactionClick(t); setDetailsModal(null); }}
         />
     )}
 
-    {overlay === 'ALL_CREDIT_CARDS' && (
-      <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
-          <div className="flex items-center">
-            <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
-            <h2 className="text-xl font-bold ml-2">Credit Cards</h2>
-          </div>
-          <button onClick={onAddCreditCard} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
-        </div>
-
-        <div className="px-6 py-4">
-          <div className="bg-white rounded-2xl p-4 shadow-sm border relative overflow-hidden">
-            <div className="relative z-10">
-              <p className="text-xs text-gray-400 text-left">Total Pending Balance</p>
-              <p className="text-2xl font-black text-gray-800 text-left">{currencySymbol}{formatCurrency(totalCreditCardDebt)}</p>
-            </div>
-            <div className="absolute right-0 bottom-0 opacity-5 transform translate-y-1/4 translate-x-1/4"><div className="w-24 h-24 bg-primary rounded-full"></div></div>
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-3">
-          <CommitmentList
-              items={creditCards}
-              renderItem={renderCreditCardItem}
-              placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No credit cards found</div>}
-          />
-        </div>
-      </div>
-    )}
-
-    {overlay === 'ALL_BILLS' && (
+    {overlay !== 'NONE' && (
         <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
-                <div className="flex items-center">
+            {overlay === 'ALL_CREDIT_CARDS' && (
+              <>
+                <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
+                  <div className="flex items-center">
                     <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
-                    <h2 className="text-xl font-bold ml-2">Bills & Subscriptions</h2>
+                    <h2 className="text-xl font-bold ml-2">Credit Cards</h2>
+                  </div>
+                  <button onClick={onAddCreditCard} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
                 </div>
-                <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
-            </div>
-            
-            <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
-                <div className="flex space-x-2 mb-4">
-                    <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
-                    <button onClick={() => setBillFilter('PAID')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PAID' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
-                </div>
-                <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-                    <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
-                    <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
-                </div>
-            </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                {billFilter === 'PENDING' ? (
+                <div className="px-6 py-4">
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border relative overflow-hidden">
+                    <div className="relative z-10">
+                      <p className="text-xs text-gray-400 text-left">Total Pending Balance</p>
+                      <p className="text-2xl font-black text-gray-800 text-left">{currencySymbol}{formatCurrency(totalCreditCardDebt)}</p>
+                    </div>
+                    <div className="absolute right-0 bottom-0 opacity-5 transform translate-y-1/4 translate-x-1/4"><div className="w-24 h-24 bg-primary rounded-full"></div></div>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-3">
+                  <CommitmentList items={creditCards} renderItem={renderCreditCardItem} placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No credit cards found</div>} />
+                </div>
+              </>
+            )}
+
+            {overlay === 'ALL_BILLS' && (
+              <>
+                <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
+                    <div className="flex items-center">
+                        <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
+                        <h2 className="text-xl font-bold ml-2">Bills & Subscriptions</h2>
+                    </div>
+                    <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
+                </div>
+
+                <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
+                    <div className="flex space-x-2 mb-4">
+                        <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
+                        <button onClick={() => setBillFilter('PAID')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PAID' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
+                    </div>
+                    <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+                        <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
+                        <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                        <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
                     <CommitmentList
-                        items={activeBillInstances.filter(b => b.status !== 'PAID')}
+                        items={billFilter === 'PENDING' ? activeBillInstances.filter(b => b.status !== 'PAID') : activeBillInstances.filter(b => b.status === 'PAID')}
                         renderItem={renderBillItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing for this month</div>}
                     />
-                ) : (
-                    <CommitmentList
-                        items={activeBillInstances.filter(b => b.status === 'PAID')}
-                        renderItem={renderBillItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No payment history for this month</div>}
-                    />
-                )}
-            </div>
-        </div>
-    )}
-
-    {overlay === 'ALL_COMMITMENTS' && (
-        <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
-                <div className="flex items-center">
-                    <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
-                    <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
                 </div>
-                <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
-            </div>
+              </>
+            )}
 
-            <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
-                <div className="flex space-x-2 mb-4">
-                    <button onClick={() => setCommitmentFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
-                    <button onClick={() => setCommitmentFilter('SETTLED')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'SETTLED' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Settled</button>
+            {overlay === 'ALL_COMMITMENTS' && (
+              <>
+                <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
+                    <div className="flex items-center">
+                        <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180"/></button>
+                        <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
+                    </div>
+                    <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
                 </div>
-            </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                {commitmentFilter === 'ACTIVE' ? (
-                    <CommitmentList
-                        items={activeCommitmentInstances}
+                <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
+                    <div className="flex space-x-2 mb-4">
+                        <button onClick={() => setCommitmentFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
+                        <button onClick={() => setCommitmentFilter('SETTLED')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'SETTLED' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Settled</button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
+                   <CommitmentList
+                        items={commitmentFilter === 'ACTIVE' ? activeCommitmentInstances : settledCommitments}
                         renderItem={renderCommitmentItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active commitments</div>}
-                    />
-                ) : (
-                    <CommitmentList
-                        items={settledCommitments}
-                        renderItem={renderCommitmentItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled commitments</div>}
-                    />
-                )}
-            </div>
+                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No {commitmentFilter.toLowerCase()} commitments</div>}
+                   />
+                </div>
+              </>
+            )}
         </div>
     )}
     </>
