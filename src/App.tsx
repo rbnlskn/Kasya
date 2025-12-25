@@ -491,11 +491,11 @@ const App: React.FC = () => {
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
                         <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="w-[180px] h-[72px] flex-shrink-0">
+                                <div key={b.id} className="w-44 aspect-[5/2] flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
-                            <div className="w-[180px] h-[72px] flex-shrink-0">
+                            <div className="w-44 aspect-[5/2] flex-shrink-0">
                                 <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>
