@@ -27,7 +27,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
 
   const getAmountColor = () => {
     if (isTransfer) {
-      return isPositive ? 'text-blue-600' : 'text-red-500';
+      return 'text-blue-600';
     }
     return isPositive ? 'text-emerald-500' : 'text-red-500';
   };
