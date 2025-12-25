@@ -476,11 +476,11 @@ const App: React.FC = () => {
               <div className="h-[60px] flex items-center px-6 z-20 bg-app-bg flex-shrink-0">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 flex flex-col min-h-0 px-4 pt-2 pb-24 space-y-1">
+              <div className="flex-1 flex flex-col min-h-0 px-4 pt-2 pb-24 space-y-4">
                  <div className="flex flex-col h-full">
                      <section className="flex-shrink-0 mb-2">
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
-                         <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                         <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                             {data.wallets.map((w) => (
                                 <div key={w.id} className="w-[240px] h-[140px] flex-shrink-0">
                                     <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} scale={0.75} />
@@ -494,7 +494,7 @@ const App: React.FC = () => {
 
                     <section className="flex-shrink-0 mb-2">
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
                             {data.budgets.map((b) => (
                                 <div key={b.id} className="w-36 h-20 flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />

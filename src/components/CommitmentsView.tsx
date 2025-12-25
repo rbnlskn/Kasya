@@ -264,7 +264,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-hidden px-4 pt-2 pb-24 space-y-2">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-hidden px-4 pt-2 pb-24 space-y-4">
       <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-1 flex-shrink-0">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
@@ -281,7 +281,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
               />
               <div className="flex-1 flex items-center overflow-hidden">
-                <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 h-full items-center">
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 h-full items-center">
                     {creditCards.length === 0 ? (
                         <div className="w-full h-full max-h-[120px]">
                             <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height="100%" banner />
