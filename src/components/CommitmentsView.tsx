@@ -15,6 +15,7 @@ import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
+import useResponsiveScaling from '../hooks/useResponsiveScaling';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -35,12 +36,23 @@ interface CommitmentsViewProps {
   onTransactionClick: (transaction: Transaction) => void;
 }
 
+const BASE_COMMITMENT_CARD_HEIGHT = 160;
+const BASE_COMMITMENT_CARD_SPACING = 8;
+const BASE_WALLET_CARD_WIDTH = 255;
+const WALLET_CARD_ASPECT_RATIO = 340 / 200;
+
 const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
   const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  const { scale } = useResponsiveScaling();
+  const commitmentCardHeight = BASE_COMMITMENT_CARD_HEIGHT * scale;
+  const commitmentCardSpacing = BASE_COMMITMENT_CARD_SPACING * scale;
+  const walletCardWidth = BASE_WALLET_CARD_WIDTH * scale;
+  const walletCardHeight = walletCardWidth / WALLET_CARD_ASPECT_RATIO;
 
   const creditCards = useMemo(() => {
       const cards = wallets.filter(w => w.type === WalletType.CREDIT_CARD);
@@ -56,12 +68,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const activeBillInstances = useMemo(() => {
-    // Get instances for the currently viewed month
     const currentMonthInstances = bills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
       .filter((b): b is BillInstance => b !== null);
 
-    // Get instances for the next month to check for lookahead
     const nextMonthDate = new Date(currentDate);
     nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
@@ -69,12 +79,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
         .filter((b): b is BillInstance => b !== null);
 
-    // Filter next month's instances for the lookahead window (7 days)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Only perform lookahead if we are viewing the Current Real-World Month.
-    // If we are looking at History, we do not want future bills showing up.
     const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
 
     const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
@@ -83,7 +90,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         return today >= lookaheadDate;
     }) : [];
 
-    // Combine and remove duplicates
     const combined = [...currentMonthInstances, ...lookaheadBills];
     const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
 
@@ -94,27 +100,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
   }, [bills, transactions, currentDate, billFilter]);
   
-  // Refactored to accept viewingDate or default to current viewing date logic
   const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
       if (!day) return 'No Due Date';
-      const today = new Date(); // Real Today
+      const today = new Date();
       today.setHours(0,0,0,0);
-
       const viewingMonth = viewingDate.getMonth();
       const viewingYear = viewingDate.getFullYear();
-
-      // Construct due date based on the viewing month
       let dueDate = new Date(viewingYear, viewingMonth, day);
-
-      // Credit Card specific logic:
-      // Typically, if statement day is X, the due date is usually X+Period.
-      // But assuming 'day' here is the Due Day as stored.
-
-      // If the due day (e.g. 5th) is BEFORE the current day of real-time month,
-      // AND we are viewing the real-time month, it might show "Next Month's Due Date"?
-      // But the requirement is to show the due date for the VIEWING month.
-      // So if I view Jan 2026, I want to see Jan 5 (or whatever).
-
       return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }
 
@@ -180,10 +172,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .flatMap(c => getCommitmentInstances(c, transactions, currentDate)); // Use flatMap to allow multiple instances
-
+      .flatMap(c => getCommitmentInstances(c, transactions, currentDate));
     const sortedInstances = sortUnified(instances);
-
     return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
   }, [commitments, transactions, currentDate]);
 
@@ -205,12 +195,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const isLending = commitment.type === CommitmentType.LENDING;
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
-
-    // For specific instances, we want to show instance-specific data if available (e.g. amount due)
-    // but the original design relies on total stats.
-    // We will keep standard display but ensure status is correct.
-
-    // If it's an instance, we can calculate installment amount
     const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
 
     return (
@@ -244,8 +228,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col px-6 pb-20 pt-2">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
               <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -253,31 +237,35 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <section>
-          <SectionHeader
-            title="CREDIT CARDS"
+      <div className="flex-1 flex flex-col justify-between min-h-0">
+        <section>
+            <SectionHeader
+              title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
-          <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+          <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4" style={{ height: walletCardHeight + 16 }}>
               {creditCards.length === 0 ? (
-                  <div className="w-full">
-                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height="120px" banner />
+                  <div className="w-full h-full">
+                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" />
                   </div>
               ) : (
                 <>
                   {creditCards.map(cc => {
                       const currentBalance = (cc.creditLimit || 0) - cc.balance;
                       const walletWithBalance = { ...cc, balance: currentBalance };
+                      const BASE_WALLET_CARD_HEIGHT = BASE_WALLET_CARD_WIDTH / WALLET_CARD_ASPECT_RATIO;
                       return (
-                          <div key={cc.id} className="w-2/3 max-w-[255px] flex-shrink-0">
-                              <WalletCard
-                                  wallet={{...walletWithBalance, label: 'BALANCE'}}
-                                  currencySymbol={currencySymbol}
-                                  onClick={(w) => onWalletClick && onWalletClick(w)}
-                                  onPay={() => onPayCC(cc)}
-                                  dueDate={getCCDueText(cc.statementDay, currentDate)}
-                              />
+                          <div key={cc.id} className="flex-shrink-0" style={{ width: walletCardWidth, height: walletCardHeight }}>
+                            <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left', width: BASE_WALLET_CARD_WIDTH, height: BASE_WALLET_CARD_HEIGHT }}>
+                                <WalletCard
+                                    wallet={{...walletWithBalance, label: 'BALANCE'}}
+                                    currencySymbol={currencySymbol}
+                                    onClick={(w) => onWalletClick && onWalletClick(w)}
+                                    onPay={() => onPayCC(cc)}
+                                    dueDate={getCCDueText(cc.statementDay, currentDate)}
+                                />
+                            </div>
                           </div>
                       )
                   })}
@@ -286,16 +274,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
       </section>
 
-      <section>
+      <section className="flex-1 flex flex-col min-h-0">
         <SectionHeader
           title="BILLS & SUBSCRIPTIONS"
           count={activeBillInstances.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
-        <div data-testid="commitment-stack-bills">
+        <div data-testid="commitment-stack-bills" className="flex-1 flex items-center justify-center">
           <CommitmentStack
             items={activeBillInstances}
             maxVisible={3}
+            cardHeight={commitmentCardHeight}
+            cardSpacing={commitmentCardSpacing}
             renderItem={(instance) => {
                 const { bill, dueDate, status } = instance;
                 const lastPayment = findLastPayment(bill.id, transactions);
@@ -315,23 +305,25 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 />
               );
             }}
-          placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
-          }
-        />
+            placeholder={
+              <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
+            }
+          />
         </div>
       </section>
 
-      <section>
+      <section className="flex-1 flex flex-col min-h-0">
           <SectionHeader
             title="LOANS & LENDING"
             count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
-        <div data-testid="commitment-stack-loans">
+        <div data-testid="commitment-stack-loans" className="flex-1 flex items-center justify-center">
             <CommitmentStack
               items={activeCommitmentInstances}
               maxVisible={3}
+              cardHeight={commitmentCardHeight}
+              cardSpacing={commitmentCardSpacing}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
                 const paidAmount = calculateTotalPaid(commitment.id, transactions);
@@ -358,6 +350,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             />
         </div>
       </section>
+      </div>
     </div>
 
     {detailsModal?.type === 'COMMITMENT' && (

@@ -1,11 +1,12 @@
-
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, { useState } from 'react';
 
 interface CommitmentStackProps<T extends { id: string }> {
   items: T[];
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
+  cardHeight: number;
+  cardSpacing: number;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -13,32 +14,16 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 2,
   placeholder,
+  cardHeight,
+  cardSpacing,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
-  const [dynamicHeight, setDynamicHeight] = useState(200);
-  const stackRef = useRef<HTMLDivElement>(null);
 
   const displayItems = items.slice(0, maxVisible);
   const stackItems = [...displayItems, { id: 'placeholder', isPlaceholder: true }];
-  const cardSpacing = 8;
 
-  useLayoutEffect(() => {
-    if (stackRef.current) {
-      const topCard = stackRef.current.children[activeIndex]?.firstElementChild as HTMLElement;
-      if (topCard) {
-        const cardHeight = topCard.offsetHeight;
-        const totalHeight = cardHeight + (Math.min(displayItems.length, maxVisible) * cardSpacing);
-        setDynamicHeight(totalHeight);
-      } else {
-        // Fallback for placeholder
-        const placeholderCard = stackRef.current.querySelector('[data-placeholder-card]') as HTMLElement;
-        if(placeholderCard) {
-            setDynamicHeight(placeholderCard.offsetHeight);
-        }
-      }
-    }
-  }, [activeIndex, items, maxVisible]);
+  const dynamicHeight = cardHeight + (Math.min(displayItems.length, maxVisible) * cardSpacing);
 
   const handleCardClick = (index: number) => {
     setActiveIndex(index);
@@ -63,7 +48,6 @@ export const CommitmentStack = <T extends { id: string }>({
 
   return (
     <div
-      ref={stackRef}
       className="relative transition-all duration-300"
       style={{ height: `${dynamicHeight}px` }}
       onTouchStart={handleTouchStart}
@@ -79,6 +63,7 @@ export const CommitmentStack = <T extends { id: string }>({
           opacity: position >= (maxVisible + 1) ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
           pointerEvents: isTopCard ? 'auto' : 'none',
+          height: `${cardHeight}px`,
         };
 
         return (
@@ -86,9 +71,10 @@ export const CommitmentStack = <T extends { id: string }>({
             key={item.id}
             className="absolute w-full"
             style={style as React.CSSProperties}
-            data-placeholder-card={(item as any).isPlaceholder ? true : undefined}
           >
-            {(item as any).isPlaceholder ? placeholder : renderItem(item as T)}
+            <div className="h-full w-full">
+              {(item as any).isPlaceholder ? placeholder : renderItem(item as T)}
+            </div>
             {!isTopCard && (
               <div
                 className="absolute inset-0 w-full h-full cursor-pointer"

@@ -1,17 +1,17 @@
-
 import React from 'react';
 import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
 import { CommitmentInstanceStatus } from '../utils/commitment';
+import useResponsiveScaling from '../hooks/useResponsiveScaling';
 
 interface CommitmentCardProps {
   item: Bill | Commitment;
   category?: Category;
   paidAmount: number;
   paymentsMade: number;
-  dueDateText: string; // Used for "Period" in Bills, or Header in Loans (Legacy/Mixed usage)
-  headerSubtitle?: string; // New prop for the text under the title
+  dueDateText: string;
+  headerSubtitle?: string;
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
@@ -34,6 +34,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   lastPaymentAmount,
   isOverdue,
 }) => {
+  const { scale } = useResponsiveScaling();
   const isCommitment = 'principal' in item;
 
   const renderInfoBox = () => {
@@ -44,39 +45,44 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       const isLending = commitment.type === CommitmentType.LENDING;
 
       return (
-        <div className="flex-1 bg-slate-50 rounded-xl px-3 sm:px-4 py-2 border border-slate-100 flex flex-col justify-center gap-1.5">
+        <div
+          className="flex-1 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center"
+          style={{ padding: `${8 * scale}px ${12 * scale}px`, gap: `${6 * scale}px` }}
+        >
           <div className="flex justify-between items-center leading-none">
-            <span className="text-[0.5rem] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Progress</span>
-            <span className="text-[0.55rem] sm:text-[10px] font-bold text-slate-600">{Math.round(progress)}%</span>
+            <span className="font-bold text-slate-400 uppercase tracking-widest" style={{ fontSize: `${9 * scale}px` }}>Progress</span>
+            <span className="font-bold text-slate-600" style={{ fontSize: `${10 * scale}px` }}>{Math.round(progress)}%</span>
           </div>
-          <div className="h-1 sm:h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-200 rounded-full overflow-hidden" style={{ height: `${6 * scale}px` }}>
             <div
               className={`h-full ${isLending ? 'bg-green-500' : 'bg-blue-600'} rounded-full`}
               style={{ width: `${progress}%` }}
             ></div>
           </div>
           <div className="flex justify-between items-center leading-none">
-            <span className="text-[0.6rem] sm:text-[11px] font-medium text-slate-400">
+            <span className="font-medium text-slate-400" style={{ fontSize: `${11 * scale}px` }}>
               Paid: <span className="text-slate-600">{currencySymbol}{formatCurrency(paidAmount)}</span>
             </span>
-            <span className="text-[0.6rem] sm:text-[11px] font-medium text-slate-400">/ {currencySymbol}{formatCurrency(totalObligation)}</span>
+            <span className="font-medium text-slate-400" style={{ fontSize: `${11 * scale}px` }}>/ {currencySymbol}{formatCurrency(totalObligation)}</span>
           </div>
         </div>
       );
     }
 
     // Bill Info Box
-    const bill = item as Bill;
     return (
-        <div className="flex-1 bg-slate-50 rounded-xl px-3 sm:px-4 py-2 border border-slate-100 flex flex-col justify-center gap-1.5 sm:gap-2">
+        <div
+          className="flex-1 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-center"
+          style={{ padding: `${8 * scale}px ${12 * scale}px`, gap: `${6 * scale}px` }}
+        >
             <div className="flex justify-between items-center leading-none">
-                <span className="text-[0.5rem] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Period</span>
-                <span className="text-[0.6rem] sm:text-[11px] font-bold text-slate-700">{dueDateText}</span>
+                <span className="font-bold text-slate-400 uppercase tracking-widest" style={{ fontSize: `${9 * scale}px` }}>Period</span>
+                <span className="font-bold text-slate-700" style={{ fontSize: `${11 * scale}px` }}>{dueDateText}</span>
             </div>
             <div className="w-full border-t border-dashed border-slate-300/60"></div>
             <div className="flex justify-between items-center leading-none">
-                <span className="text-[0.5rem] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Last Pay</span>
-                <span className="text-[0.6rem] sm:text-[11px] font-bold text-slate-500">
+                <span className="font-bold text-slate-400 uppercase tracking-widest" style={{ fontSize: `${9 * scale}px` }}>Last Pay</span>
+                <span className="font-bold text-slate-500" style={{ fontSize: `${11 * scale}px` }}>
                   {lastPaymentAmount !== undefined ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}
                 </span>
             </div>
@@ -99,10 +105,6 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       displayAmount = (item as Bill).amount;
   }
 
-  // Determine the subtitle text.
-  // If headerSubtitle is provided, use it.
-  // Fallback for Loans: Use dueDateText (legacy behavior where dueDateText was passed as the subtitle).
-  // Fallback for Bills: Use the old calculation (only if headerSubtitle is missing, but we aim to always provide it).
   const subtitle = headerSubtitle
     ? headerSubtitle
     : (isCommitment
@@ -112,30 +114,41 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white rounded-3xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between gap-3"
+      className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
+      style={{ padding: `${16 * scale}px`, gap: `${12 * scale}px` }}
     >
       {/* HEADER */}
       <div className="flex items-center">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center text-xl sm:text-2xl shadow-sm flex-shrink-0 mr-3 sm:mr-4" style={{ backgroundColor: category?.color || '#E5E7EB' }}>
+        <div
+            className="rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
+            style={{
+                width: `${48 * scale}px`,
+                height: `${48 * scale}px`,
+                fontSize: `${24 * scale}px`,
+                marginRight: `${16 * scale}px`,
+                backgroundColor: category?.color || '#E5E7EB'
+            }}
+        >
           {category?.icon}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
-            <h3 className="font-bold text-slate-800 text-base sm:text-lg truncate">{item.name}</h3>
-            <h3 className="font-extrabold text-base sm:text-lg text-blue-600 ml-2 whitespace-nowrap">{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
+            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: `${18 * scale}px` }}>{item.name}</h3>
+            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: `${18 * scale}px` }}>{currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}</h3>
           </div>
-          <p className={`text-[0.65rem] sm:text-xs font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}>{subtitle}</p>
+          <p className={`font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`} style={{ fontSize: `${12 * scale}px` }}>{subtitle}</p>
         </div>
       </div>
 
       {/* FOOTER */}
-      <div className="flex gap-2 sm:gap-3">
+      <div className="flex" style={{ gap: `${12 * scale}px` }}>
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
-          className={`aspect-square w-16 sm:w-[68px] ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 rounded-xl transition flex items-center justify-center shrink-0`}
+          className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 rounded-xl transition flex items-center justify-center shrink-0`}
+          style={{ width: `${68 * scale}px` }}
         >
-          <span className="font-bold text-xs sm:text-sm tracking-wide">{isLending ? 'Collect' : 'Pay'}</span>
+          <span className="font-bold tracking-wide" style={{ fontSize: `${14 * scale}px` }}>{isLending ? 'Collect' : 'Pay'}</span>
         </button>
       </div>
     </div>
