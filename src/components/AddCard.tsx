@@ -15,6 +15,7 @@ const AddCard: React.FC<AddCardProps> = ({ onClick, label = 'Add New', height = 
   return (
     <div
       onClick={onClick}
+      data-testid={`add-card-${label.replace(/\s+/g, '-')}`}
       className={`w-full flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-3xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] ${bannerClasses}`}
       style={{ height }}
     >

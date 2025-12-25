@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 interface CommitmentStackProps<T extends { id: string }> {
@@ -5,8 +6,7 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
-  cardSpacing: number;
-  className?: string;
+  cardHeight: number;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -14,8 +14,7 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 2,
   placeholder,
-  cardSpacing,
-  className,
+  cardHeight,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -44,9 +43,13 @@ export const CommitmentStack = <T extends { id: string }>({
     }
   };
 
+  const cardSpacing = 8;
+  const totalHeight = cardHeight + (Math.min(displayItems.length, maxVisible) * cardSpacing);
+
   return (
     <div
-      className={`relative transition-all duration-300 ${className}`}
+      className="relative"
+      style={{ height: `${totalHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -68,9 +71,7 @@ export const CommitmentStack = <T extends { id: string }>({
             className="absolute w-full"
             style={style as React.CSSProperties}
           >
-            <div className="h-full w-full">
-              {(item as any).isPlaceholder ? placeholder : renderItem(item as T)}
-            </div>
+            {(item as any).isPlaceholder ? placeholder : renderItem(item as T)}
             {!isTopCard && (
               <div
                 className="absolute inset-0 w-full h-full cursor-pointer"

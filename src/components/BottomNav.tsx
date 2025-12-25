@@ -21,7 +21,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
                 <Home className="w-5 h-5" />
             </button>
             
-            <button onClick={() => onTabChange('ANALYTICS')} className={getIconClass(activeTab === 'ANALYTICS')}>
+            <button data-testid="analytics-button" onClick={() => onTabChange('ANALYTICS')} className={getIconClass(activeTab === 'ANALYTICS')}>
                 <BarChart3 className="w-5 h-5" />
             </button>
             
@@ -33,7 +33,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
                 <Sparkle className="w-5 h-5" />
             </button>
             
-            <button onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
+            <button data-testid="settings-button" onClick={() => onTabChange('SETTINGS')} className={getIconClass(activeTab === 'SETTINGS')}>
                 <Settings className="w-5 h-5" />
             </button>
         </div>

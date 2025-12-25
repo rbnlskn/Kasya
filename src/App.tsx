@@ -4,6 +4,7 @@ import { loadData, saveData, clearData, DEFAULT_APP_STATE } from './services/sto
 import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill, Commitment, CommitmentType } from './types';
 import BudgetRing from './components/BudgetRing';
 import TransactionItem from './components/TransactionItem';
+import WalletCard from './components/WalletCard';
 import BottomNav from './components/BottomNav';
 import TransactionFormModal from './components/TransactionFormModal';
 import WalletFormModal from './components/WalletFormModal';
@@ -20,6 +21,7 @@ import CommitmentFormModal from './components/CommitmentFormModal';
 import BudgetDetailView from './components/BudgetDetailView';
 import Logo from './components/Logo';
 import SectionHeader from './components/SectionHeader';
+import AddCard from './components/AddCard';
 import AddBudgetCard from './components/AddBudgetCard';
 import { Plus, BarChart3, Loader2 } from 'lucide-react';
 import { CURRENCIES } from './data/currencies';
@@ -28,7 +30,6 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { requestInitialPermissions } from './services/permissionService';
 import { calculateNetProceeds, calculateInstallment } from './utils/math';
-import WalletCarousel from './components/WalletCarousel';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
@@ -471,31 +472,35 @@ const App: React.FC = () => {
     <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
-           <div data-testid="home-view" className={`h-full flex flex-col ${getTabAnimationClass()}`}>
-              <div className="h-[60px] flex items-center px-4 z-20 sticky top-0 bg-app-bg">
+           <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+              <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 flex flex-col p-4 pt-0 pb-24 space-y-4">
-                 <div>
+              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
+                 <div className="grid grid-cols-1 gap-4 content-start">
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
-                         <WalletCarousel
-                            wallets={data.wallets}
-                            onWalletClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
-                            onAddWalletClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
-                            currencySymbol={currentCurrency.symbol}
-                         />
+                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                            {data.wallets.map((w) => (
+                                <div key={w.id} className="flex-shrink-0">
+                                    <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} />
+                                </div>
+                            ))}
+                            <div className="flex-shrink-0">
+                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
+                            </div>
+                         </div>
                      </section>
 
                     <section>
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
+                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="w-44 aspect-[5/2] flex-shrink-0">
+                                <div key={b.id} className="w-40 h-20 flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
-                            <div className="w-44 aspect-[5/2] flex-shrink-0">
+                            <div className="w-40 h-20 flex-shrink-0">
                                 <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>
@@ -503,7 +508,7 @@ const App: React.FC = () => {
 
                     <section>
                         <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
-                        <div className="overflow-y-auto no-scrollbar">
+                        <div>
                             {data.transactions.length === 0 ? (
                                 <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
                             ) : (

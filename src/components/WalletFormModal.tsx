@@ -149,6 +149,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
   const hasBalanceChanged = initialWallet && Math.abs(balanceDiff) > 0.01;
   const isCreditCard = type === WalletType.CREDIT_CARD;
 
+  const { scale } = useResponsive();
   const previewWallet = useMemo<Wallet>(() => ({
       id: initialWallet?.id || 'new',
       name: name || 'Wallet Name',
@@ -174,21 +175,24 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex justify-center">
-            <div className="scale-[0.9] origin-center">
-                <WalletCard
-                    wallet={previewWallet}
-                    currencySymbol={currencySymbol}
-                />
-            </div>
+          <div className="flex justify-center" style={{ transform: `scale(${scale(1, 0.9)})`, transformOrigin: 'center' }}>
+            <WalletCard
+                wallet={previewWallet}
+                currencySymbol={currencySymbol}
+            />
           </div>
           
           <div>
             <label className="text-xs font-semibold text-text-secondary uppercase mb-1.5 block">Templates</label>
             <div className="flex overflow-x-auto space-x-3 pb-2 -mx-6 px-6 no-scrollbar">
                 {WALLET_TEMPLATES.map((template, idx) => (
-                    <div key={idx} className="flex-shrink-0 w-[170px] h-[100px] cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all" onClick={() => handleTemplateSelect(template)}>
-                        <div className="scale-[0.5] origin-top-left">
+                    <div
+                      key={idx}
+                      className="flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all"
+                      onClick={() => handleTemplateSelect(template)}
+                      style={{ width: scale(170), height: scale(100) }}
+                    >
+                        <div style={{ transform: `scale(${scale(1, 0.5)})`, transformOrigin: 'top left' }}>
                              <WalletCard
                                 wallet={{
                                     id: `template-${idx}`,
