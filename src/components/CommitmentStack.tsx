@@ -5,7 +5,6 @@ interface CommitmentStackProps<T extends { id: string }> {
   renderItem: (item: T) => React.ReactNode;
   maxVisible?: number;
   placeholder: React.ReactNode;
-  cardHeight: number;
   cardSpacing: number;
 }
 
@@ -14,7 +13,6 @@ export const CommitmentStack = <T extends { id: string }>({
   renderItem,
   maxVisible = 2,
   placeholder,
-  cardHeight,
   cardSpacing,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -23,7 +21,10 @@ export const CommitmentStack = <T extends { id: string }>({
   const displayItems = items.slice(0, maxVisible);
   const stackItems = [...displayItems, { id: 'placeholder', isPlaceholder: true }];
 
-  const dynamicHeight = cardHeight + (Math.min(displayItems.length, maxVisible) * cardSpacing);
+  // The card has a 180/340 aspect ratio. The container has 1rem (16px) padding on each side (2rem total).
+  // Container height = (Card Height) + (Visible Stacked Cards * Spacing)
+  const extraStackHeight = Math.min(displayItems.length, maxVisible) * cardSpacing;
+  const dynamicHeightStyle = `calc((100vw - 2rem) * (180 / 340) + ${extraStackHeight}px)`;
 
   const handleCardClick = (index: number) => {
     setActiveIndex(index);
@@ -49,7 +50,7 @@ export const CommitmentStack = <T extends { id: string }>({
   return (
     <div
       className="relative transition-all duration-300"
-      style={{ height: `${dynamicHeight}px` }}
+      style={{ height: dynamicHeightStyle }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -63,7 +64,6 @@ export const CommitmentStack = <T extends { id: string }>({
           opacity: position >= (maxVisible + 1) ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
           pointerEvents: isTopCard ? 'auto' : 'none',
-          height: `${cardHeight}px`,
         };
 
         return (

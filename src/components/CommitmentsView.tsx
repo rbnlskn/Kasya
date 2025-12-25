@@ -243,7 +243,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
               <CommitmentStack
                 items={activeBillInstances}
                 maxVisible={2}
-                cardHeight={150}
                 cardSpacing={10}
                 renderItem={(instance) => {
                     const { bill, dueDate, status } = instance;
@@ -275,7 +274,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
                 <CommitmentStack
                   items={activeCommitmentInstances}
                   maxVisible={2}
-                  cardHeight={150}
                   cardSpacing={10}
                   renderItem={(instance) => {
                     const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
