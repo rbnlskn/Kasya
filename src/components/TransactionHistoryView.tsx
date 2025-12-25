@@ -115,7 +115,7 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
                 {(txs as Transaction[]).map(t => {
                   const isCreditCardPayment = t.type === 'TRANSFER' && t.transferToWalletId && walletMap[t.transferToWalletId]?.type === WalletType.CREDIT_CARD;
                   return (
-                    <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} isCreditCardPayment={isCreditCardPayment} />
+                    <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} isCreditCardPayment={!!isCreditCardPayment} />
                   )
                 }
                 )}
