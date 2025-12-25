@@ -11,7 +11,7 @@ interface BudgetRingProps {
   onClick?: (budget: Budget) => void;
 }
 
-const BudgetRing: React.FC<BudgetRingProps> = ({ budget, category, spent, onClick }) => {
+const BudgetRing: React.FC<BudgetRingProps> = ({ budget, category, spent, currencySymbol, onClick }) => {
   const { scale } = useResponsiveScaling();
   const remaining = budget.limit - spent;
   const percentage = Math.min(100, Math.max(0, (spent / budget.limit) * 100));
