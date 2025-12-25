@@ -89,7 +89,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
             {transaction.fee && transaction.fee > 0 ? (
                 <div className="flex items-baseline justify-end gap-1">
                     <span className={`font-bold text-sm ${getAmountColor()}`}>
-                        {isTransfer ? (isPositive ? '' : '-') : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
+                        {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
                     </span>
                     <span className="font-bold text-xs text-red-500">
                         &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
@@ -97,7 +97,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
                 </div>
             ) : (
                 <p className={`font-bold text-sm ${getAmountColor()}`}>
-                    {isTransfer ? (isPositive ? '' : '-') : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
+                    {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
                 </p>
             )}
              <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
