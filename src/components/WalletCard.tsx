@@ -8,7 +8,6 @@ interface WalletCardProps {
   onClick?: (wallet: Wallet) => void;
   onPay?: () => void;
   currencySymbol: string;
-  scale?: number;
   dueDate?: string;
 }
 
@@ -27,7 +26,7 @@ const getWalletTypeDetails = (type: string) => {
   }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, scale = 1, dueDate }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, dueDate }) => {
   const { emoji, label: defaultLabel } = getWalletTypeDetails(wallet.type);
   const label = wallet.label || defaultLabel;
   const isLifted = ['💵', '💳', '🏦', '🐷'].includes(emoji);
@@ -36,10 +35,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const isHexBg = wallet.color?.startsWith('#');
   const isHexText = wallet.textColor?.startsWith('#');
 
-  const cardStyle: React.CSSProperties = {
-      transform: `scale(${scale})`,
-      transformOrigin: 'top left'
-  };
+  const cardStyle: React.CSSProperties = {};
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
 
@@ -50,16 +46,15 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-black/10';
 
   return (
-    <div style={{width: 340 * scale, height: 200 * scale}}>
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`w-[340px] h-[200px] rounded-3xl p-6 relative ${finalBgColor} ${finalTextColor} shadow-lg shadow-black/10 transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
+      className={`w-full aspect-[17/10] rounded-3xl p-4 md:p-6 relative ${finalBgColor} ${finalTextColor} shadow-lg shadow-black/10 transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
       style={cardStyle}
     >
       {/* Background Decorations */}
-      <div className={`absolute w-[280px] h-[280px] rounded-full top-5 right-[-80px] z-0 ${watermarkBg}`}></div>
+      <div className={`absolute w-[140%] h-[140%] rounded-full top-[12.5%] right-[-40%] z-0 ${watermarkBg}`}></div>
       <div
-        className={`absolute text-[160px] filter saturate-0 pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-10px] right-[-30px]' : 'bottom-[-40px] right-[-30px]'} ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
+        className={`absolute text-[8rem] md:text-[10rem] filter saturate-0 pointer-events-none user-select-none z-[1] leading-none ${isLifted ? 'bottom-[-5%] right-[-15%]' : 'bottom-[-20%] right-[-15%]'} ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
       >
         {emoji}
       </div>
@@ -68,29 +63,29 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
           <div className="flex items-center gap-2">
-            <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
+            <span className="text-[0.6rem] md:text-[13px] font-normal uppercase tracking-wider opacity-90">
               {label}
             </span>
-            {dueDate && <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-md shadow">{dueDate}</span>}
+            {dueDate && <span className="text-[0.5rem] md:text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-md shadow">{dueDate}</span>}
           </div>
-          <span className="text-xl font-bold truncate max-w-[180px]">
+          <span className="text-lg md:text-xl font-bold truncate max-w-[60%]">
             {wallet.name}
           </span>
         </div>
-        <div className="text-2xl leading-[10px] opacity-80 font-mono tracking-[2px] mt-1">
+        <div className="text-lg md:text-2xl leading-[10px] opacity-80 font-mono tracking-[2px] mt-1">
           &bull;&bull;&bull;&bull;
         </div>
       </div>
 
       {/* Card Footer */}
       <div className="relative z-10 flex justify-between items-center">
-        <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
+        <p className="text-3xl md:text-[38px] font-bold tracking-[-0.5px] leading-tight">
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
         {onPay && (
             <button
               onClick={(e) => { e.stopPropagation(); onPay(); }}
-              className={`px-4 py-2 rounded-xl transition-all active:scale-90 text-xs font-bold ${
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-xl transition-all active:scale-90 text-[0.6rem] md:text-xs font-bold ${
                 isDarkBg
                   ? 'bg-white/20 hover:bg-white/30 text-white'
                   : 'bg-black/10 hover:bg-black/20 text-slate-800'
@@ -100,7 +95,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
             </button>
         )}
       </div>
-    </div>
     </div>
   );
 };

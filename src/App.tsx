@@ -482,27 +482,23 @@ const App: React.FC = () => {
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.wallets.map((w) => (
-                                <div key={w.id} className="w-[255px] h-[150px] flex-shrink-0">
-                                    <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} scale={0.75} />
+                                <div key={w.id} className="w-2/3 max-w-[255px] flex-shrink-0">
+                                    <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} />
                                 </div>
                             ))}
-                            <div className="w-[255px] h-[150px] flex-shrink-0">
-                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
+                             <div className="w-2/3 max-w-[255px] flex-shrink-0">
+                                 <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
                             </div>
                          </div>
                      </section>
 
                     <section>
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="w-40 h-20 flex-shrink-0">
-                                    <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
-                                </div>
+                                <BudgetRing key={b.id} budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                             ))}
-                            <div className="w-40 h-20 flex-shrink-0">
-                                <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
-                            </div>
+                            <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                         </div>
                     </section>
 

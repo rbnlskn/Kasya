@@ -270,13 +270,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                       const currentBalance = (cc.creditLimit || 0) - cc.balance;
                       const walletWithBalance = { ...cc, balance: currentBalance };
                       return (
-                          <div key={cc.id} className="relative flex-shrink-0 group">
+                          <div key={cc.id} className="w-2/3 max-w-[255px] flex-shrink-0">
                               <WalletCard
                                   wallet={{...walletWithBalance, label: 'BALANCE'}}
                                   currencySymbol={currencySymbol}
                                   onClick={(w) => onWalletClick && onWalletClick(w)}
                                   onPay={() => onPayCC(cc)}
-                                  scale={0.75}
                                   dueDate={getCCDueText(cc.statementDay, currentDate)}
                               />
                           </div>
@@ -296,7 +295,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={activeBillInstances}
-            cardHeight={172}
             maxVisible={3}
             renderItem={(instance) => {
                 const { bill, dueDate, status } = instance;
@@ -333,7 +331,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
-              cardHeight={172}
               maxVisible={3}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
