@@ -209,7 +209,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
         </div>
 
         {/* MAIN CONTENT */}
-        <div className="flex-1 flex flex-col justify-between min-h-0 space-y-2">
+        <div className="space-y-2">
           <section>
               <SectionHeader title="CREDIT CARDS" count={creditCards.length} onViewAll={() => setOverlay('ALL_CREDIT_CARDS')} />
               <div className="flex space-x-4 overflow-x-auto no-scrollbar -mx-4 px-4 pb-2">
@@ -237,10 +237,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
               </div>
           </section>
 
-          <section className="flex-1 flex flex-col min-h-0">
+          <section>
             <SectionHeader title="BILLS & SUBSCRIPTIONS" count={activeBillInstances.length} onViewAll={() => setOverlay('ALL_BILLS')} />
-            <div data-testid="commitment-stack-bills" className="flex-1 flex items-center justify-center">
+            <div data-testid="commitment-stack-bills" className="aspect-[340/220] flex items-center justify-center">
               <CommitmentStack
+                className="h-full w-full"
                 items={activeBillInstances}
                 maxVisible={2}
                 cardSpacing={10}
@@ -268,10 +269,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = (props) => {
             </div>
           </section>
 
-          <section className="flex-1 flex flex-col min-h-0">
+          <section>
               <SectionHeader title="LOANS & LENDING" count={activeCommitmentInstances.length} onViewAll={() => setOverlay('ALL_COMMITMENTS')} />
-            <div data-testid="commitment-stack-loans" className="flex-1 flex items-center justify-center">
+            <div data-testid="commitment-stack-loans" className="aspect-[340/220] flex items-center justify-center">
                 <CommitmentStack
+                  className="h-full w-full"
                   items={activeCommitmentInstances}
                   maxVisible={2}
                   cardSpacing={10}

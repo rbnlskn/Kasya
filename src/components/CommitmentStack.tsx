@@ -6,6 +6,7 @@ interface CommitmentStackProps<T extends { id: string }> {
   maxVisible?: number;
   placeholder: React.ReactNode;
   cardSpacing: number;
+  className?: string;
 }
 
 export const CommitmentStack = <T extends { id: string }>({
@@ -14,6 +15,7 @@ export const CommitmentStack = <T extends { id: string }>({
   maxVisible = 2,
   placeholder,
   cardSpacing,
+  className,
 }: CommitmentStackProps<T>) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
@@ -44,7 +46,7 @@ export const CommitmentStack = <T extends { id: string }>({
 
   return (
     <div
-      className="relative transition-all duration-300"
+      className={`relative transition-all duration-300 ${className}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

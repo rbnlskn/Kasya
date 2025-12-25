@@ -475,8 +475,8 @@ const App: React.FC = () => {
               <div className="h-[60px] flex items-center px-4 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 flex flex-col p-4 pt-0 pb-24">
-                 <div className="flex flex-col justify-between h-full space-y-4">
+              <div className="flex-1 flex flex-col p-4 pt-0 pb-24 space-y-4">
+                 <div>
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <WalletCarousel
@@ -501,9 +501,9 @@ const App: React.FC = () => {
                         </div>
                     </section>
 
-                    <section className="flex-1 flex flex-col min-h-0">
+                    <section>
                         <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
-                        <div className="flex-1 overflow-y-auto no-scrollbar">
+                        <div className="overflow-y-auto no-scrollbar">
                             {data.transactions.length === 0 ? (
                                 <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
                             ) : (
