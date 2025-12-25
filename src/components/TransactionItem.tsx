@@ -13,9 +13,10 @@ interface TransactionItemProps {
   walletMap?: Record<string, Wallet>;
   dateHeader?: string;
   currencySymbol: string;
+  isCreditCardPayment?: boolean;
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol, isCreditCardPayment }) => {
   const isTransfer = transaction.type === TransactionType.TRANSFER;
   let isPositive = transaction.type === TransactionType.INCOME;
   
@@ -23,6 +24,13 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
     if (currentWalletId === transaction.walletId) isPositive = false;
     else if (currentWalletId === transaction.transferToWalletId) isPositive = true;
   }
+
+  const getAmountColor = () => {
+    if (isTransfer) {
+      return isPositive ? 'text-blue-600' : 'text-red-500';
+    }
+    return isPositive ? 'text-emerald-500' : 'text-red-500';
+  };
 
   const renderIcon = () => {
     if (isTransfer) return <ArrowRightLeft className="w-6 h-6 text-gray-600" />;
@@ -36,12 +44,16 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
   
   const getMainText = () => {
+    if (isCreditCardPayment) return "Payment";
     if (transaction.title) return transaction.title;
     if (isTransfer) return "Transfer";
     return category?.name || 'Uncategorized';
   };
 
   const getSubText = () => {
+    if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
+      return walletMap[transaction.transferToWalletId]?.name;
+    }
     if (transaction.commitmentId) return transaction.description || commitment?.name;
     if (isTransfer && walletMap) {
         const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
@@ -74,9 +86,20 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
         </div>
         
         <div className="text-right flex-shrink-0 pl-2">
-            <p className={`font-bold text-sm ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                {isPositive ? '+' : '-'}{currencySymbol}{formatCurrency(transaction.amount)}
-            </p>
+            {transaction.fee && transaction.fee > 0 ? (
+                <div className="flex items-baseline justify-end gap-1">
+                    <span className={`font-bold text-sm ${getAmountColor()}`}>
+                        {currencySymbol}{formatCurrency(transaction.amount)}
+                    </span>
+                    <span className="font-bold text-xs text-red-500">
+                        &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
+                    </span>
+                </div>
+            ) : (
+                <p className={`font-bold text-sm ${getAmountColor()}`}>
+                    {isTransfer ? (isPositive ? '' : '-') : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
+                </p>
+            )}
              <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
         </div>
       </div>

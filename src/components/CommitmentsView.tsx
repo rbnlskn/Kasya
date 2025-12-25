@@ -275,17 +275,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                   wallet={{...walletWithBalance, label: 'BALANCE'}}
                                   currencySymbol={currencySymbol}
                                   onClick={(w) => onWalletClick && onWalletClick(w)}
+                                  onPay={() => onPayCC(cc)}
                                   scale={0.75}
                                   dueDate={getCCDueText(cc.statementDay, currentDate)}
                               />
-                              <div className="absolute bottom-4 right-4 z-20">
-                                  <button
-                                      onClick={() => onPayCC(cc)}
-                                      className="px-4 py-2 bg-black/80 rounded-2xl text-white backdrop-blur-sm transition-all active:scale-90 text-xs font-bold"
-                                  >
-                                     Pay
-                                  </button>
-                              </div>
                           </div>
                       )
                   })}
@@ -396,10 +389,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             onClose={() => setDetailsModal(null)}
             bill={detailsModal.item as Bill}
             transactions={transactions.filter(t => t.billId === detailsModal.item.id)}
+            wallets={wallets}
             categories={categories}
             currencySymbol={currencySymbol}
             onEdit={(b) => {
                 onEditBill(b);
+                setDetailsModal(null);
+            }}
+            onTransactionClick={(t) => {
+                onTransactionClick(t);
                 setDetailsModal(null);
             }}
         />

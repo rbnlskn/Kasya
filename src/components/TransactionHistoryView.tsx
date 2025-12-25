@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ArrowDownUp, ArrowDown, ArrowUp, Calendar } from 'lucide-react';
-import { Transaction, Category, Wallet, Commitment } from '../types';
+import { Transaction, Category, Wallet, Commitment, WalletType } from '../types';
 import TransactionItem from './TransactionItem';
 
 interface TransactionHistoryViewProps {
@@ -112,7 +112,13 @@ const TransactionHistoryView: React.FC<TransactionHistoryViewProps> = ({ transac
             <div key={date} className="mb-4">
               <h3 className="text-gray-500 font-bold text-xs uppercase tracking-wider mb-2 px-2">{date}</h3>
               <div className="bg-white rounded-2xl shadow-sm p-2">
-                {(txs as Transaction[]).map(t => <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} />)}
+                {(txs as Transaction[]).map(t => {
+                  const isCreditCardPayment = t.type === 'TRANSFER' && t.transferToWalletId && walletMap[t.transferToWalletId]?.type === WalletType.CREDIT_CARD;
+                  return (
+                    <TransactionItem key={t.id} transaction={t} category={categories.find(c => c.id === t.categoryId)} commitment={t.commitmentId ? commitmentMap[t.commitmentId] : undefined} onClick={onTransactionClick} walletMap={walletMap} currencySymbol={currencySymbol} isCreditCardPayment={isCreditCardPayment} />
+                  )
+                }
+                )}
               </div>
             </div>
           ))

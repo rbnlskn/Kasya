@@ -1,17 +1,20 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import { Bill, Transaction, Category } from '../types';
+import { Bill, Transaction, Category, Wallet } from '../types';
 import { formatCurrency } from '../utils/number';
+import TransactionItem from './TransactionItem';
 
 interface BillHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   bill: Bill;
   transactions: Transaction[];
+  wallets: Wallet[];
   categories: Category[];
   currencySymbol: string;
   onEdit: (bill: Bill) => void;
+  onTransactionClick: (transaction: Transaction) => void;
   isExiting?: boolean;
 }
 
@@ -20,15 +23,18 @@ const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
   onClose,
   bill,
   transactions,
+  wallets,
   categories,
   currencySymbol,
   onEdit,
+  onTransactionClick,
   isExiting,
 }) => {
   if (!isOpen && !isExiting) return null;
 
   const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
   const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const walletMap = wallets.reduce((acc, w) => ({ ...acc, [w.id]: w }), {} as Record<string, Wallet>);
 
   const transactionsWithHeaders = sortedTransactions.reduce((acc, tx) => {
     const date = new Date(tx.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -66,18 +72,16 @@ const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
               {transactionsWithHeaders.map(group => (
                 <div key={group.header}>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group.header}</h4>
-                  <div className="space-y-2">
-                    {group.transactions.map(tx => (
-                      <div key={tx.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
-                        <span className="text-sm font-medium text-text-primary">
-                          {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </span>
-                        <span className="text-sm font-bold text-text-primary">
-                          {currencySymbol}{formatCurrency(tx.amount)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {group.transactions.map(tx => (
+                    <TransactionItem
+                      key={tx.id}
+                      transaction={tx}
+                      category={categories.find(c => c.id === tx.categoryId)}
+                      walletMap={walletMap}
+                      currencySymbol={currencySymbol}
+                      onClick={onTransactionClick}
+                    />
+                  ))}
                 </div>
               ))}
             </div>
