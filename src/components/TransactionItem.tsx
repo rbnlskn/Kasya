@@ -89,7 +89,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
             {transaction.fee && transaction.fee > 0 ? (
                 <div className="flex items-baseline justify-end gap-1">
                     <span className={`font-bold text-sm ${getAmountColor()}`}>
-                        {currencySymbol}{formatCurrency(transaction.amount)}
+                        {isTransfer ? (isPositive ? '' : '-') : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
                     </span>
                     <span className="font-bold text-xs text-red-500">
                         &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
