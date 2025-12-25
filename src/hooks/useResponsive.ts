@@ -28,7 +28,7 @@ const useResponsive = () => {
 
   const fontScale = (size: number) => {
     // Use a more subtle scaling for fonts to prevent them from becoming too large or too small
-    return Math.round(size * (1 + (scaleFactor - 1) * 0.5));
+    return Math.round(size * (1 + (scaleFactor - 1) * 0.4));
   };
 
   const width = window.innerWidth;

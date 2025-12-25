@@ -85,30 +85,30 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       onClick={onViewDetails}
       className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
       style={{
-        borderRadius: scale(24),
-        padding: scale(16),
-        aspectRatio: '340 / 180',
+        borderRadius: scale(20),
+        padding: scale(12),
+        aspectRatio: '300 / 160',
         boxShadow: `0 ${scale(4)}px ${scale(6)}px -${scale(1)}px rgba(0,0,0,0.1), 0 ${scale(2)}px ${scale(4)}px -${scale(1)}px rgba(0,0,0,0.06)`
       }}
     >
       {/* HEADER */}
       <div className="flex items-center">
         <div
-          className="rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
-          style={{ width: scale(48), height: scale(48), fontSize: scale(24), marginRight: scale(16), backgroundColor: category?.color || '#E5E7EB' }}
+          className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+          style={{ width: scale(40), height: scale(40), fontSize: scale(20), marginRight: scale(12), backgroundColor: category?.color || '#E5E7EB' }}
         >
           {category?.icon}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
-            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(18) }}>{item.name}</h3>
-            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(18) }}>
+            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(16) }}>{item.name}</h3>
+            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(16) }}>
               {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
             </h3>
           </div>
           <p
             className={`font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}
-            style={{ fontSize: fontScale(12) }}
+            style={{ fontSize: fontScale(11) }}
           >
             {subtitle}
           </p>
@@ -116,14 +116,14 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       </div>
 
       {/* FOOTER */}
-      <div className="flex" style={{ gap: scale(12) }}>
+      <div className="flex" style={{ gap: scale(8) }}>
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
           className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
-          style={{ width: scale(80), borderRadius: scale(12) }}
+          style={{ width: scale(64), borderRadius: scale(10) }}
         >
-          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(14) }}>{isLending ? 'Collect' : 'Pay'}</span>
+          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(12) }}>{isLending ? 'Collect' : 'Pay'}</span>
         </button>
       </div>
     </div>

@@ -176,7 +176,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex justify-center" style={{ transform: `scale(${scale(1, 0.9)})`, transformOrigin: 'center' }}>
+          <div className="flex justify-center" style={{ transform: `scale(0.8)`, transformOrigin: 'center' }}>
             <WalletCard
                 wallet={previewWallet}
                 currencySymbol={currencySymbol}
@@ -191,9 +191,9 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                       key={idx}
                       className="flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all"
                       onClick={() => handleTemplateSelect(template)}
-                      style={{ width: scale(170), height: scale(100) }}
+                      style={{ width: scale(128), height: scale(75) }}
                     >
-                        <div style={{ transform: `scale(${scale(1, 0.5)})`, transformOrigin: 'top left' }}>
+                        <div style={{ transform: `scale(0.5)`, transformOrigin: 'top left' }}>
                              <WalletCard
                                 wallet={{
                                     id: `template-${idx}`,

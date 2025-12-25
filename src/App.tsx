@@ -24,6 +24,7 @@ import SectionHeader from './components/SectionHeader';
 import AddCard from './components/AddCard';
 import AddBudgetCard from './components/AddBudgetCard';
 import { Plus, BarChart3, Loader2 } from 'lucide-react';
+import useResponsive from './hooks/useResponsive';
 import { CURRENCIES } from './data/currencies';
 import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -450,6 +451,7 @@ const App: React.FC = () => {
   const editingBill = useMemo(() => data.bills.find(b => b.id === selectedBillId), [data.bills, selectedBillId]);
   const editingCommitment = useMemo(() => data.commitments.find(c => c.id === selectedCommitmentId), [data.commitments, selectedCommitmentId]);
   const selectedWalletForDetail = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
+  const { scale } = useResponsive();
 
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
     <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
@@ -476,8 +478,8 @@ const App: React.FC = () => {
               <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
-              <div className="flex-1 overflow-y-auto no-scrollbar p-6 pt-2 pb-32">
-                 <div className="grid grid-cols-1 gap-4 content-start">
+              <div className="flex-1 p-6 pt-2 pb-32 flex flex-col justify-between h-full">
+                 <div>
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
@@ -486,7 +488,7 @@ const App: React.FC = () => {
                                     <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} />
                                 </div>
                             ))}
-                            <div className="flex-shrink-0">
+                            <div className="flex-shrink-0" style={{ height: scale(150) }}>
                                 <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
                             </div>
                          </div>

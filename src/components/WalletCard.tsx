@@ -16,15 +16,15 @@ interface WalletCardProps {
 // Helper to get details based on wallet type
 const getWalletTypeDetails = (type: string) => {
   switch (type) {
-    case WalletType.CASH:        return { emoji: '💵', label: 'Balance' };
-    case WalletType.E_WALLET:    return { emoji: '📱', label: 'Balance' };
-    case WalletType.BANK:        return { emoji: '🏦', label: 'Balance' };
-    case 'Digital Bank':         return { emoji: '🏦', label: 'Balance' };
-    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Limit' };
-    case WalletType.INVESTMENT:  return { emoji: '📈', label: 'Portfolio' };
-    case WalletType.CRYPTO:      return { emoji: '🪙', label: 'Value' };
-    case 'Savings':              return { emoji: '🐷', label: 'Total Saved' };
-    default:                     return { emoji: '💰', label: 'Balance' };
+    case WalletType.CASH:        return { emoji: '💵', label: 'Balance', scale: 1 };
+    case WalletType.E_WALLET:    return { emoji: '📱', label: 'Balance', scale: 1 };
+    case WalletType.BANK:        return { emoji: '🏦', label: 'Balance', scale: 1 };
+    case 'Digital Bank':         return { emoji: '🏦', label: 'Balance', scale: 1 };
+    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Limit', scale: 1 };
+    case WalletType.INVESTMENT:  return { emoji: '📈', label: 'Portfolio', scale: 1.25 };
+    case WalletType.CRYPTO:      return { emoji: '🪙', label: 'Value', scale: 1.25 };
+    case 'Savings':              return { emoji: '🐷', label: 'Total Saved', scale: 1 };
+    default:                     return { emoji: '💰', label: 'Balance', scale: 1 };
   }
 };
 
@@ -38,11 +38,11 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const isHexText = wallet.textColor?.startsWith('#');
 
   const cardStyle: React.CSSProperties = {
-    width: scale(340),
-    height: scale(200),
+    width: scale(255),
+    height: scale(150),
     borderRadius: scale(24),
-    padding: scale(24),
-    boxShadow: `0 ${scale(10)}px ${scale(15)}px -${scale(3)}px rgba(0, 0, 0, 0.1), 0 ${scale(4)}px ${scale(6)}px -${scale(2)}px rgba(0, 0, 0, 0.05)`,
+    padding: scale(18),
+    boxShadow: `0 ${scale(8)}px ${scale(12)}px -${scale(2)}px rgba(0, 0, 0, 0.1), 0 ${scale(3)}px ${scale(5)}px -${scale(1)}px rgba(0, 0, 0, 0.05)`,
   };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
@@ -62,18 +62,19 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
       <div
         className={`absolute rounded-full z-0 ${watermarkBg}`}
         style={{
-          width: scale(280),
-          height: scale(280),
-          top: scale(20),
-          right: scale(-80),
+          width: scale(210),
+          height: scale(210),
+          top: scale(15),
+          right: scale(-60),
         }}
       />
       <div
         className={`absolute filter saturate-0 pointer-events-none user-select-none z-[1] leading-none ${isDarkBg ? 'opacity-20' : 'opacity-10'}`}
         style={{
-          fontSize: fontScale(160),
-          bottom: scale(isLifted ? -10 : -40),
-          right: scale(-30),
+          fontSize: fontScale(120),
+          bottom: scale(isLifted ? -8 : -30),
+          right: scale(-22),
+          transform: `scale(${(getWalletTypeDetails(wallet.type).scale || 1)})`,
         }}
       >
         {emoji}
@@ -82,24 +83,24 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
       {/* Card Header */}
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
-          <div className="flex items-center" style={{ gap: scale(8) }}>
-            <span className="font-normal uppercase opacity-90" style={{ fontSize: fontScale(13), letterSpacing: scale(0.5) }}>
+          <div className="flex items-center" style={{ gap: scale(6) }}>
+            <span className="font-normal uppercase opacity-90" style={{ fontSize: fontScale(10), letterSpacing: scale(0.4) }}>
               {label}
             </span>
-            {dueDate && <span className="font-bold bg-red-500 text-white rounded-md shadow" style={{ fontSize: fontScale(10), padding: `${scale(1)}px ${scale(8)}px` }}>{dueDate}</span>}
+            {dueDate && <span className="font-bold bg-red-500 text-white rounded shadow" style={{ fontSize: fontScale(8), padding: `${scale(1)}px ${scale(6)}px` }}>{dueDate}</span>}
           </div>
-          <span className="font-bold truncate" style={{ fontSize: fontScale(20), maxWidth: scale(180) }}>
+          <span className="font-bold truncate" style={{ fontSize: fontScale(15), maxWidth: scale(135) }}>
             {wallet.name}
           </span>
         </div>
-        <div className="font-mono opacity-80" style={{ fontSize: fontScale(24), lineHeight: `${fontScale(10)}px`, letterSpacing: scale(2), marginTop: scale(4) }}>
+        <div className="font-mono opacity-80" style={{ fontSize: fontScale(18), lineHeight: `${fontScale(8)}px`, letterSpacing: scale(1.5), marginTop: scale(3) }}>
           &bull;&bull;&bull;&bull;
         </div>
       </div>
 
       {/* Card Footer */}
       <div className="relative z-10 flex justify-between items-center">
-        <p className="font-bold leading-tight" style={{ fontSize: fontScale(38), letterSpacing: scale(-0.5) }}>
+        <p className="font-bold leading-tight" style={{ fontSize: fontScale(28), letterSpacing: scale(-0.4) }}>
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
         {onPay && (
