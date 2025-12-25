@@ -6,6 +6,7 @@ import { formatCurrency } from '../utils/number';
 interface WalletCardProps {
   wallet: Wallet & { label?: string };
   onClick?: (wallet: Wallet) => void;
+  onPay?: () => void;
   currencySymbol: string;
   scale?: number;
   dueDate?: string;
@@ -26,7 +27,7 @@ const getWalletTypeDetails = (type: string) => {
   }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol, scale = 1, dueDate }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, scale = 1, dueDate }) => {
   const { emoji, label: defaultLabel } = getWalletTypeDetails(wallet.type);
   const label = wallet.label || defaultLabel;
   const isLifted = ['💵', '💳', '🏦', '🐷'].includes(emoji);
@@ -66,11 +67,11 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       {/* Card Header */}
       <div className="relative z-10 flex justify-between items-start">
         <div className="flex flex-col gap-0">
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-[13px] font-normal uppercase tracking-wider opacity-90">
               {label}
             </span>
-            {dueDate && <span className="text-[10px] font-bold opacity-60 bg-white/10 px-1.5 py-0.5 rounded-md">{dueDate}</span>}
+            {dueDate && <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-0.5 rounded-md shadow">{dueDate}</span>}
           </div>
           <span className="text-xl font-bold truncate max-w-[180px]">
             {wallet.name}
@@ -82,10 +83,22 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, currencySymbol
       </div>
 
       {/* Card Footer */}
-      <div className="relative z-10 flex justify-between items-baseline">
+      <div className="relative z-10 flex justify-between items-center">
         <p className="text-[38px] font-bold tracking-[-0.5px] leading-tight">
           {currencySymbol}{formatCurrency(wallet.balance)}
         </p>
+        {onPay && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPay(); }}
+              className={`px-4 py-2 rounded-xl transition-all active:scale-90 text-xs font-bold ${
+                isDarkBg
+                  ? 'bg-white/20 hover:bg-white/30 text-white'
+                  : 'bg-black/10 hover:bg-black/20 text-slate-800'
+              }`}
+            >
+              Pay
+            </button>
+        )}
       </div>
     </div>
     </div>
