@@ -176,11 +176,13 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex justify-center" style={{ transform: `scale(0.8)`, transformOrigin: 'center' }}>
-            <WalletCard
-                wallet={previewWallet}
-                currencySymbol={currencySymbol}
-            />
+          <div className="flex justify-center">
+            <div style={{ width: scale(255), height: scale(150) }}>
+              <WalletCard
+                  wallet={previewWallet}
+                  currencySymbol={currencySymbol}
+              />
+            </div>
           </div>
           
           <div>
@@ -193,7 +195,32 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                       onClick={() => handleTemplateSelect(template)}
                       style={{ width: scale(128), height: scale(75) }}
                     >
-                        <div style={{ transform: `scale(0.5)`, transformOrigin: 'top left' }}>
+                        <div style={{ transform: `scale(0.5)`, transformOrigin: 'top left', width: scale(255), height: scale(150) }}>
+                             <WalletCard
+                                wallet={{
+                                    id: `template-${idx}`,
+                                    name: template.name,
+                                    type: template.type,
+                                    balance: 0,
+                                    color: template.bg,
+                                    textColor: template.text,
+                                    currency: 'PHP'
+                                }}
+                                currencySymbol={currencySymbol}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="flex overflow-x-auto space-x-3 pb-2 -mx-6 px-6 no-scrollbar">
+                {WALLET_TEMPLATES.map((template, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all"
+                      onClick={() => handleTemplateSelect(template)}
+                      style={{ width: scale(128), height: scale(75) }}
+                    >
+                        <div style={{ width: scale(255), height: scale(150), transform: `scale(0.5)`, transformOrigin: 'top left' }}>
                              <WalletCard
                                 wallet={{
                                     id: `template-${idx}`,

@@ -5,6 +5,7 @@ import { AppState, Transaction, TransactionType, Wallet, Category, Budget, Bill,
 import BudgetRing from './components/BudgetRing';
 import TransactionItem from './components/TransactionItem';
 import WalletCard from './components/WalletCard';
+import WalletCarousel from './components/WalletCarousel';
 import BottomNav from './components/BottomNav';
 import TransactionFormModal from './components/TransactionFormModal';
 import WalletFormModal from './components/WalletFormModal';
@@ -482,27 +483,23 @@ const App: React.FC = () => {
                  <div>
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
-                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
-                            {data.wallets.map((w) => (
-                                <div key={w.id} className="flex-shrink-0">
-                                    <WalletCard wallet={w} onClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }} currencySymbol={currentCurrency.symbol} />
-                                </div>
-                            ))}
-                            <div className="flex-shrink-0" style={{ width: scale(255), height: scale(150) }}>
-                                <AddCard onClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} label="Add Wallet" />
-                            </div>
-                         </div>
+                         <WalletCarousel
+                            wallets={data.wallets}
+                            onWalletClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
+                            onAddWalletClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
+                            currencySymbol={currentCurrency.symbol}
+                         />
                      </section>
 
                     <section>
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
                         <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
                             {data.budgets.map((b) => (
-                                <div key={b.id} className="w-40 h-20 flex-shrink-0">
+                                <div key={b.id} style={{ height: scale(80) }} className="aspect-[2/1] flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
                                 </div>
                             ))}
-                            <div className="w-40 h-20 flex-shrink-0">
+                            <div style={{ height: scale(80) }} className="aspect-[2/1] flex-shrink-0">
                                 <AddBudgetCard onClick={() => { setSelectedBudgetId(null); handleOpenModal('BUDGET_FORM'); }} label="Add Budget" />
                             </div>
                         </div>

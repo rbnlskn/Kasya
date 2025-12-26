@@ -255,7 +255,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-y-auto mt-4 pb-8" style={{ gap: scale(24) }}>
+      <div className="flex-1 flex flex-col justify-evenly">
         <section>
             <SectionHeader
               title="CREDIT CARDS"
