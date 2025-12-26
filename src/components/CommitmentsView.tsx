@@ -246,8 +246,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mx-6 mt-2">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col px-6 pt-2 space-y-4">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
               <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -255,11 +255,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-between min-h-0 px-6 pt-2">
-        <section className="flex-1 min-h-0 flex flex-col">
-            <SectionHeader
-              title="CREDIT CARDS"
-              count={creditCards.length}
+      <section>
+          <SectionHeader
+            title="CREDIT CARDS"
+            count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
           <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4">
@@ -287,9 +286,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 </>
               )}
           </div>
-        </section>
+      </section>
 
-        <section className="flex flex-col flex-1 min-h-0">
+      <section>
           <SectionHeader
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
@@ -324,12 +323,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           }
         />
         </div>
-        </section>
+      </section>
 
-        <section className="flex flex-col flex-1 min-h-0">
-            <SectionHeader
-              title="LOANS & LENDING"
-              count={activeCommitmentInstances.length}
+      <section>
+          <SectionHeader
+            title="LOANS & LENDING"
+            count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
         <div data-testid="commitment-stack-loans">
@@ -510,7 +509,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             </div>
         </div>
     )}
-    </>
   );
 };
 
