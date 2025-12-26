@@ -262,7 +262,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
-          <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
+          <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4">
               {creditCards.length === 0 ? (
                   <div className="w-full">
                       <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height="120px" banner />
