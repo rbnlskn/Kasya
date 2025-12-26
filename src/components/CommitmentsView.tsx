@@ -7,6 +7,7 @@ import SectionHeader from './SectionHeader';
 import AddCommitmentCard from './AddCommitmentCard';
 import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
+import CommitmentCard from './CommitmentCard';
 import { CommitmentList } from './CommitmentList';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
@@ -244,8 +245,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full px-6 pt-2">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full px-6">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
               <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -253,20 +254,21 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-start min-h-0 pt-2 gap-4">
+      <div className="flex-1 flex flex-col justify-evenly min-h-0">
         <section className="flex flex-col">
             <SectionHeader
               title="CREDIT CARDS"
               count={creditCards.length}
-            onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-          />
+              onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
+              className="mb-1"
+            />
           <>
             {creditCards.length === 0 ? (
                 <div className="w-full">
                     <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
                 </div>
             ) : (
-              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4">
+              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
                 {creditCards.map(cc => {
                     const currentBalance = (cc.creditLimit || 0) - cc.balance;
                     return (
@@ -331,26 +333,26 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <SectionHeader
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
-          onViewAll={() => setOverlay('ALL_BILLS')}
-        />
+            onViewAll={() => setOverlay('ALL_BILLS')}
+            onAdd={onAddBill}
+            className="mb-1"
+          />
         <div data-testid="commitment-stack-bills">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={scale(100)}
-                maxVisible={3}
+                cardHeight={scale(160)}
+                maxVisible={2}
                 renderItem={(instance) => {
-                    const { bill, dueDate, status } = instance;
-                    const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
+                    const { bill } = instance;
                     return (
-                        <CompactCommitmentCard
+                        <CommitmentCard
                             item={bill}
-                            category={category}
-                            dueDateText={generateDueDateText(dueDate, status, bill.recurrence)}
+                            transactions={transactions}
+                            categories={categories}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
-                            onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
-                            isOverdue={status === 'OVERDUE'}
-                            isPaid={status === 'PAID'}
+                            onCardClick={() => setDetailsModal({ type: 'BILL', item: bill })}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
                         />
                     );
                 }}
@@ -366,25 +368,26 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
+              onAdd={onAddCommitment}
+              className="mb-1"
             />
             <div data-testid="commitment-stack-loans">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={scale(100)}
-                  maxVisible={3}
+                  cardHeight={scale(160)}
+                  maxVisible={2}
                   renderItem={(instance) => {
-                    const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
-                    const category = categories.find(c => c.id === commitment.categoryId);
+                    const { commitment } = instance as (CommitmentInstance & { id: string });
                     return (
-                        <CompactCommitmentCard
+                        <CommitmentCard
                             item={commitment}
-                            category={category}
-                            dueDateText={generateDueDateText(dueDate, status, commitment.recurrence)}
+                            transactions={transactions}
+                            categories={categories}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayCommitment(commitment)}
-                            onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
-                            isOverdue={status === 'OVERDUE'}
-                        />
+                            onCardClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
+                         />
                     );
                   }}
                   placeholder={
@@ -543,75 +546,5 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     </>
   );
 };
-
-const CompactCommitmentCard: React.FC<{
-    item: Bill | Commitment;
-    category: Category | undefined;
-    dueDateText: string;
-    currencySymbol: string;
-    onPay: () => void;
-    onViewDetails: () => void;
-    isOverdue: boolean;
-    isPaid?: boolean;
-}> = ({ item, category, dueDateText, currencySymbol, onPay, onViewDetails, isOverdue, isPaid }) => {
-    const { scale, fontScale } = useResponsive();
-    const isLending = 'type' in item && item.type === CommitmentType.LENDING;
-    const amount = 'amount' in item ? item.amount : calculateInstallment(item);
-
-    const payButtonText = isLending ? 'Collect' : 'Pay';
-    const payButtonStyles = isLending ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800';
-
-    return (
-        <div
-            onClick={onViewDetails}
-            style={{ padding: `${scale(12)}px ${scale(16)}px` }}
-            className={`w-full h-full bg-white rounded-2xl shadow-md flex items-center transition-all active:scale-[0.99]`}>
-            <div
-                className="flex-shrink-0 rounded-lg flex items-center justify-center"
-                style={{
-                    width: scale(36),
-                    height: scale(36),
-                    backgroundColor: isPaid ? '#E5E7EB' : category?.color || '#E5E7EB'
-                }}
-            >
-                <span style={{ fontSize: fontScale(18) }}>{category?.icon}</span>
-            </div>
-            <div className="flex-1 ml-3 overflow-hidden">
-                <p
-                    className={`font-bold text-gray-800 truncate ${isPaid ? 'line-through' : ''}`}
-                    style={{ fontSize: fontScale(13) }}
-                >
-                    {item.name}
-                </p>
-                <p
-                    className={`font-medium ${isOverdue ? 'text-red-500' : 'text-gray-400'}`}
-                    style={{ fontSize: fontScale(11) }}
-                >
-                    {dueDateText}
-                </p>
-            </div>
-            <div className="flex flex-col items-end ml-2">
-                <p
-                    className={`font-black text-gray-800 ${isPaid ? 'line-through opacity-50' : ''}`}
-                    style={{ fontSize: fontScale(14) }}
-                >
-                    {currencySymbol}{formatCurrency(amount)}
-                </p>
-                {!isPaid && (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onPay(); }}
-                        className={`font-bold rounded-lg mt-1 active:scale-95 transition-transform ${payButtonStyles}`}
-                        style={{
-                            padding: `${scale(4)}px ${scale(10)}px`,
-                            fontSize: fontScale(11)
-                        }}
-                    >
-                        {payButtonText}
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-}
 
 export default CommitmentsView;

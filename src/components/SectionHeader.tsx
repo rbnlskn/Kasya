@@ -7,11 +7,12 @@ interface SectionHeaderProps {
   count?: number;
   onViewAll?: () => void;
   onAdd?: () => void;
+  className?: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd }) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd, className = '' }) => {
   return (
-    <div className="flex justify-between items-center mb-2 px-1">
+    <div className={`flex justify-between items-center mb-2 px-1 ${className}`}>
       <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center">
         {title}
         {count !== undefined && count > 0 && <span className="text-xs font-bold text-gray-800 ml-2">({count})</span>}
