@@ -19,7 +19,7 @@ const WalletCarousel: React.FC<WalletCarouselProps> = ({ wallets, onWalletClick,
           <WalletCard wallet={w} onClick={onWalletClick} currencySymbol={currencySymbol} />
         </div>
       ))}
-      <div className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
+      <div data-testid="add-wallet-card" className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
         <AddCard onClick={onAddWalletClick} label="Add Wallet" />
       </div>
     </div>

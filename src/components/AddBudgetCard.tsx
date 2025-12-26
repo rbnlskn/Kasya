@@ -10,8 +10,8 @@ interface AddBudgetCardProps {
 const AddBudgetCard: React.FC<AddBudgetCardProps> = ({ onClick, label }) => {
   return (
     <div
-      data-testid="budget-ring-add-button"
-      className="flex-shrink-0 w-40 h-20 bg-white border-2 border-dashed border-gray-300 rounded-2xl p-3 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors group"
+      data-testid="add-budget-button"
+      className="h-full aspect-[2/1] bg-white border-2 border-dashed border-gray-300 rounded-2xl p-3 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors group"
       onClick={onClick}
     >
       <div className="text-center text-gray-400">

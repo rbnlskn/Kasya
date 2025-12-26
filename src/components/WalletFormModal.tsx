@@ -212,31 +212,6 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                     </div>
                 ))}
             </div>
-            <div className="flex overflow-x-auto space-x-3 pb-2 -mx-6 px-6 no-scrollbar">
-                {WALLET_TEMPLATES.map((template, idx) => (
-                    <div
-                      key={idx}
-                      className="flex-shrink-0 cursor-pointer rounded-2xl overflow-hidden hover:ring-2 hover:ring-primary active:scale-95 transition-all"
-                      onClick={() => handleTemplateSelect(template)}
-                      style={{ width: scale(128), height: scale(75) }}
-                    >
-                        <div style={{ width: scale(255), height: scale(150), transform: `scale(0.5)`, transformOrigin: 'top left' }}>
-                             <WalletCard
-                                wallet={{
-                                    id: `template-${idx}`,
-                                    name: template.name,
-                                    type: template.type,
-                                    balance: 0,
-                                    color: template.bg,
-                                    textColor: template.text,
-                                    currency: 'PHP'
-                                }}
-                                currencySymbol={currencySymbol}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
