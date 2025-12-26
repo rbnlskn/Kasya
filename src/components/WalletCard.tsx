@@ -20,7 +20,7 @@ const getWalletTypeDetails = (type: string) => {
     case WalletType.E_WALLET:    return { emoji: '📱', label: 'Balance', scale: 1 };
     case WalletType.BANK:        return { emoji: '🏦', label: 'Balance', scale: 1 };
     case 'Digital Bank':         return { emoji: '🏦', label: 'Balance', scale: 1 };
-    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Balance', scale: 1 };
+    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Limit', scale: 1 };
     case WalletType.INVESTMENT:  return { emoji: '📈', label: 'Portfolio', scale: 1.25 };
     case WalletType.CRYPTO:      return { emoji: '🪙', label: 'Value', scale: 1.25 };
     case 'Savings':              return { emoji: '🐷', label: 'Total Saved', scale: 1 };
