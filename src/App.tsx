@@ -474,7 +474,7 @@ const App: React.FC = () => {
     <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
-           <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+           <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
               <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
@@ -528,7 +528,7 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'ANALYTICS' && (
-            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+            <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
                 <PageHeader title="Statistics" />
                 <div className="flex-1 flex items-center justify-center text-gray-300 flex-col pb-20">
                     <BarChart3 className="w-20 h-20 mb-6 opacity-20" />
@@ -538,14 +538,14 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'COMMITMENTS' && (
-            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+            <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
               <PageHeader title="Commitments" />
               <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
             </div>
         )}
 
         {activeTab === 'SETTINGS' && (
-            <div className={`h-full flex flex-col ${getTabAnimationClass()}`}>
+            <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
                <PageHeader title="Settings" />
                <SettingsView data={data} onBack={() => handleTabChange('HOME')} onManageCategories={() => handleOpenModal('CATEGORY_MANAGER')} onViewTransactions={() => handleOpenOverlay('ALL_TRANSACTIONS')} onImport={(newData) => setData(newData)} onReset={async () => { await clearData(); window.location.reload(); }} onCurrencyChange={(code) => setData(prev => ({...prev, currency: code}))} />
             </div>
