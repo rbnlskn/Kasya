@@ -15,6 +15,7 @@ import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import { getWalletIcon } from './WalletCard';
+import useResponsive from '../hooks/useResponsive';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -36,6 +37,7 @@ interface CommitmentsViewProps {
 }
 
 const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
+  const { scale } = useResponsive();
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
@@ -93,7 +95,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
   }, [bills, transactions, currentDate, billFilter]);
-  
+
   // Refactored to accept viewingDate or default to current viewing date logic
   const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
       if (!day) return 'No Due Date';
@@ -244,8 +246,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col overflow-y-auto no-scrollbar px-6 pb-20 pt-2 space-y-4">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mb-2">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col px-6 pt-2">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
               <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -253,10 +255,11 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <section>
-          <SectionHeader
-            title="CREDIT CARDS"
-            count={creditCards.length}
+      <div className="flex-1 flex flex-col justify-evenly">
+        <section>
+            <SectionHeader
+              title="CREDIT CARDS"
+              count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
           />
           <div className="flex space-x-3 overflow-x-auto no-scrollbar -mx-6 px-6 pb-4">
@@ -276,7 +279,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                   currencySymbol={currencySymbol}
                                   onClick={(w) => onWalletClick && onWalletClick(w)}
                                   onPay={() => onPayCC(cc)}
-                                  scale={0.75}
                                   dueDate={getCCDueText(cc.statementDay, currentDate)}
                               />
                           </div>
@@ -285,18 +287,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 </>
               )}
           </div>
-      </section>
+        </section>
 
-      <section>
-        <SectionHeader
-          title="BILLS & SUBSCRIPTIONS"
-          count={activeBillInstances.length}
+        <section className="flex flex-col">
+          <SectionHeader
+            title="BILLS & SUBSCRIPTIONS"
+            count={activeBillInstances.length}
           onViewAll={() => setOverlay('ALL_BILLS')}
         />
         <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={activeBillInstances}
-            cardHeight={172}
+            cardHeight={scale(140)}
             maxVisible={3}
             renderItem={(instance) => {
                 const { bill, dueDate, status } = instance;
@@ -318,22 +320,22 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               );
             }}
           placeholder={
-            <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
+              <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" />
           }
         />
         </div>
-      </section>
+        </section>
 
-      <section>
-          <SectionHeader
-            title="LOANS & LENDING"
-            count={activeCommitmentInstances.length}
+        <section className="flex flex-col">
+            <SectionHeader
+              title="LOANS & LENDING"
+              count={activeCommitmentInstances.length}
             onViewAll={() => setOverlay('ALL_COMMITMENTS')}
           />
         <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
-              cardHeight={172}
+              cardHeight={scale(140)}
               maxVisible={3}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });
@@ -361,6 +363,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             />
         </div>
       </section>
+      </div>
     </div>
 
     {detailsModal?.type === 'COMMITMENT' && (
@@ -442,7 +445,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 </div>
                 <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6"/></button>
             </div>
-            
+
             <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
                 <div className="flex space-x-2 mb-4">
                     <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
