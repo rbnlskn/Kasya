@@ -38,7 +38,7 @@ export const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export const INITIAL_WALLETS: Wallet[] = [
-  { id: 'w1', name: 'Cash', type: WalletType.CASH, balance: 0.00, color: 'bg-blue-600', textColor: 'text-white', currency: 'PHP' },
+  { id: 'w1', name: 'Cash', type: WalletType.CASH, balance: 0.00, color: '#3B82F6', textColor: 'text-white', currency: 'PHP' },
 ];
 
 export const INITIAL_BUDGETS: Budget[] = [];
