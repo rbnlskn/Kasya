@@ -472,10 +472,10 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col font-sans text-gray-900">
-      <div className="flex-1 relative flex flex-col">
+    <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
+      <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
-           <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
+           <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
               <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
               </div>
@@ -535,7 +535,7 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'COMMITMENTS' && (
-            <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
+            <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
               <PageHeader title="Commitments" />
               <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
             </div>
