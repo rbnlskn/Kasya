@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
-import WalletCard from './WalletCard';
 import AddCard from './AddCard';
 import SectionHeader from './SectionHeader';
 import CommitmentCard from './CommitmentCard';
@@ -265,23 +264,63 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4">
               {creditCards.length === 0 ? (
                   <div className="w-full">
-                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height="120px" banner />
+                      <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(140)}px`} banner />
                   </div>
               ) : (
                 <>
                   {creditCards.map(cc => {
                       const currentBalance = (cc.creditLimit || 0) - cc.balance;
-                      const walletWithBalance = { ...cc, balance: currentBalance };
                       return (
-                          <div key={cc.id} className="relative flex-shrink-0 group">
-                              <WalletCard
-                                  wallet={{...walletWithBalance, label: 'BALANCE'}}
-                                  currencySymbol={currencySymbol}
-                                  onClick={(w) => onWalletClick && onWalletClick(w)}
-                                  onPay={() => onPayCC(cc)}
-                                  dueDate={getCCDueText(cc.statementDay, currentDate)}
-                              />
+                        <div key={cc.id} className="relative flex-shrink-0 group">
+                          <div
+                            onClick={() => onWalletClick && onWalletClick(cc)}
+                            className={`relative transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-md text-white`}
+                            style={{
+                              width: scale(240),
+                              height: scale(140),
+                              borderRadius: scale(20),
+                              padding: `${scale(12)}px ${scale(16)}px`,
+                              backgroundColor: cc.color,
+                            }}
+                          >
+                            {/* Header */}
+                            <div className="relative z-10 flex justify-between items-start">
+                              <div className="flex flex-col">
+                                <div className="flex items-center" style={{ gap: scale(4) }}>
+                                  <span className="font-normal uppercase opacity-90" style={{ fontSize: fontScale(9) }}>
+                                    BALANCE
+                                  </span>
+                                  <span className="font-bold text-red-500" style={{ fontSize: fontScale(9) }}>{getCCDueText(cc.statementDay, currentDate)}</span>
+                                </div>
+                                <span className="font-bold truncate" style={{ fontSize: fontScale(14), maxWidth: scale(120) }}>
+                                  {cc.name}
+                                </span>
+                              </div>
+                              <div className="font-mono opacity-80" style={{ fontSize: fontScale(16) }}>
+                                &bull;&bull;&bull;&bull;
+                              </div>
+                            </div>
+                            {/* Footer */}
+                            <div className="relative z-10 flex justify-between items-center">
+                              <p className="font-bold" style={{ fontSize: fontScale(22) }}>
+                                {currencySymbol}{formatCurrency(currentBalance)}
+                              </p>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); onPayCC(cc); }}
+                                className={`rounded-xl font-bold bg-white/20 hover:bg-white/30 text-white`}
+                                style={{ padding: `${scale(6)}px ${scale(12)}px`, fontSize: fontScale(12) }}
+                              >
+                                Pay
+                              </button>
+                            </div>
+                            <div
+                              className={`absolute filter grayscale(100) pointer-events-none user-select-none z-[1] leading-none opacity-10`}
+                              style={{ fontSize: fontScale(100), bottom: scale(-20), right: scale(-15) }}
+                            >
+                              💳
+                            </div>
                           </div>
+                        </div>
                       )
                   })}
                 </>
@@ -298,7 +337,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills">
           <CommitmentStack
             items={activeBillInstances}
-            cardHeight={scale(130)}
+            cardHeight={scale(125)}
             maxVisible={3}
             renderItem={(instance) => {
                 const { bill, dueDate, status } = instance;
@@ -335,7 +374,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-loans">
             <CommitmentStack
               items={activeCommitmentInstances}
-              cardHeight={scale(130)}
+              cardHeight={scale(125)}
               maxVisible={3}
               renderItem={(instance) => {
                 const { commitment, dueDate, status } = instance as (CommitmentInstance & { id: string });

@@ -38,10 +38,10 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const isHexText = wallet.textColor?.startsWith('#');
 
   const cardStyle: React.CSSProperties = {
-    width: scale(220),
-    height: scale(130),
-    borderRadius: scale(20),
-    padding: scale(16),
+    width: scale(255),
+    height: scale(150),
+    borderRadius: scale(24),
+    padding: scale(18),
     boxShadow: `0 ${scale(8)}px ${scale(12)}px -${scale(2)}px rgba(0, 0, 0, 0.1), 0 ${scale(3)}px ${scale(5)}px -${scale(1)}px rgba(0, 0, 0, 0.05)`,
   };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
