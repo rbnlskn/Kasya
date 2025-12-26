@@ -13,7 +13,7 @@ import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
-import { getWalletIcon } from './WalletCard';
+import WalletCard, { getWalletIcon } from './WalletCard';
 import useResponsive from '../hooks/useResponsive';
 
 interface CommitmentsViewProps {
@@ -269,55 +269,17 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 </div>
             ) : (
               <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
-                {creditCards.map(cc => {
-                    const currentBalance = (cc.creditLimit || 0) - cc.balance;
-                    return (
-                      <div key={cc.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
-                        <div
-                          onClick={() => onWalletClick && onWalletClick(cc)}
-                          className={`relative h-full w-full transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-md text-white rounded-3xl p-4`}
-                          style={{
-                            backgroundColor: cc.color,
-                          }}
-                        >
-                          {/* Header */}
-                          <div className="relative z-10 flex justify-between items-start">
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <span className="font-normal uppercase opacity-90 text-xs">
-                                  BALANCE
-                                </span>
-                                <span className="font-bold text-red-500 text-xs">{getCCDueText(cc.statementDay, currentDate)}</span>
-                              </div>
-                              <span className="font-bold truncate text-lg">
-                                {cc.name}
-                              </span>
-                            </div>
-                            <div className="font-mono opacity-80 text-xl">
-                              &bull;&bull;&bull;&bull;
-                            </div>
-                          </div>
-                          {/* Footer */}
-                          <div className="relative z-10 flex justify-between items-center">
-                            <p className="font-bold text-2xl">
-                              {currencySymbol}{formatCurrency(currentBalance)}
-                            </p>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); onPayCC(cc); }}
-                              className={`rounded-xl font-bold bg-white/20 hover:bg-white/30 text-white text-sm px-4 py-2`}
-                            >
-                              Pay
-                            </button>
-                          </div>
-                          <div
-                            className={`absolute filter grayscale(100) pointer-events-none user-select-none z-[1] leading-none opacity-10 text-[10rem] -bottom-8 -right-4`}
-                          >
-                            💳
-                          </div>
-                        </div>
-                      </div>
-                    )
-                })}
+                {creditCards.map(cc => (
+                  <div key={cc.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
+                    <WalletCard
+                      wallet={cc}
+                      onClick={() => onWalletClick && onWalletClick(cc)}
+                      currencySymbol={currencySymbol}
+                      onPay={onPayCC}
+                      dueDateText={getCCDueText(cc.statementDay, currentDate)}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </>

@@ -8,9 +8,9 @@ import useResponsive from '../hooks/useResponsive';
 interface WalletCardProps {
   wallet: Wallet & { label?: string };
   onClick?: (wallet: Wallet) => void;
-  onPay?: () => void;
+  onPay?: (wallet: Wallet) => void;
   currencySymbol: string;
-  dueDate?: string;
+  dueDateText?: string;
 }
 
 // Helper to get details based on wallet type
@@ -20,7 +20,7 @@ const getWalletTypeDetails = (type: string) => {
     case WalletType.E_WALLET:    return { emoji: '📱', label: 'Balance', scale: 1 };
     case WalletType.BANK:        return { emoji: '🏦', label: 'Balance', scale: 1 };
     case 'Digital Bank':         return { emoji: '🏦', label: 'Balance', scale: 1 };
-    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Limit', scale: 1 };
+    case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Balance', scale: 1 };
     case WalletType.INVESTMENT:  return { emoji: '📈', label: 'Portfolio', scale: 1.25 };
     case WalletType.CRYPTO:      return { emoji: '🪙', label: 'Value', scale: 1.25 };
     case 'Savings':              return { emoji: '🐷', label: 'Total Saved', scale: 1 };
@@ -28,7 +28,7 @@ const getWalletTypeDetails = (type: string) => {
   }
 };
 
-const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, dueDate }) => {
+const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currencySymbol, dueDateText }) => {
   const { scale, fontScale } = useResponsive();
   const { emoji, label: defaultLabel } = getWalletTypeDetails(wallet.type);
   const label = wallet.label || defaultLabel;
@@ -87,7 +87,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
             <span className="font-normal uppercase opacity-90" style={{ fontSize: fontScale(10), letterSpacing: scale(0.4) }}>
               {label}
             </span>
-            {dueDate && <span className="font-bold bg-red-500 text-white rounded shadow" style={{ fontSize: fontScale(8), padding: `${scale(1)}px ${scale(6)}px` }}>{dueDate}</span>}
+            {dueDateText && <span className="font-bold text-red-500" style={{ fontSize: fontScale(10) }}>{dueDateText}</span>}
           </div>
           <span className="font-bold truncate" style={{ fontSize: fontScale(15), maxWidth: scale(135) }}>
             {wallet.name}
@@ -105,7 +105,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
         </p>
         {onPay && (
             <button
-              onClick={(e) => { e.stopPropagation(); onPay(); }}
+              onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
               className={`rounded-xl transition-all active:scale-90 font-bold ${
                 isDarkBg
                   ? 'bg-white/20 hover:bg-white/30 text-white'

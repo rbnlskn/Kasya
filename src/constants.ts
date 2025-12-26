@@ -39,7 +39,6 @@ export const DEFAULT_CATEGORIES: Category[] = [
 
 export const INITIAL_WALLETS: Wallet[] = [
   { id: 'w1', name: 'Cash', type: WalletType.CASH, balance: 0.00, color: '#3B82F6', textColor: 'text-white', currency: 'PHP' },
-  { id: 'cc1', name: 'Landers Cashback', type: WalletType.CREDIT_CARD, balance: 12621.00, color: '#334155', textColor: 'text-white', currency: 'PHP', creditLimit: 20000, statementDay: 15 },
 ];
 
 export const INITIAL_BUDGETS: Budget[] = [];
