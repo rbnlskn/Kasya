@@ -255,7 +255,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-between min-h-0 pt-2">
+      <div className="flex-1 flex flex-col justify-evenly min-h-0 pt-2">
         <section className="flex-1 min-h-0 flex flex-col">
             <SectionHeader
               title="CREDIT CARDS"
@@ -364,7 +364,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </section>
       </div>
-    </div>
     </div>
 
     {detailsModal?.type === 'COMMITMENT' && (
