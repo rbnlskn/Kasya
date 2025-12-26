@@ -83,10 +83,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between"
+      className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col"
       style={{
         height: scale(160),
-        gap: scale(8),
         borderRadius: scale(20),
         padding: scale(12),
         boxShadow: `0 ${scale(4)}px ${scale(6)}px -${scale(1)}px rgba(0,0,0,0.1), 0 ${scale(2)}px ${scale(4)}px -${scale(1)}px rgba(0,0,0,0.06)`
@@ -117,7 +116,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       </div>
 
       {/* FOOTER */}
-      <div className="flex" style={{ gap: scale(8) }}>
+      <div className="flex mt-auto" style={{ gap: scale(8) }}>
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
