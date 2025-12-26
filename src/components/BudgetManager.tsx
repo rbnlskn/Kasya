@@ -80,7 +80,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
                 onDrop={onDrop}
                 onDragEnd={onDrop}
                 onClick={() => onView(budget)}
-                className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
+                className={`bg-white p-4 rounded-xl shadow-md border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">

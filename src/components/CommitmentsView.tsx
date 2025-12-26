@@ -152,7 +152,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
     const lastPayment = findLastPayment(bill.id, transactions);
     return (
-      <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer">
+      <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-md">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -216,7 +216,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
 
     return (
-      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer">
+      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-md">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -246,8 +246,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col px-6 pt-2">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full">
+      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full mx-6 mt-2">
           <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
           <div className="flex flex-col items-center">
               <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
@@ -255,8 +255,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
       </div>
 
-      <div className="flex-1 flex flex-col justify-evenly">
-        <section>
+      <div className="flex-1 flex flex-col justify-between min-h-0 px-6 pt-2">
+        <section className="flex-1 min-h-0 flex flex-col">
             <SectionHeader
               title="CREDIT CARDS"
               count={creditCards.length}
@@ -289,7 +289,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </div>
         </section>
 
-        <section className="flex flex-col">
+        <section className="flex flex-col flex-1 min-h-0">
           <SectionHeader
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
@@ -326,7 +326,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
         </section>
 
-        <section className="flex flex-col">
+        <section className="flex flex-col flex-1 min-h-0">
             <SectionHeader
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}

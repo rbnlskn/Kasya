@@ -11,7 +11,7 @@ interface BottomNavProps {
 
 const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClick }) => {
   const getIconClass = (isActive: boolean) =>
-    `flex flex-col items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 ${isActive ? 'bg-primary text-white shadow-md' : 'text-text-secondary hover:text-text-primary hover:bg-surface'}`;
+    `flex flex-col items-center justify-center w-10 h-10 rounded-2xl transition-all duration-200 ${isActive ? 'text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface'}`;
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">

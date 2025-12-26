@@ -79,7 +79,7 @@ const WalletListView: React.FC<WalletListViewProps> = ({ wallets, onBack, onAdd,
              onDragOver={(e) => onDragOver(e, index)}
              onDrop={onDrop}
              onDragEnd={onDrop}
-             className={`p-4 h-20 rounded-2xl shadow-sm flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border ${draggedIndex === index ? 'opacity-50' : ''}`}
+             className={`p-4 h-20 rounded-2xl shadow-md flex justify-between items-center cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform bg-surface dark:bg-surface border border-border dark:border-border ${draggedIndex === index ? 'opacity-50' : ''}`}
              onClick={() => onView(w)}
           >
             {/* Decorative Circle */}
