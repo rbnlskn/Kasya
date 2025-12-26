@@ -115,8 +115,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         </div>
       </div>
 
+      {/* SPACER */}
+      <div className="flex-1" />
+
       {/* FOOTER */}
-      <div className="flex mt-auto" style={{ gap: scale(8) }}>
+      <div className="flex" style={{ gap: scale(8) }}>
         {renderInfoBox()}
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
