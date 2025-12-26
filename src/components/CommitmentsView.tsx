@@ -343,16 +343,26 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 cardHeight={scale(160)}
                 maxVisible={2}
                 renderItem={(instance) => {
-                    const { bill } = instance;
+                    const { bill, status } = instance;
+                    const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
+                    const paidAmount = calculateTotalPaid(bill.id, transactions);
+                    const paymentsMade = calculatePaymentsMade(bill.id, transactions);
+                    const lastPayment = findLastPayment(bill.id, transactions);
+
                     return (
                         <CommitmentCard
                             item={bill}
-                            transactions={transactions}
-                            categories={categories}
+                            category={category}
+                            paidAmount={paidAmount}
+                            paymentsMade={paymentsMade}
+                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: bill.recurrence })}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
-                            onCardClick={() => setDetailsModal({ type: 'BILL', item: bill })}
-                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
+                            onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
+                            instanceStatus={status}
+                            lastPaymentAmount={lastPayment?.amount}
+                            isOverdue={status === 'OVERDUE'}
                         />
                     );
                 }}
@@ -377,17 +387,27 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   cardHeight={scale(160)}
                   maxVisible={2}
                   renderItem={(instance) => {
-                    const { commitment } = instance as (CommitmentInstance & { id: string });
+                    const { commitment, status } = instance as (CommitmentInstance & { id: string });
+                    const category = categories.find(c => c.id === commitment.categoryId);
+                    const paidAmount = calculateTotalPaid(commitment.id, transactions);
+                    const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
+                    const lastPayment = findLastPayment(commitment.id, transactions);
+
                     return (
                         <CommitmentCard
                             item={commitment}
-                            transactions={transactions}
-                            categories={categories}
+                            category={category}
+                            paidAmount={paidAmount}
+                            paymentsMade={paymentsMade}
+                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: commitment.recurrence })}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayCommitment(commitment)}
-                            onCardClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
-                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
-                         />
+                            onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}
+                            instanceStatus={status}
+                            lastPaymentAmount={lastPayment?.amount}
+                            isOverdue={status === 'OVERDUE'}
+                        />
                     );
                   }}
                   placeholder={
