@@ -12,7 +12,7 @@ interface BudgetRingProps {
 }
 
 const BudgetRing: React.FC<BudgetRingProps> = ({ budget, category, spent, currencySymbol, onClick }) => {
-  const { scale, fontSize } = useResponsive();
+  const { scale, fontScale } = useResponsive();
   const remaining = budget.limit - spent;
   const percentage = Math.min(100, Math.max(0, (spent / budget.limit) * 100));
   
@@ -26,7 +26,7 @@ const BudgetRing: React.FC<BudgetRingProps> = ({ budget, category, spent, curren
 
   const renderIcon = (iconName: string) => {
     try {
-      if (/\p{Emoji}/u.test(iconName)) return <span style={{ fontSize: fontSize(20) }} className="flex items-center justify-center leading-none select-none">{iconName}</span>;
+      if (/\p{Emoji}/u.test(iconName)) return <span style={{ fontSize: fontScale(20) }} className="flex items-center justify-center leading-none select-none">{iconName}</span>;
     } catch (e) { /* Fallback */ }
     return <DollarSign style={{ width: scale(20), height: scale(20) }} className="text-gray-500" />;
   };
@@ -58,9 +58,9 @@ const BudgetRing: React.FC<BudgetRingProps> = ({ budget, category, spent, curren
        </div>
 
        <div className="flex flex-col items-start w-full min-w-0">
-            <h3 style={{ fontSize: fontSize(12) }} className="font-bold text-gray-700 truncate w-full group-hover:text-primary transition-colors">{budget.name}</h3>
-            <p style={{ fontSize: fontSize(10) }} className="text-gray-400 font-medium">Spent {currencySymbol}{spent.toLocaleString()}</p>
-            <p style={{ fontSize: fontSize(14) }} className={`font-bold truncate ${remaining < 0 ? 'text-red-500' : 'text-gray-600'}`}>
+            <h3 style={{ fontSize: fontScale(12) }} className="font-bold text-gray-700 truncate w-full group-hover:text-primary transition-colors">{budget.name}</h3>
+            <p style={{ fontSize: fontScale(10) }} className="text-gray-400 font-medium">Spent {currencySymbol}{spent.toLocaleString()}</p>
+            <p style={{ fontSize: fontScale(14) }} className={`font-bold truncate ${remaining < 0 ? 'text-red-500' : 'text-gray-600'}`}>
               {currencySymbol}{remaining.toLocaleString()}
             </p>
        </div>
