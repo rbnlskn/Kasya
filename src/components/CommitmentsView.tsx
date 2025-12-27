@@ -256,10 +256,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full pt-4 gap-4">
-        <section className="flex flex-col m-0 p-0 w-full min-h-0 flex-1">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full pt-4 gap-4 justify-evenly">
+        <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-            className="px-6 mb-2"
+            className="px-6 mb-2 flex-shrink-0"
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
@@ -271,11 +271,14 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
                 </div>
             ) : (
-              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-4 px-6 w-full">
-                {creditCards.map(cc => (
-                  <div key={cc.id} className="w-[85%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
+              <div className="flex overflow-x-auto no-scrollbar pb-4 w-full">
+                {creditCards.map((cc, index) => (
+                  <div
+                    key={cc.id}
+                    className={`w-[75%] aspect-[1.58/1] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
+                  >
                     <WalletCard
-                      wallet={cc}
+                      wallet={{ ...cc, label: 'Balance' }}
                       onClick={() => onWalletClick && onWalletClick(cc)}
                       currencySymbol={currencySymbol}
                       onPay={onPayCC}
@@ -288,9 +291,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </>
         </section>
 
-        <section className="flex flex-col m-0 p-0 w-full min-h-0 flex-1">
+        <section className="flex flex-col m-0 p-0 w-full">
           <SectionHeader
-            className="px-6 mb-2"
+            className="px-6 mb-2 flex-shrink-0"
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
@@ -332,9 +335,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
         </section>
 
-        <section className="flex flex-col m-0 p-0 w-full min-h-0 flex-1">
+        <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-              className="px-6 mb-2"
+              className="px-6 mb-2 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
