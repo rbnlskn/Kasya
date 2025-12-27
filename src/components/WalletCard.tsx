@@ -4,6 +4,7 @@ import { Wallet, WalletType } from '../types';
 import { isColorLight } from '../utils/color';
 import { formatCurrency } from '../utils/number';
 import useResponsive from '../hooks/useResponsive';
+import { CreditCard, Wallet as WalletIcon, Landmark, Smartphone, TrendingUp, Bitcoin } from 'lucide-react';
 
 interface WalletCardProps {
   wallet: Wallet & { label?: string };
@@ -38,11 +39,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const isHexText = wallet.textColor?.startsWith('#');
 
   const cardStyle: React.CSSProperties = {
-    width: scale(255),
-    height: scale(150),
-    borderRadius: scale(24),
+    // Width and height are now controlled by parent container (w-full h-full)
     padding: scale(18),
-    boxShadow: `0 ${scale(8)}px ${scale(12)}px -${scale(2)}px rgba(0, 0, 0, 0.1), 0 ${scale(3)}px ${scale(5)}px -${scale(1)}px rgba(0, 0, 0, 0.05)`,
   };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
@@ -55,7 +53,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between`}
+      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-sm rounded-2xl w-full h-full`}
       style={cardStyle}
     >
       {/* Background Decorations */}
@@ -123,9 +121,6 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
     </div>
   );
 };
-
-// Exporting the original getWalletIcon in case it's used elsewhere in the app.
-import { CreditCard, Wallet as WalletIcon, Landmark, Smartphone, TrendingUp, Bitcoin } from 'lucide-react';
 
 export const getWalletIcon = (type: string, className: string = "") => {
     const { emoji } = getWalletTypeDetails(type);

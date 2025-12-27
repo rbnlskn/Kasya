@@ -15,7 +15,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange, onAddClic
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md px-4">
-        <div className="bg-surface/90 dark:bg-surface/90 backdrop-blur-xl border-t border-white/20 dark:border-white/5 shadow-2xl shadow-gray-200/50 dark:shadow-black/50 rounded-3xl py-3 px-6 flex justify-between items-center">
+        <div className="bg-surface/90 dark:bg-surface/90 backdrop-blur-xl border-t border-white/20 dark:border-white/5 shadow-xl shadow-slate-300/50 dark:shadow-black/50 rounded-3xl py-3 px-6 flex justify-between items-center">
             
             <button data-testid="home-button" onClick={() => onTabChange('HOME')} className={getIconClass(activeTab === 'HOME')}>
                 <Home className="w-5 h-5" />

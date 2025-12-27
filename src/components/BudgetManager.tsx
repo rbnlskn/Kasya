@@ -56,7 +56,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
           </button>
           <h1 className="text-xl font-bold text-gray-800">My Budgets</h1>
         </div>
-        <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95">
+        <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95">
           <Plus className="w-6 h-6"/>
         </button>
       </div>
@@ -80,7 +80,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
                 onDrop={onDrop}
                 onDragEnd={onDrop}
                 onClick={() => onView(budget)}
-                className={`bg-white p-4 rounded-xl shadow-md border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
+                className={`bg-white p-4 rounded-xl shadow-lg border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">

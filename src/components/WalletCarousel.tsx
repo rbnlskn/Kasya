@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Wallet } from '../types';
 import WalletCard from './WalletCard';
@@ -9,17 +8,18 @@ interface WalletCarouselProps {
   onWalletClick: (wallet: Wallet) => void;
   onAddWalletClick: () => void;
   currencySymbol: string;
+  className?: string;
 }
 
-const WalletCarousel: React.FC<WalletCarouselProps> = ({ wallets, onWalletClick, onAddWalletClick, currencySymbol }) => {
+const WalletCarousel: React.FC<WalletCarouselProps> = ({ wallets, onWalletClick, onAddWalletClick, currencySymbol, className }) => {
   return (
-    <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2">
+    <div className={`flex space-x-4 overflow-x-auto no-scrollbar pb-4 ${className || ''}`}>
       {wallets.map((w) => (
-        <div key={w.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
+        <div key={w.id} className="w-[75%] aspect-[340/200] flex-shrink-0">
           <WalletCard wallet={w} onClick={onWalletClick} currencySymbol={currencySymbol} />
         </div>
       ))}
-      <div data-testid="add-wallet-card" className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
+      <div data-testid="add-wallet-card" className="w-[75%] aspect-[340/200] flex-shrink-0">
         <AddCard onClick={onAddWalletClick} label="Add Wallet" />
       </div>
     </div>
