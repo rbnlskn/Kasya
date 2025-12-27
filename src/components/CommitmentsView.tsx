@@ -151,7 +151,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
     const lastPayment = findLastPayment(bill.id, transactions);
     return (
-      <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-md">
+      <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-xl">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -215,7 +215,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
 
     return (
-      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-md">
+      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-xl">
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -245,7 +245,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full">
+    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full pb-24">
       <div className="px-6">
         <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
             <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
@@ -257,22 +257,20 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       </div>
 
       <div className="flex-1 flex flex-col justify-evenly min-h-0 overflow-hidden w-full">
-        <section className="flex flex-col m-0 p-0 w-full min-h-0 flex-shrink-1">
-            <div className="px-6">
-                <SectionHeader
-                title="CREDIT CARDS"
-                count={creditCards.length}
-                onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-                onAdd={onAddCreditCard}
-                />
-            </div>
+        <section className="flex flex-col m-0 p-0 w-full min-h-0 flex-shrink-1 px-6">
+            <SectionHeader
+            title="CREDIT CARDS"
+            count={creditCards.length}
+            onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
+            onAdd={onAddCreditCard}
+            />
           <>
             {creditCards.length === 0 ? (
-                <div className="w-full px-6">
+                <div className="w-full">
                     <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
                 </div>
             ) : (
-              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2 px-6 w-full">
+              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 w-[calc(100%+3rem)]">
                 {creditCards.map(cc => (
                   <div key={cc.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
                     <WalletCard
