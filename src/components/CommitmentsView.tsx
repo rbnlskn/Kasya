@@ -272,7 +272,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
                 </div>
             ) : (
-              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2 px-6 w-full -mx-6 md:mx-0">
+              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2 px-6 w-full">
                 {creditCards.map(cc => (
                   <div key={cc.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
                     <WalletCard
