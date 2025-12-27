@@ -245,30 +245,34 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   return (
     <>
-    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full px-6">
-      <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-          <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
-          <div className="flex flex-col items-center">
-              <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-          </div>
-          <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+    <div data-testid="commitments-view" className="flex-1 flex flex-col h-full">
+      <div className="px-6">
+        <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+            <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+            <div className="flex flex-col items-center">
+                <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+            </div>
+            <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col justify-evenly min-h-0">
         <section className="flex flex-col m-0 p-0">
-            <SectionHeader
-              title="CREDIT CARDS"
-              count={creditCards.length}
-              onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-              onAdd={onAddCreditCard}
-            />
+            <div className="px-6">
+                <SectionHeader
+                title="CREDIT CARDS"
+                count={creditCards.length}
+                onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
+                onAdd={onAddCreditCard}
+                />
+            </div>
           <>
             {creditCards.length === 0 ? (
-                <div className="w-full">
+                <div className="w-full px-6">
                     <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
                 </div>
             ) : (
-              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2">
+              <div className="flex space-x-3 overflow-x-auto no-scrollbar pb-2 px-6 w-full">
                 {creditCards.map(cc => (
                   <div key={cc.id} className="w-[75%] sm:w-[60%] md:w-[50%] aspect-[340/200] flex-shrink-0">
                     <WalletCard
@@ -285,7 +289,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           </>
         </section>
 
-        <section className="flex flex-col m-0 p-0">
+        <section className="flex flex-col m-0 p-0 px-6">
           <SectionHeader
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
@@ -328,7 +332,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
         </section>
 
-        <section className="flex flex-col m-0 p-0">
+        <section className="flex flex-col m-0 p-0 px-6">
             <SectionHeader
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
