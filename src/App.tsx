@@ -488,6 +488,7 @@ const App: React.FC = () => {
                             onWalletClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
                             onAddWalletClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
                             currencySymbol={currentCurrency.symbol}
+                            className="-mx-6 px-6"
                          />
                      </section>
 

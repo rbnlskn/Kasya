@@ -42,7 +42,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
     height: scale(150),
     borderRadius: scale(24),
     padding: scale(18),
-    boxShadow: `0 ${scale(8)}px ${scale(12)}px -${scale(2)}px rgba(0, 0, 0, 0.1), 0 ${scale(3)}px ${scale(5)}px -${scale(1)}px rgba(0, 0, 0, 0.05)`,
+    // Removing manual box-shadow to rely on standardized Tailwind shadow
   };
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
@@ -55,7 +55,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-lg`}
+      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-xl`}
       style={cardStyle}
     >
       {/* Background Decorations */}
