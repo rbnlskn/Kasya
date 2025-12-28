@@ -17,7 +17,7 @@ const AddCard: React.FC<AddCardProps> = ({ onClick, label = 'Add New', banner })
   return (
     <div
       onClick={onClick}
-      className={`w-full aspect-[340/200] flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] shadow-sm ${bannerClasses}`}
+      className={`w-full aspect-[300/160] flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] shadow-sm ${bannerClasses}`}
     >
       <div className="flex flex-col items-center justify-center text-gray-400">
         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">
