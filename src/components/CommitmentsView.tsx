@@ -256,7 +256,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-start">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-evenly">
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
@@ -266,7 +266,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             />
           <>
             {creditCards.length === 0 ? (
-                <div className="px-6 w-full">
+                <div className="px-6 w-full pb-4">
                     <AddCommitmentCard
                         onClick={onAddCreditCard}
                         label="No credit cards yet. Add one?"
