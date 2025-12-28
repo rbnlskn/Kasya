@@ -2,8 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify Commitments View Layout', async ({ page }) => {
-  // Port is 5174 based on logs
-  await page.goto('http://localhost:5174/');
+  await page.goto('http://localhost:5173/');
 
   // Clear local storage first
   await page.evaluate(() => window.localStorage.clear());
@@ -33,9 +32,6 @@ test('Verify Commitments View Layout', async ({ page }) => {
   });
 
   await page.reload();
-
-  // Wait for app to load - use a very basic text locator to confirm app is running
-  await expect(page.locator('body')).toBeVisible();
 
   // Wait for commitments button
   await expect(page.getByTestId('commitments-button')).toBeVisible({ timeout: 10000 });

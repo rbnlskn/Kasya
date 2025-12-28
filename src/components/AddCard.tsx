@@ -9,19 +9,15 @@ interface AddCardProps {
   banner?: boolean;
 }
 
-const AddCard: React.FC<AddCardProps> = ({ onClick, label = 'Add New', height, banner }) => {
+const AddCard: React.FC<AddCardProps> = ({ onClick, label = 'Add New', banner }) => {
   const { scale } = useResponsive();
-
-  // Use a height that matches WalletCard by default if not provided
-  const defaultHeight = scale(150); // Matches WalletCard default height
 
   const bannerClasses = banner ? 'shadow-sm' : '';
 
   return (
     <div
       onClick={onClick}
-      style={{ height: height || defaultHeight }}
-      className={`w-full flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] shadow-sm ${bannerClasses}`}
+      className={`w-full aspect-[340/200] flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] shadow-sm ${bannerClasses}`}
     >
       <div className="flex flex-col items-center justify-center text-gray-400">
         <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">

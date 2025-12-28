@@ -12,7 +12,7 @@ test('verify add card UI', async ({ page }) => {
   // 2. Budgets "Add" card
   const budgetsHeader = page.getByText('BUDGETS');
   await budgetsHeader.scrollIntoViewIfNeeded();
-  await page.getByTestId('budget-ring-add-button').screenshot({ path: 'screenshot-budgets.png' });
+  await page.getByTestId('add-budget-button').screenshot({ path: 'screenshot-budgets.png' });
 
   // 3. Commitments "Add" card
   await page.getByTestId('commitments-button').click();
