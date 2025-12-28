@@ -270,7 +270,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <AddCommitmentCard
                         onClick={onAddCreditCard}
                         label="No credit cards yet. Add one?"
-                        style={{ height: 'calc(60vw * 200 / 340)' }}
+                        style={{ height: 'calc(65vw * 200 / 340)' }}
                     />
                 </div>
             ) : (
@@ -278,7 +278,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 {creditCards.map((cc, index) => (
                   <div
                     key={cc.id}
-                    className={`w-[60%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
+                    className={`w-[65%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
                   >
                     <WalletCard
                       wallet={{ ...cc, label: 'Balance' }}
