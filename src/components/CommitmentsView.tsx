@@ -256,7 +256,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-evenly">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-start">
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
@@ -301,7 +301,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
           />
-        <div data-testid="commitment-stack-bills" className="w-full px-6">
+        <div data-testid="commitment-stack-bills" className="w-full px-6 pb-4">
             <CommitmentStack
                 items={activeBillInstances}
                 cardHeight={scale(140)}
@@ -344,7 +344,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
             />
-            <div data-testid="commitment-stack-loans" className="w-full px-6">
+            <div data-testid="commitment-stack-loans" className="w-full px-6 pb-4">
                 <CommitmentStack
                   items={activeCommitmentInstances}
                   cardHeight={scale(140)}
