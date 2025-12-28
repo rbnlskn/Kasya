@@ -263,7 +263,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-            onAdd={onAddCreditCard}
             />
           <>
             {creditCards.length === 0 ? (
@@ -275,7 +274,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 {creditCards.map((cc, index) => (
                   <div
                     key={cc.id}
-                    className={`w-[75%] aspect-[1.58/1] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
+                    className={`w-[75%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
                   >
                     <WalletCard
                       wallet={{ ...cc, label: 'Balance' }}
@@ -297,7 +296,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
-            onAdd={onAddBill}
           />
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
@@ -341,7 +339,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
-              onAdd={onAddCommitment}
             />
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
