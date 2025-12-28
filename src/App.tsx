@@ -455,7 +455,7 @@ const App: React.FC = () => {
   const { scale } = useResponsive();
 
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
-    <div className="flex items-center p-6 pb-2 z-20 sticky top-0 bg-app-bg">
+    <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
        <div className="flex justify-between items-center w-full">
           <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
           {rightAction}
@@ -476,8 +476,8 @@ const App: React.FC = () => {
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
            <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
-              <div className="flex items-center p-6 pb-2 z-20 sticky top-0 bg-app-bg">
-                  <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
+              <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
+                  <div className="flex justify-between items-center w-full"><Logo size="1.75rem" /></div>
               </div>
               <div className="flex-1 p-6 pt-4 pb-safe flex flex-col overflow-y-auto">
                  <div className="flex-grow flex flex-col" style={{ gap: `${scale(16)}px`}}>

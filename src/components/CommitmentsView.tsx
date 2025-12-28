@@ -246,7 +246,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   return (
     <>
     <div data-testid="commitments-view" className="flex-1 flex flex-col h-full pb-[80px]">
-      <div className="px-6">
+      <div className="px-6 mt-4">
         <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-full">
             <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
             <div className="flex flex-col items-center">
