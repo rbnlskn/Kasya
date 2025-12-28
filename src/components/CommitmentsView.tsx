@@ -304,7 +304,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={scale(160)}
+                cardHeight={scale(140)}
                 maxVisible={2}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
@@ -347,7 +347,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={scale(160)}
+                  cardHeight={scale(140)}
                   maxVisible={2}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
