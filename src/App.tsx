@@ -477,9 +477,9 @@ const App: React.FC = () => {
         {activeTab === 'HOME' && (
            <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
               <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
-                  <div className="flex justify-between items-center w-full"><Logo size="2rem" /></div>
+                  <div className="flex justify-between items-center w-full"><Logo size="1.75rem" /></div>
               </div>
-              <div className="flex-1 p-6 pt-2 pb-safe flex flex-col overflow-y-auto">
+              <div className="flex-1 p-6 pt-4 pb-safe flex flex-col overflow-y-auto">
                  <div className="flex-grow flex flex-col" style={{ gap: `${scale(16)}px`}}>
                      <section>
                          <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />

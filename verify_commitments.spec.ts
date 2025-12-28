@@ -2,8 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify Commitments View Layout', async ({ page }) => {
-  // Port is 5174 based on logs
-  await page.goto('http://localhost:5174/');
+  await page.goto('http://localhost:5173/');
 
   // Clear local storage first
   await page.evaluate(() => window.localStorage.clear());
@@ -12,6 +11,7 @@ test('Verify Commitments View Layout', async ({ page }) => {
   await page.evaluate(() => {
      const mockState = {
          wallets: [
+             { id: 'w3', name: 'Cash', type: 'Cash', balance: 100, color: '#00FF00', textColor: '#000000' },
              { id: 'w1', name: 'Chase Sapphire', type: 'Credit Card', balance: 500, creditLimit: 10000, color: '#005EB8', statementDay: 15, textColor: '#FFFFFF' },
              { id: 'w2', name: 'Amex Gold', type: 'Credit Card', balance: 200, creditLimit: 20000, color: '#F1C40F', statementDay: 1, textColor: '#000000' }
          ],
@@ -34,17 +34,17 @@ test('Verify Commitments View Layout', async ({ page }) => {
 
   await page.reload();
 
-  // Wait for app to load - use a very basic text locator to confirm app is running
-  await expect(page.locator('body')).toBeVisible();
-
-  // Wait for commitments button
-  await expect(page.getByTestId('commitments-button')).toBeVisible({ timeout: 10000 });
+  // Wait for the app to be ready by checking for the Add Wallet card
+  await expect(page.getByTestId('add-wallet-card')).toBeVisible({ timeout: 20000 });
 
   // Navigate to Commitments
   await page.getByTestId('commitments-button').click();
 
   // Wait for view to load
   await expect(page.getByRole('heading', { name: 'CREDIT CARDS' })).toBeVisible();
+
+  // Add a small delay to ensure rendering is complete before screenshot
+  await page.waitForTimeout(1000);
 
   // Take screenshot
   await page.screenshot({ path: 'verification_commitments_view.png' });

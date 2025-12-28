@@ -246,7 +246,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   return (
     <>
     <div data-testid="commitments-view" className="flex-1 flex flex-col h-full pb-[80px]">
-      <div className="px-6">
+      <div className="px-6 mt-4">
         <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-full">
             <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
             <div className="flex flex-col items-center">
@@ -256,19 +256,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden w-full pt-4 gap-4 justify-evenly">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-start">
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
-            onAdd={onAddCreditCard}
             />
           <>
             {creditCards.length === 0 ? (
-                <div className="w-full px-6">
-                    <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" height={`${scale(100)}px`} banner />
+                <div className="px-6 w-full">
+                    <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" banner />
                 </div>
             ) : (
               <div className="flex overflow-x-auto no-scrollbar pb-4 w-full">
@@ -297,7 +296,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
-            onAdd={onAddBill}
           />
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
@@ -341,7 +339,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
-              onAdd={onAddCommitment}
             />
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
