@@ -267,14 +267,18 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           <>
             {creditCards.length === 0 ? (
                 <div className="px-6 w-full">
-                    <AddCommitmentCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" />
+                    <AddCommitmentCard
+                        onClick={onAddCreditCard}
+                        label="No credit cards yet. Add one?"
+                        style={{ height: 'calc(60vw * 200 / 340)' }}
+                    />
                 </div>
             ) : (
               <div className="flex overflow-x-auto no-scrollbar pb-4 w-full">
                 {creditCards.map((cc, index) => (
                   <div
                     key={cc.id}
-                    className={`w-[75%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
+                    className={`w-[60%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
                   >
                     <WalletCard
                       wallet={{ ...cc, label: 'Balance' }}
