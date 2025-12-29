@@ -1,11 +1,11 @@
 
-
 import React, { useRef, useState, useEffect } from 'react';
-import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, FileType, Save, Moon, Sun, Smartphone } from 'lucide-react';
+import { ChevronRight, Grid, Download, Upload, FileSpreadsheet, Check, X, DollarSign, Trash2, Info, FileJson, Loader } from 'lucide-react';
 import { App } from '@capacitor/app';
-import { AppState, ThemeMode, Transaction, TransactionType } from '../types';
+import { AppState, ThemeMode, Transaction } from '../types';
 import { CURRENCIES } from '../data/currencies';
 import { exportBackup, downloadTransactionTemplate } from '../services/exportService';
+import { processCSVImport } from '../utils/csv';
 import InfoModal from './InfoModal';
 
 interface SettingsViewProps {
@@ -22,6 +22,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showBackupSheet, setShowBackupSheet] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [appVersion, setAppVersion] = useState('');
   const [infoModal, setInfoModal] = useState<{ isOpen: boolean; title: string; message: string; type: 'SUCCESS' | 'ERROR' }>({ isOpen: false, title: '', message: '', type: 'SUCCESS' });
 
@@ -52,9 +53,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
   }
 
   const handleImportClick = () => {
-     // Ensure ref exists and click it.
-     // This native HTML input click works reliably across Capacitor WebViews for file picking
-     // without needing extra permissions.
      if(fileInputRef.current) {
          fileInputRef.current.click();
      }
@@ -63,98 +61,61 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    setIsProcessing(true);
     const reader = new FileReader();
+
     reader.onload = (event) => {
         try {
             const result = event.target?.result as string;
+
             if (file.name.endsWith('.json')) {
                 const parsed = JSON.parse(result);
-                if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions)) {
+                // Basic validation
+                if (parsed && Array.isArray(parsed.wallets) && Array.isArray(parsed.transactions) && 'currency' in parsed) {
                     onImport(parsed);
-                    alert('Data imported successfully!');
-                } else { throw new Error('Invalid JSON structure'); }
-            } else if (file.name.endsWith('.csv')) {
-                const lines = result.split(/\r?\n/);
-                if (lines.length < 2) {
-                    alert('CSV file is empty or has no data rows.');
-                    return;
+                    setInfoModal({ isOpen: true, title: 'Import Successful', message: 'Backup data has been restored.', type: 'SUCCESS'});
+                } else {
+                    throw new Error('Invalid or corrupted backup file structure.');
                 }
-
-                const headers = lines[0].split(',').map(h => h.trim());
-                const dataRows = lines.slice(1);
-
-                const newTransactions: Transaction[] = [];
-                let skippedCount = 0;
-
-                dataRows.forEach((line, index) => {
-                    if (!line.trim()) return; // Skip empty rows
-                    const values = line.split(',');
-
-                    // Create an object from headers and values
-                    const row = headers.reduce((obj, header, i) => {
-                        obj[header.toLowerCase()] = values[i]?.trim();
-                        return obj;
-                    }, {} as Record<string, string>);
-
-
-                    const wallet = data.wallets.find(w => w.name.trim().toLowerCase() === row.wallet?.toLowerCase());
-                    const category = data.categories.find(c => c.name.trim().toLowerCase() === row.category?.toLowerCase());
-
-                    if (!wallet || !category || !row.date || !row.type || !row.amount) {
-                        console.warn(`Skipping line ${index + 2}: Missing required data, or Wallet/Category not found.`);
-                        skippedCount++;
-                        return;
-                    }
-
-                    // Robust date parsing
-                    let parsedDate;
-                    if (row.date.includes('-')) { // YYYY-MM-DD
-                        parsedDate = new Date(row.date + (row.time ? `T${row.time}` : 'T00:00:00'));
-                    } else if (row.date.includes('/')) { // MM/DD/YYYY
-                        const parts = row.date.split('/');
-                        const isoDate = `${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`;
-                        parsedDate = new Date(isoDate + (row.time ? `T${row.time}` : 'T00:00:00'));
-                    } else {
-                        parsedDate = new Date(row.date + (row.time ? ` ${row.time}` : ''));
-                    }
-
-                    if (isNaN(parsedDate.getTime())) {
-                        console.warn(`Skipping line ${index + 2}: Invalid date format.`);
-                        skippedCount++;
-                        return;
-                    }
-
-                    newTransactions.push({
-                        id: `tx_csv_${Date.now()}_${index}`,
-                        date: parsedDate.toISOString(),
-                        type: row.type.toUpperCase() as TransactionType,
-                        amount: parseFloat(row.amount),
-                        walletId: wallet.id,
-                        categoryId: category.id,
-                        description: row.description || '',
-                        createdAt: Date.now() + index,
-                    });
-                });
+            } else if (file.name.endsWith('.csv')) {
+                const { newTransactions, skippedCount, errorRows } = processCSVImport(result, data);
 
                 if (newTransactions.length > 0) {
                     const updatedData = { ...data, transactions: [...data.transactions, ...newTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) };
                     onImport(updatedData);
-                    let alertMessage = `${newTransactions.length} transactions imported successfully!`;
+                    let message = `${newTransactions.length} transactions imported successfully.`;
                     if (skippedCount > 0) {
-                        alertMessage += `\n${skippedCount} rows were skipped due to errors.`;
+                        message += `\n${skippedCount} rows were skipped.`;
+                        console.warn("Skipped Rows Details:", errorRows);
                     }
-                    alert(alertMessage);
+                    setInfoModal({ isOpen: true, title: 'Import Complete', message, type: 'SUCCESS'});
                 } else {
-                    alert('No new transactions were imported. Please check the CSV file format and content.');
+                    let errorMessage = 'No new transactions were imported. Please check the CSV file format and content.';
+                    if (skippedCount > 0) {
+                       errorMessage += ` ${skippedCount} rows were skipped due to errors. First error: ${errorRows[0]?.reason || 'Unknown'}`;
+                    }
+                    throw new Error(errorMessage);
                 }
             }
         } catch (err) {
             console.error("Import error:", err);
-            alert('Failed to import data. Please ensure the file is a valid backup or correctly formatted CSV.');
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setInfoModal({ isOpen: true, title: 'Import Failed', message: `Please ensure the file is valid. \nError: ${errorMessage}`, type: 'ERROR' });
+        } finally {
+            setIsProcessing(false);
+            // Reset file input to allow re-selection of the same file
+            if (e.target) e.target.value = '';
         }
     };
+
+    reader.onerror = () => {
+        setIsProcessing(false);
+        setInfoModal({ isOpen: true, title: 'Import Failed', message: 'Could not read the selected file.', type: 'ERROR' });
+        if (e.target) e.target.value = '';
+    };
+
     reader.readAsText(file);
-    e.target.value = '';
   };
   
   const handleFullReset = () => {
@@ -197,8 +158,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
         <section>
           <h3 className="text-xs font-extrabold text-text-secondary uppercase tracking-widest mb-4 px-2">Data Management</h3>
           <div className="bg-surface rounded-[1.5rem] shadow-sm overflow-hidden border border-border">
-            <SettingItem icon={<Download className="w-5 h-5" />} label="Backup Data" onClick={() => setShowBackupSheet(true)} />
-            <SettingItem icon={<Upload className="w-5 h-5" />} label="Import Backup" onClick={handleImportClick} />
+            <SettingItem icon={<Download className="w-5 h-5" />} label="Export Data" onClick={() => setShowBackupSheet(true)} />
+            <SettingItem icon={<Upload className="w-5 h-5" />} label="Import Data" onClick={handleImportClick} />
             <SettingItem icon={<Trash2 className="w-5 h-5" />} label="Reset App" isDanger onClick={handleFullReset} />
           </div>
         </section>
@@ -211,18 +172,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
 
       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json,.csv" />
 
+      {/* Processing Loader */}
+      {isProcessing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
+            <div className="bg-surface p-8 rounded-2xl flex flex-col items-center space-y-4">
+                <Loader className="w-10 h-10 animate-spin text-primary" />
+                <span className="font-bold text-text-primary">Processing...</span>
+            </div>
+        </div>
+      )}
+
       {/* Backup Modal */}
       {showBackupSheet && (
           <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60" onClick={() => setShowBackupSheet(false)}>
             <div className="bg-surface w-[90%] max-w-md rounded-3xl p-6 animate-in zoom-in-95 duration-200 space-y-3" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-xl text-text-primary">Backup Options</h3>
+                    <h3 className="font-bold text-xl text-text-primary">Export Options</h3>
                     <button onClick={() => setShowBackupSheet(false)} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-text-primary"><X className="w-5 h-5" /></button>
                 </div>
                 
                 {[
-                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Downloads/Kasya", action: handleBackup },
-                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template", desc: "Save CSV template to Downloads/Kasya", action: handleTemplateDownload }
+                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Documents/Kasya_Backups", action: handleBackup },
+                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template (CSV)", desc: "Save template to Documents/Kasya_Templates", action: handleTemplateDownload }
                 ].map((opt, i) => (
                     <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-transparent hover:border-border group">
                         <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>
