@@ -112,7 +112,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           <div className="flex justify-between items-baseline">
             <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
             <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-              {isFreeTrialActive ? displayAmount : `${currencySymbol}${formatCurrency(displayAmount < 0 ? 0 : displayAmount)}`}
+              {typeof displayAmount === 'string' ? displayAmount : `${currencySymbol}${formatCurrency(displayAmount < 0 ? 0 : displayAmount)}`}
             </h3>
           </div>
           <p
