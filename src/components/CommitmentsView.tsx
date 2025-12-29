@@ -264,9 +264,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
             />
-          <>
+          <div className="w-full">
             {creditCards.length === 0 ? (
-                <div className="px-6 w-full pb-4">
+                <div className="px-6 w-full">
                     <AddCommitmentCard
                         onClick={onAddCreditCard}
                         label="No credit cards yet. Add one?"
@@ -274,7 +274,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     />
                 </div>
             ) : (
-              <div className="flex overflow-x-auto no-scrollbar pb-4 w-full">
+              <div className="flex overflow-x-auto no-scrollbar w-full pb-1">
                 {creditCards.map((cc, index) => (
                   <div
                     key={cc.id}
@@ -291,7 +291,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 ))}
               </div>
             )}
-          </>
+          </div>
         </section>
 
         <section className="flex flex-col m-0 p-0 w-full">
@@ -301,10 +301,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
           />
-        <div data-testid="commitment-stack-bills" className="w-full px-6 pb-4">
+        <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={scale(140)}
+                cardHeight={scale(110)}
                 maxVisible={2}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
@@ -344,10 +344,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
             />
-            <div data-testid="commitment-stack-loans" className="w-full px-6 pb-4">
+            <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={scale(140)}
+                  cardHeight={scale(110)}
                   maxVisible={2}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
