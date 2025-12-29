@@ -1,5 +1,5 @@
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import write_blob from 'capacitor-blob-writer';
 import { Capacitor } from '@capacitor/core';
 import { AppState } from '../types';
 
@@ -26,28 +26,22 @@ export const exportBackup = async (data: AppState): Promise<{ success: boolean; 
 
   try {
     const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
+    const jsonData = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
 
-    // Write to Cache directory (no permissions needed)
-    const result = await Filesystem.writeFile({
+    await write_blob({
         path: fileName,
-        data: JSON.stringify(data, null, 2),
-        directory: Directory.Cache,
-        encoding: Encoding.UTF8,
+        directory: Directory.Documents,
+        blob: blob,
+        recursive: true
     });
 
-    // Share the file
-    await Share.share({
-        title: 'Backup Kasya Data',
-        text: 'Here is your backup file.',
-        url: result.uri,
-        dialogTitle: 'Save Backup'
-    });
-
-    return { success: true, message: 'Backup ready to share/save.' };
+    return { success: true, message: 'Backup saved to Documents' };
 
   } catch (error) {
     console.error('Backup failed:', error);
-    return { success: false, message: 'Failed to generate backup.' };
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Failed to generate backup: ${errorMessage}` };
   }
 };
 
@@ -58,7 +52,6 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
             "Date,Time,Type,Amount,Wallet,Category,Description",
             "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
             "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
-            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
         ].join('\n');
         const blob = new Blob([csvContent], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
@@ -76,28 +69,23 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
             "Date,Time,Type,Amount,Wallet,Category,Description",
             "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
             "2025-12-05,01:15 PM,Expense,250.00,GCash,Food,Lunch at Jollibee",
-            "2025-12-10,08:00 PM,Transfer,1000.00,BPI,Gcash,Load up"
         ].join('\n');
 
-        // Write to Cache directory
-        const result = await Filesystem.writeFile({
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+
+        await write_blob({
             path: fileName,
-            data: csvContent,
-            directory: Directory.Cache,
-            encoding: Encoding.UTF8,
+            directory: Directory.Documents,
+            blob: blob,
+            recursive: true
         });
 
-        // Share the file
-        await Share.share({
-            title: 'Kasya Transaction Template',
-            url: result.uri,
-            dialogTitle: 'Save Template'
-        });
 
-        return { success: true, message: 'Template ready to share/save.' };
+        return { success: true, message: 'Template saved to Documents' };
 
     } catch (error) {
         console.error('Template download failed:', error);
-        return { success: false, message: 'Failed to generate template.' };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { success: false, message: `Failed to generate template: ${errorMessage}` };
     }
 };
