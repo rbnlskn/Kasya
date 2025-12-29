@@ -257,24 +257,28 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       </div>
 
       <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-start">
-        <section className="flex flex-col m-0 p-0 w-full">
+        <section className="flex flex-col m-0 p-0 w-full mb-4">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
             />
-          <>
+          <div className="w-full">
             {creditCards.length === 0 ? (
                 <div className="px-6 w-full">
-                    <AddCard onClick={onAddCreditCard} label="No credit cards yet. Add one?" banner />
+                    <AddCommitmentCard
+                        onClick={onAddCreditCard}
+                        label="No credit cards yet. Add one?"
+                        style={{ height: 'calc(65vw * 200 / 340)' }}
+                    />
                 </div>
             ) : (
-              <div className="flex overflow-x-auto no-scrollbar pb-4 w-full">
+              <div className="flex overflow-x-auto no-scrollbar w-full pb-1">
                 {creditCards.map((cc, index) => (
                   <div
                     key={cc.id}
-                    className={`w-[75%] aspect-[1.58/1] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
+                    className={`w-[65%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
                   >
                     <WalletCard
                       wallet={{ ...cc, label: 'Balance' }}
@@ -287,7 +291,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 ))}
               </div>
             )}
-          </>
+          </div>
         </section>
 
         <section className="flex flex-col m-0 p-0 w-full">
@@ -300,7 +304,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={scale(160)}
+                cardHeight={scale(140)}
                 maxVisible={2}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
@@ -343,7 +347,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={scale(160)}
+                  cardHeight={scale(140)}
                   maxVisible={2}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });

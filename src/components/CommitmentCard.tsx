@@ -36,34 +36,34 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       const isLending = commitment.type === CommitmentType.LENDING;
 
       return (
-        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(12), padding: scale(12), gap: scale(6) }}>
+        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
           <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(10), letterSpacing: scale(0.5) }}>Progress</span>
-            <span className="font-bold text-slate-600" style={{ fontSize: fontScale(11) }}>{Math.round(progress)}%</span>
+            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Progress</span>
+            <span className="font-bold text-slate-600" style={{ fontSize: fontScale(10) }}>{Math.round(progress)}%</span>
           </div>
-          <div className="w-full bg-slate-200 rounded-full overflow-hidden" style={{ height: scale(6) }}>
+          <div className="w-full bg-slate-200 rounded-full overflow-hidden" style={{ height: scale(4) }}>
             <div className={`h-full ${isLending ? 'bg-green-500' : 'bg-blue-600'} rounded-full`} style={{ width: `${progress}%` }} />
           </div>
           <div className="flex justify-between items-center leading-none">
-            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(11) }}>
+            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>
               Paid: <span className="text-slate-600">{currencySymbol}{formatCurrency(paidAmount)}</span>
             </span>
-            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(11) }}>/ {currencySymbol}{formatCurrency(totalObligation)}</span>
+            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>/ {currencySymbol}{formatCurrency(totalObligation)}</span>
           </div>
         </div>
       );
     }
 
     return (
-      <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(12), padding: scale(12), gap: scale(8) }}>
+      <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(6) }}>
         <div className="flex justify-between items-center leading-none">
-          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(10), letterSpacing: scale(0.5) }}>Period</span>
-          <span className="font-bold text-slate-700" style={{ fontSize: fontScale(11) }}>{dueDateText}</span>
+          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
+          <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{dueDateText}</span>
         </div>
         <div className="w-full border-t border-dashed border-slate-300/60" />
         <div className="flex justify-between items-center leading-none">
-          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(10), letterSpacing: scale(0.5) }}>Last Pay</span>
-          <span className="font-bold text-slate-500" style={{ fontSize: fontScale(11) }}>
+          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Last Pay</span>
+          <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
             {lastPaymentAmount !== undefined ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}
           </span>
         </div>
@@ -94,20 +94,20 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       <div className="flex items-center">
         <div
           className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
-          style={{ width: scale(40), height: scale(40), fontSize: scale(20), marginRight: scale(12), backgroundColor: category?.color || '#E5E7EB' }}
+          style={{ width: scale(36), height: scale(36), fontSize: scale(18), marginRight: scale(10), backgroundColor: category?.color || '#E5E7EB' }}
         >
           {category?.icon}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
-            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(16) }}>{item.name}</h3>
-            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(16) }}>
+            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
+            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
               {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
             </h3>
           </div>
           <p
             className={`font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}
-            style={{ fontSize: fontScale(11) }}
+            style={{ fontSize: fontScale(10) }}
           >
             {subtitle}
           </p>
@@ -122,7 +122,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
           style={{ width: scale(64), borderRadius: scale(10) }}
         >
-          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(12) }}>{isLending ? 'Collect' : 'Pay'}</span>
+          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
         </button>
       </div>
     </div>
