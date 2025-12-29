@@ -27,6 +27,9 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [icon, setIcon] = useState('⚡');
   const [recordInitialPayment, setRecordInitialPayment] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
+  const [isFreeTrial, setIsFreeTrial] = useState(false);
+  const [trialDuration, setTrialDuration] = useState<number | ''>('');
+  const [trialDurationUnit, setTrialDurationUnit] = useState<'DAYS' | 'WEEKS' | 'MONTHS'>('DAYS');
 
   useEffect(() => {
     if (isOpen) {
@@ -67,9 +70,22 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
     let firstPaymentDate: string | undefined;
 
-    // "Magic" Logic: If NOT recording initial payment for a new bill, assume first payment is SKIPPED/DUE NEXT CYCLE.
-    // If we ARE recording initial payment, the system creates a transaction for the start date, so firstPaymentDate = startDate is implied/handled.
-    if (!initialBill && !recordInitialPayment) {
+    if (isFreeTrial && trialDuration) {
+        const start = new Date(startDate);
+        let nextDate = new Date(start);
+        switch (trialDurationUnit) {
+            case 'DAYS':
+                nextDate.setDate(nextDate.getDate() + trialDuration);
+                break;
+            case 'WEEKS':
+                nextDate.setDate(nextDate.getDate() + trialDuration * 7);
+                break;
+            case 'MONTHS':
+                nextDate.setMonth(nextDate.getMonth() + trialDuration);
+                break;
+        }
+        firstPaymentDate = nextDate.toISOString();
+    } else if (!initialBill && !recordInitialPayment) {
         const start = new Date(startDate);
         let nextDate = new Date(start);
 
@@ -84,8 +100,6 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                 nextDate.setFullYear(nextDate.getFullYear() + 1);
                 break;
             case 'ONE_TIME':
-                 // For one time, start date usually IS the due date.
-                 // If not paid, it is due. We don't push it.
                  nextDate = start;
                  break;
         }
@@ -173,6 +187,29 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                   </button>
               </div>
           </div>
+
+          <div className="bg-slate-100 p-3 rounded-2xl border-2 border-slate-200/50">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="free-trial-checkbox" className="text-sm font-bold text-slate-700 flex-1">Free Trial?</label>
+                    <input id="free-trial-checkbox" type="checkbox" checked={isFreeTrial} onChange={(e) => setIsFreeTrial(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                </div>
+                {isFreeTrial && (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
+                            <input type="number" value={trialDuration} onChange={e => setTrialDuration(parseInt(e.target.value) || '')} className="w-full bg-surface border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., 7" required />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Unit</label>
+                            <select value={trialDurationUnit} onChange={e => setTrialDurationUnit(e.target.value as any)} className="w-full bg-surface border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all h-12 appearance-none">
+                                <option value="DAYS">Days</option>
+                                <option value="WEEKS">Weeks</option>
+                                <option value="MONTHS">Months</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+            </div>
 
           {!initialBill && (
             <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">

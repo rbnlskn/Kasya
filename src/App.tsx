@@ -199,8 +199,12 @@ const App: React.FC = () => {
             startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         }
         const total = data.transactions
-            .filter(t => t.categoryId === b.categoryId && t.type === TransactionType.EXPENSE && new Date(t.date) >= startDate)
-            .reduce((sum, t) => sum + t.amount, 0);
+            .filter(t => t.categoryId === b.categoryId && new Date(t.date) >= startDate)
+            .reduce((sum, t) => {
+                if (t.type === TransactionType.EXPENSE) return sum + t.amount;
+                if (t.type === TransactionType.INCOME && t.isReversal) return sum - t.amount;
+                return sum;
+            }, 0);
         map[b.id] = total;
      });
      return map;
@@ -248,10 +252,15 @@ const App: React.FC = () => {
 
   const handleSaveTransaction = (txData: Omit<Transaction, 'id'>, id?: string) => {
     const applyBalanceChange = (wallets: Wallet[], tx: Transaction | Omit<Transaction, 'id'>, reverse: boolean = false) => {
+        if (txData.isOffset) return wallets;
         return wallets.map(w => {
             if (w.id === tx.walletId) {
                 let change = tx.amount + (tx.fee || 0);
                 if (tx.type === TransactionType.EXPENSE || tx.type === TransactionType.TRANSFER) change = -change;
+                else if (tx.type === TransactionType.INCOME && (tx as Transaction).isReversal) {
+                  // Reversals increase wallet balance, but are not income.
+                  // This is handled here, and the negative expense is handled in spendingMap
+                }
                 if (reverse) change = -change;
                 return { ...w, balance: w.balance + change };
             }
@@ -373,6 +382,12 @@ const App: React.FC = () => {
     }
   };
   const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
+  const handleEndSubscription = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      bills: prev.bills.map(b => b.id === id ? { ...b, endDate: new Date().toISOString() } : b)
+    }));
+  };
   
   const handleSaveCommitment = (commitmentData: Omit<Commitment, 'id'>, id?: string, initialTransactionWalletId?: string) => {
       let newCommitmentId = id;
@@ -538,7 +553,7 @@ const App: React.FC = () => {
         {activeTab === 'COMMITMENTS' && (
             <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
               <PageHeader title="Commitments" />
-              <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
+              <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onEndSubscription={handleEndSubscription} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
             </div>
         )}
 

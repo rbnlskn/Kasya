@@ -26,6 +26,8 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   }
 
   const getAmountColor = () => {
+    if (transaction.isReversal) return 'text-blue-500';
+    if (transaction.isOffset) return 'text-gray-500';
     if (isTransfer) {
       return 'text-blue-600';
     }
@@ -33,6 +35,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const renderIcon = () => {
+    if (transaction.isReversal) return <ArrowRightLeft className="w-6 h-6 text-gray-600 rotate-180" />;
     if (isTransfer) return <ArrowRightLeft className="w-6 h-6 text-gray-600" />;
     if (category?.icon) return <span className="text-2xl leading-none">{category.icon}</span>;
     return <DollarSign className="w-6 h-6 text-gray-500" />;
@@ -51,16 +54,23 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const getSubText = () => {
+    let baseText = '';
     if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
-      return walletMap[transaction.transferToWalletId]?.name;
-    }
-    if (transaction.commitmentId) return transaction.description || commitment?.name;
-    if (isTransfer && walletMap) {
+      baseText = walletMap[transaction.transferToWalletId]?.name;
+    } else if (transaction.commitmentId) {
+      baseText = transaction.description || commitment?.name || '';
+    } else if (isTransfer && walletMap) {
         const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
         const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
-        return `${fromName} → ${toName}`;
+        baseText = `${fromName} → ${toName}`;
+    } else {
+      baseText = transaction.description || '';
     }
-    return transaction.description || '';
+
+    if (transaction.note) {
+      return baseText ? `${baseText} • ${transaction.note}` : transaction.note;
+    }
+    return baseText;
   }
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });

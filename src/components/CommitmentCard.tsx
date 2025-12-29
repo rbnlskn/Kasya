@@ -27,6 +27,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 }) => {
   const { scale, fontScale } = useResponsive();
   const isCommitment = 'principal' in item;
+  const isBill = 'dueDay' in item && !isCommitment;
+  const bill = isBill ? (item as Bill) : null;
+
+  const isFreeTrialActive = bill && bill.firstPaymentDate && new Date(bill.firstPaymentDate) > new Date();
 
   const renderInfoBox = () => {
     if (isCommitment) {
@@ -72,13 +76,19 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   };
 
   const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
-  let displayAmount = isCommitment
+  let displayAmount: number | string = isCommitment
     ? (item.recurrence === 'ONE_TIME' || item.recurrence === 'NO_DUE_DATE'
       ? calculateTotalObligation(item) - paidAmount
       : (instanceStatus === 'PAID' ? 0 : calculateInstallment(item)))
     : item.amount;
 
-  const subtitle = headerSubtitle || (isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), item.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+  if (isFreeTrialActive) {
+    displayAmount = 'Free';
+  }
+
+  const subtitle = isFreeTrialActive
+    ? `Trial ends ${new Date(bill!.firstPaymentDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+    : headerSubtitle || (isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), item.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
 
   return (
     <div
@@ -102,7 +112,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           <div className="flex justify-between items-baseline">
             <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
             <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-              {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
+              {isFreeTrialActive ? displayAmount : `${currencySymbol}${formatCurrency(displayAmount < 0 ? 0 : displayAmount)}`}
             </h3>
           </div>
           <p
@@ -117,13 +127,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* FOOTER */}
       <div className="flex" style={{ gap: scale(8) }}>
         {renderInfoBox()}
-        <button
-          onClick={(e) => { e.stopPropagation(); onPay(); }}
-          className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
-          style={{ width: scale(64), borderRadius: scale(10) }}
-        >
-          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
-        </button>
+        {!isFreeTrialActive && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPay(); }}
+            className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
+            style={{ width: scale(64), borderRadius: scale(10) }}
+          >
+            <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
+          </button>
+        )}
       </div>
     </div>
   );

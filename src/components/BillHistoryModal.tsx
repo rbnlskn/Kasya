@@ -14,6 +14,7 @@ interface BillHistoryModalProps {
   categories: Category[];
   currencySymbol: string;
   onEdit: (bill: Bill) => void;
+  onEndSubscription: (id: string) => void;
   onTransactionClick: (transaction: Transaction) => void;
   isExiting?: boolean;
 }
@@ -28,6 +29,7 @@ const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
   currencySymbol,
   onEdit,
   onTransactionClick,
+  onEndSubscription,
   isExiting,
 }) => {
   if (!isOpen && !isExiting) return null;
@@ -89,6 +91,16 @@ const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
             <p className="text-center text-text-secondary py-8">No payment history found.</p>
           )}
         </div>
+        {bill.type === 'SUBSCRIPTION' && !bill.endDate && (
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <button
+              onClick={() => onEndSubscription(bill.id)}
+              className="w-full py-3 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors"
+            >
+              End Subscription
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

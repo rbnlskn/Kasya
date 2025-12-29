@@ -29,6 +29,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const [billId, setBillId] = useState<string | undefined>();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
+  const [note, setNote] = useState('');
+  const [isOffset, setIsOffset] = useState(false);
+  const [isReversal, setIsReversal] = useState(false);
   const [selectedToWallet, setSelectedToWallet] = useState('');
   const [type, setType] = useState<TransactionType>(TransactionType.EXPENSE);
   const [dateVal, setDateVal] = useState(new Date());
@@ -48,6 +51,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             setDateVal(new Date(initialTransaction.date));
             setCommitmentId(initialTransaction.commitmentId);
             setBillId(initialTransaction.billId);
+            setNote(initialTransaction.note || '');
+            setIsOffset(initialTransaction.isOffset || false);
+            setIsReversal(initialTransaction.isReversal || false);
         } else {
             amountInput.setValue('');
             feeInput.setValue('');
@@ -60,6 +66,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             setDateVal(new Date());
             setCommitmentId(undefined);
             setBillId(undefined);
+            setNote('');
+            setIsOffset(false);
+            setIsReversal(false);
         }
         setSelectorView('NONE');
     }
@@ -70,7 +79,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (amountInput.rawValue <= 0) return;
-    if (!selectedWallet) return;
+    if (!isOffset && !selectedWallet) return;
     if (type !== TransactionType.TRANSFER && !selectedCategory) return;
     if (type === TransactionType.TRANSFER && !selectedToWallet) return;
     
@@ -79,13 +88,16 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       fee: feeInput.rawValue || 0,
       type,
       categoryId: type === TransactionType.TRANSFER ? 'cat_transfer' : selectedCategory,
-      walletId: selectedWallet,
+      walletId: isOffset ? '' : selectedWallet,
       transferToWalletId: type === TransactionType.TRANSFER ? selectedToWallet : undefined,
       date: dateVal.toISOString(),
-      title: transactionTitle,
+      title: isOffset ? 'Lending Offset' : transactionTitle,
       description,
       commitmentId,
-      billId
+      billId,
+      note,
+      isOffset,
+      isReversal,
     }, initialTransaction?.id);
     onClose();
   };
@@ -104,7 +116,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
   const isFormValid = () => {
       if (amountInput.rawValue <= 0) return false;
-      if (!selectedWallet) return false;
+      if (!isOffset && !selectedWallet) return false;
       if (type !== TransactionType.TRANSFER && !selectedCategory) return false;
       if (type === TransactionType.TRANSFER && !selectedToWallet) return false;
       return true;
@@ -258,6 +270,26 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+            <input
+              type="text"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
+              placeholder={isOffset ? "Reason for offset? (e.g., Paid for Dinner)" : "Add a note (optional)..."}
+            />
+          </div>
+
+          {commitmentId && (
+            <div className="bg-slate-100 p-3 rounded-2xl border-2 border-slate-200/50">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="offset-checkbox" className="text-sm font-bold text-slate-700 flex-1">Non-Cash / Offset Payment</label>
+                    <input id="offset-checkbox" type="checkbox" checked={isOffset} onChange={(e) => setIsOffset(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                </div>
+            </div>
+          )}
+
           <button 
             type="submit" 
             disabled={!isFormValid()}
@@ -265,6 +297,15 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
           >
             Save Transaction
           </button>
+
+          {type === TransactionType.INCOME && (
+            <div className="bg-slate-100 p-3 rounded-2xl border-2 border-slate-200/50">
+                <div className="flex items-center justify-between">
+                    <label htmlFor="reversal-checkbox" className="text-sm font-bold text-slate-700 flex-1">Refund / Reversal</label>
+                    <input id="reversal-checkbox" type="checkbox" checked={isReversal} onChange={(e) => setIsReversal(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                </div>
+            </div>
+          )}
         </form>
       </div>
     </div>

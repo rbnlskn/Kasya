@@ -26,6 +26,7 @@ interface CommitmentsViewProps {
   onAddBill: () => void;
   onEditBill: (bill: Bill) => void;
   onPayBill: (bill: Bill) => void;
+  onEndSubscription: (id: string) => void;
   onAddCommitment: () => void;
   onEditCommitment: (commitment: Commitment) => void;
   onPayCommitment: (commitment: Commitment, amount?: number) => void;
@@ -35,7 +36,7 @@ interface CommitmentsViewProps {
   onTransactionClick: (transaction: Transaction) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onEndSubscription, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
   const { scale, fontScale } = useResponsive();
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
@@ -57,8 +58,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const activeBillInstances = useMemo(() => {
+    const activeBills = bills.filter(b => !b.endDate || new Date(b.endDate) > new Date());
     // Get instances for the currently viewed month
-    const currentMonthInstances = bills
+    const currentMonthInstances = activeBills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
       .filter((b): b is BillInstance => b !== null);
 
@@ -413,6 +415,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             currencySymbol={currencySymbol}
             onEdit={(b) => {
                 onEditBill(b);
+                setDetailsModal(null);
+            }}
+            onEndSubscription={(id) => {
+                onEndSubscription(id);
                 setDetailsModal(null);
             }}
             onTransactionClick={(t) => {

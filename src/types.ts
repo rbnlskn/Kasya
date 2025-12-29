@@ -54,6 +54,9 @@ export interface Transaction {
   description?: string;
   billId?: string;
   commitmentId?: string;
+  note?: string;
+  isReversal?: boolean;
+  isOffset?: boolean;
 }
 
 export interface Category {
