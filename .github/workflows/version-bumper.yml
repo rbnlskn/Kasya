@@ -31,5 +31,5 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add package.json src/constants.ts android/app/build.gradle
           VERSION=$(node -p "require('./package.json').version")
-          git commit -m "feat(version): increment minor to v${VERSION}"
+          git commit -m "build: 🤖 bump version to v${VERSION}"
           git push
