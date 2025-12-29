@@ -31,12 +31,12 @@ export const exportBackup = async (data: AppState): Promise<{ success: boolean; 
 
     await write_blob({
         path: fileName,
-        directory: Directory.Downloads,
+        directory: Directory.Documents,
         blob: blob,
         recursive: true
     });
 
-    return { success: true, message: 'Backup saved to Downloads' };
+    return { success: true, message: 'Backup saved to Documents' };
 
   } catch (error) {
     console.error('Backup failed:', error);
@@ -75,13 +75,13 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
 
         await write_blob({
             path: fileName,
-            directory: Directory.Downloads,
+            directory: Directory.Documents,
             blob: blob,
             recursive: true
         });
 
 
-        return { success: true, message: 'Template saved to Downloads' };
+        return { success: true, message: 'Template saved to Documents' };
 
     } catch (error) {
         console.error('Template download failed:', error);
