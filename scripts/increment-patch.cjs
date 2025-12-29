@@ -2,11 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Exit if the last commit was a version bump from the CI
-// Note: We deliberately allow bumping after a 'feat(version)' commit to ensure the user's first commit bumps Z.
-const lastCommitMessage = execSync('git log -1 --pretty=%B').toString().trim();
-if (lastCommitMessage.startsWith('build: 🤖 bump version')) {
-  console.log('Skipping patch increment for a CI version bump.');
+const branch_name = execSync('git symbolic-ref --short HEAD 2>/dev/null || echo "detached"').toString().trim();
+if (branch_name === 'main') {
+  console.log('On branch main. Skipping auto-increment.');
   process.exit(0);
 }
 
@@ -74,4 +72,13 @@ if (fs.existsSync(androidGradlePath)) {
     fs.writeFileSync(androidGradlePath, gradleContent);
 } else {
     console.log('Android build.gradle not found, skipping.');
+}
+
+// 4. Stage the changes
+try {
+  execSync('git add package.json src/constants.ts android/app/build.gradle');
+  console.log('Staged version file changes.');
+} catch (error) {
+  console.error('Failed to stage version files:', error);
+  process.exit(1);
 }
