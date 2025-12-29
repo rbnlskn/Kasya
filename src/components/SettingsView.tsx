@@ -192,8 +192,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ data, onBack, onManageCateg
                 </div>
                 
                 {[
-                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Documents/Kasya_Backups", action: handleBackup },
-                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template (CSV)", desc: "Save template to Documents/Kasya_Templates", action: handleTemplateDownload }
+                    { icon: <FileJson className="w-6 h-6 text-orange-500" />, title: "Save Full Backup (JSON)", desc: "Save to Downloads", action: handleBackup },
+                    { icon: <FileSpreadsheet className="w-6 h-6 text-emerald-500" />, title: "Download Import Template (CSV)", desc: "Save template to Downloads", action: handleTemplateDownload }
                 ].map((opt, i) => (
                     <button key={i} onClick={opt.action} className="w-full flex items-center p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition-colors border border-transparent hover:border-border group">
                         <div className="mr-4 p-2 bg-surface rounded-xl shadow-sm group-hover:scale-110 transition-transform">{opt.icon}</div>

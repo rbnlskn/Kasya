@@ -25,18 +25,18 @@ export const exportBackup = async (data: AppState): Promise<{ success: boolean; 
   }
 
   try {
-    const fileName = `Kasya_Backups/Kasya_Backup_${getFormattedDate()}.json`;
+    const fileName = `Kasya-Backup-${getFormattedDate()}.json`;
     const jsonData = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonData], { type: 'application/json' });
 
     await write_blob({
         path: fileName,
-        directory: Directory.Documents,
+        directory: Directory.Downloads,
         blob: blob,
         recursive: true
     });
 
-    return { success: true, message: 'Backup saved to Documents/Kasya_Backups' };
+    return { success: true, message: 'Backup saved to Downloads' };
 
   } catch (error) {
     console.error('Backup failed:', error);
@@ -64,7 +64,7 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
     }
 
     try {
-        const fileName = 'Kasya_Templates/import_template.csv';
+        const fileName = 'Kasya-Transaction-Template.csv';
         const csvContent = [
             "Date,Time,Type,Amount,Wallet,Category,Description",
             "2025-12-01,09:30 AM,Income,15000.00,BPI,Salary,December Bonus",
@@ -75,13 +75,13 @@ export const downloadTransactionTemplate = async (): Promise<{ success: boolean;
 
         await write_blob({
             path: fileName,
-            directory: Directory.Documents,
+            directory: Directory.Downloads,
             blob: blob,
             recursive: true
         });
 
 
-        return { success: true, message: 'Template saved to Documents/Kasya_Templates' };
+        return { success: true, message: 'Template saved to Downloads' };
 
     } catch (error) {
         console.error('Template download failed:', error);
