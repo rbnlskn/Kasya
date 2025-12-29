@@ -85,7 +85,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       onClick={onViewDetails}
       className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl"
       style={{
-        height: scale(110),
+        height: scale(140),
         gap: scale(4),
         padding: scale(12),
       }}
@@ -120,7 +120,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <button
           onClick={(e) => { e.stopPropagation(); onPay(); }}
           className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
-          style={{ width: scale(44), borderRadius: scale(10) }}
+          style={{ width: scale(64), borderRadius: scale(10) }}
         >
           <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
         </button>
