@@ -5,6 +5,7 @@ import { Bill, RecurrenceFrequency, Wallet } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
 import ToggleSwitch from './ToggleSwitch';
+import WalletSelectItem from './WalletSelectItem';
 import { format } from 'date-fns';
 
 interface BillFormModalProps {
@@ -25,13 +26,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [dueDay, setDueDay] = useState<number | ''>('');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
-  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'TRIAL_END_DATE_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE' | 'WALLET'>('NONE');
+  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'TRIAL_END_DATE_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE' | 'WALLET' | 'TRIAL_DURATION_UNIT'>('NONE');
   const [icon, setIcon] = useState('⚡');
   const [recordInitialPayment, setRecordInitialPayment] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
   const [isTrial, setIsTrial] = useState(false);
   const [trialEndDate, setTrialEndDate] = useState(new Date());
   const [trialDuration, setTrialDuration] = useState(7);
+  const [trialDurationUnit, setTrialDurationUnit] = useState<'DAYS' | 'WEEKS' | 'MONTHS'>('DAYS');
   const [dueDayManuallySet, setDueDayManuallySet] = useState(false);
 
   const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
@@ -70,6 +72,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 7);
         setTrialEndDate(defaultTrialEnd);
         setTrialDuration(7);
+        setTrialDurationUnit('DAYS');
       }
     }
   }, [isOpen, initialBill]);
@@ -94,7 +97,17 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     if (durationToSet >= 0) {
         setTrialDuration(durationToSet);
         const newTrialEndDate = new Date(startDate);
-        newTrialEndDate.setDate(startDate.getDate() + durationToSet);
+        switch (trialDurationUnit) {
+            case 'DAYS':
+                newTrialEndDate.setDate(startDate.getDate() + durationToSet);
+                break;
+            case 'WEEKS':
+                newTrialEndDate.setDate(startDate.getDate() + durationToSet * 7);
+                break;
+            case 'MONTHS':
+                newTrialEndDate.setMonth(startDate.getMonth() + durationToSet);
+                break;
+        }
         setTrialEndDate(newTrialEndDate);
     }
   };
@@ -113,6 +126,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         const diffTime = newEndDate.getTime() - newStartDate.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         setTrialDuration(diffDays);
+        setTrialDurationUnit('DAYS'); // When manually setting a date, the most granular unit is best
     }
     setSelectorView('NONE');
   };
@@ -264,9 +278,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                     <div className="flex space-x-2">
                       <div className="flex-1">
                           <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
-                          <div className="relative">
-                            <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-white border-2 border-transparent focus:border-primary/30 rounded-xl px-4 text-sm font-bold text-text-primary h-12"/>
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-secondary">days</span>
+                          <div className="flex items-center bg-white rounded-xl h-12">
+                               <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-transparent px-4 text-sm font-bold text-text-primary outline-none" placeholder="e.g., 7"/>
+                               <button type="button" onClick={() => setSelectorView('TRIAL_DURATION_UNIT')} className="pr-3 text-sm font-bold text-text-secondary flex items-center gap-1">
+                                   {trialDurationUnit}
+                                   <ChevronDown className="w-3 h-3" />
+                               </button>
                           </div>
                       </div>
                       <div className="flex-1">
@@ -329,6 +346,18 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             onClose={() => setSelectorView('NONE')}
         />
     )}
+    {selectorView === 'TRIAL_DURATION_UNIT' && (
+        <div>
+            <h3 className="font-bold text-lg text-text-primary mb-4">Select Unit</h3>
+            <div className="space-y-2">
+                {(['DAYS', 'WEEKS', 'MONTHS']).map(o => (
+                    <button key={o} onClick={() => { setTrialDurationUnit(o as any); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${trialDurationUnit === o ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                        {o}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )}
     {selectorView === 'OCCURRENCE' && (
         <div>
             <h3 className="font-bold text-lg text-text-primary mb-4">Select Occurrence</h3>
@@ -358,9 +387,13 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
             <div className="space-y-2 max-h-64 overflow-y-auto">
                 {wallets.map(w => (
-                    <button key={w.id} onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${selectedWalletId === w.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                        {w.name}
-                    </button>
+                    <WalletSelectItem
+                        key={w.id}
+                        wallet={w}
+                        currencySymbol={currencySymbol}
+                        isSelected={selectedWalletId === w.id}
+                        onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }}
+                    />
                 ))}
             </div>
         </div>

@@ -153,7 +153,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     e.stopPropagation();
                     onEdit?.(item);
                 }}
-                className="aspect-square bg-rose-100 text-rose-700 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
+                className="aspect-square bg-rose-100 text-rose-800 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
                 style={{ width: scale(64), borderRadius: scale(10) }}
             >
                 <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel</span>
@@ -161,7 +161,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         ) : (
             <button
                 onClick={(e) => { e.stopPropagation(); onPay(); }}
-                className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
+                className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
                 style={{ width: scale(64), borderRadius: scale(10) }}
             >
                 <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
