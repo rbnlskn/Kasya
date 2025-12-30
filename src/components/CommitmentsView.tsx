@@ -468,6 +468,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                         </div>
                                     </div>
                                 )}
+                                placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions this year</div>}
                             />
                         </div>
                     ))
