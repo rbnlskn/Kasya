@@ -31,8 +31,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [recordInitialPayment, setRecordInitialPayment] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
   const [isTrial, setIsTrial] = useState(false);
-  const [trialEndDate, setTrialEndDate] = useState(new Date());
-  const [trialDuration, setTrialDuration] = useState(7);
+  const [trialEndDate, setTrialEndDate] = useState<Date | null>(null);
+  const [trialDuration, setTrialDuration] = useState<number | ''>(7);
   const [trialDurationUnit, setTrialDurationUnit] = useState<'DAYS' | 'WEEKS' | 'MONTHS'>('DAYS');
   const [dueDayManuallySet, setDueDayManuallySet] = useState(false);
 
@@ -50,7 +50,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setOccurrence(initialBill.recurrence);
         if (initialBill.status === 'ACTIVE') {
             setIsTrial(initialBill.isTrialActive || false);
-            setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : new Date());
+            setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : null);
         } else {
             setIsTrial(false);
             setRecordInitialPayment(false);
@@ -68,10 +68,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setIsTrial(false);
         setRecordInitialPayment(false);
         setSelectedWalletId('');
-        const defaultTrialEnd = new Date();
-        defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 7);
-        setTrialEndDate(defaultTrialEnd);
-        setTrialDuration(7);
+        setTrialEndDate(null);
+        setTrialDuration('');
         setTrialDurationUnit('DAYS');
       }
     }
@@ -91,24 +89,28 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   if (!isOpen && !isExiting) return null;
 
   const handleTrialDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDuration = parseInt(e.target.value, 10);
-    const durationToSet = isNaN(newDuration) ? 0 : newDuration;
+    const newDuration = e.target.value;
+    if (newDuration === '' || /^[0-9\b]+$/.test(newDuration)) {
+        const durationValue = newDuration === '' ? '' : parseInt(newDuration, 10);
+        setTrialDuration(durationValue);
 
-    if (durationToSet >= 0) {
-        setTrialDuration(durationToSet);
-        const newTrialEndDate = new Date(startDate);
-        switch (trialDurationUnit) {
-            case 'DAYS':
-                newTrialEndDate.setDate(startDate.getDate() + durationToSet);
-                break;
-            case 'WEEKS':
-                newTrialEndDate.setDate(startDate.getDate() + durationToSet * 7);
-                break;
-            case 'MONTHS':
-                newTrialEndDate.setMonth(startDate.getMonth() + durationToSet);
-                break;
+        if (durationValue !== '') {
+            const newTrialEndDate = new Date(startDate);
+            switch (trialDurationUnit) {
+                case 'DAYS':
+                    newTrialEndDate.setDate(startDate.getDate() + durationValue);
+                    break;
+                case 'WEEKS':
+                    newTrialEndDate.setDate(startDate.getDate() + durationValue * 7);
+                    break;
+                case 'MONTHS':
+                    newTrialEndDate.setMonth(startDate.getMonth() + durationValue);
+                    break;
+            }
+            setTrialEndDate(newTrialEndDate);
+        } else {
+            setTrialEndDate(null);
         }
-        setTrialEndDate(newTrialEndDate);
     }
   };
 
@@ -126,7 +128,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         const diffTime = newEndDate.getTime() - newStartDate.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         setTrialDuration(diffDays);
-        setTrialDurationUnit('DAYS'); // When manually setting a date, the most granular unit is best
+        setTrialDurationUnit('DAYS');
     }
     setSelectorView('NONE');
   };
@@ -157,7 +159,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     }
 
     let billingStartDate: string | undefined;
-    if ((!initialBill || isResubscribeFlow) && isTrial) {
+    if ((!initialBill || isResubscribeFlow) && isTrial && trialEndDate) {
         const billingStart = new Date(trialEndDate);
         billingStart.setDate(billingStart.getDate() + 1);
         billingStartDate = billingStart.toISOString();
@@ -175,7 +177,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       status: 'ACTIVE', // When saving, always set to active (for resubscribe)
       endDate: undefined, // Clear end date on resubscribe
       isTrialActive: isTrial,
-      trialEndDate: isTrial ? trialEndDate.toISOString() : undefined,
+      trialEndDate: (isTrial && trialEndDate) ? trialEndDate.toISOString() : undefined,
       billingStartDate: billingStartDate,
       remindTrialEnd: isTrial,
     }, initialBill?.id, (recordInitialPayment && !isTrial) ? { walletId: selectedWalletId } : undefined);
@@ -289,7 +291,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                       <div className="flex-1">
                           <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Ends On</label>
                           <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
-                              <span className="text-sm font-bold text-text-primary">{format(trialEndDate, 'MMM d, yyyy')}</span>
+                              <span className={`text-sm font-bold ${trialEndDate ? 'text-text-primary' : 'text-text-secondary/80'}`}>{trialEndDate ? format(trialEndDate, 'MMM d, yyyy') : 'Select...'}</span>
                           </button>
                       </div>
                     </div>
@@ -300,7 +302,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
           {showAdvancedOptions && !isTrial && (
             <div className="space-y-2">
-              <ToggleSwitch isChecked={recordInitialPayment} onChange={setRecordInitialPayment} label="Record initial payment?" description="Uncheck to schedule the first payment for the next cycle." />
+              <ToggleSwitch isChecked={recordInitialPayment} onChange={setRecordInitialPayment} label="Record initial payment?" description="Disable to schedule the first payment for the next cycle." />
               {recordInitialPayment && (
                   <div className="bg-slate-100 p-3 rounded-2xl">
                       <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">From Wallet</label>
@@ -341,7 +343,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     )}
     {selectorView === 'TRIAL_END_DATE_CALENDAR' && (
         <DayPicker
-            selectedDate={trialEndDate}
+            selectedDate={trialEndDate || new Date()}
             onChange={handleTrialEndDateChange}
             onClose={() => setSelectorView('NONE')}
         />

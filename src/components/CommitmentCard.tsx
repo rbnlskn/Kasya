@@ -58,22 +58,23 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     }
 
     if (isTrial) {
-      const bill = item as Bill;
-      const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
-      return (
-        <div className="flex-1 bg-blue-100 flex flex-col justify-evenly" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
-          <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-blue-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
-            <span className="font-bold text-blue-900" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
+        const bill = item as Bill;
+        const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
+        return (
+          <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
+            <div className="flex justify-between items-center leading-none">
+              <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
+              <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
+            </div>
+            <div className="w-full border-t border-dashed border-slate-300/60" />
+            <div className="flex justify-between items-center leading-none">
+              <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews For</span>
+              <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
+                {currencySymbol}{formatCurrency(bill.amount)}
+              </span>
+            </div>
           </div>
-          <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-blue-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews At</span>
-            <span className="font-bold text-blue-900" style={{ fontSize: fontScale(10) }}>
-              {currencySymbol}{formatCurrency(bill.amount)}
-            </span>
-          </div>
-        </div>
-      );
+        );
     }
 
     return (
