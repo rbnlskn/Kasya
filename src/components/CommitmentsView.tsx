@@ -260,6 +260,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
                             onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
+                            onEdit={() => onEditBill(bill)}
                             instanceStatus={status}
                             lastPaymentAmount={lastPayment?.amount}
                             isOverdue={status === 'OVERDUE'}

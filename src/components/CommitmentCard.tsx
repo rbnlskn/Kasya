@@ -16,6 +16,7 @@ interface CommitmentCardProps {
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
+  onEdit?: (item: Bill | Commitment) => void;
   instanceStatus?: CommitmentInstanceStatus;
   lastPaymentAmount?: number;
   isOverdue?: boolean;
@@ -23,7 +24,7 @@ interface CommitmentCardProps {
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
   item, category, paidAmount, paymentsMade, dueDateText, headerSubtitle,
-  currencySymbol, onPay, onViewDetails, instanceStatus, lastPaymentAmount, isOverdue,
+  currencySymbol, onPay, onViewDetails, onEdit, instanceStatus, lastPaymentAmount, isOverdue,
 }) => {
   const { scale, fontScale } = useResponsive();
   const isCommitment = 'principal' in item;
@@ -56,6 +57,26 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       );
     }
 
+    if (isTrial) {
+      const bill = item as Bill;
+      const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
+      return (
+        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(6) }}>
+          <div className="flex justify-between items-center leading-none">
+            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
+            <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
+          </div>
+          <div className="w-full border-t border-dashed border-slate-300/60" />
+          <div className="flex justify-between items-center leading-none">
+            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews At</span>
+            <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
+              {currencySymbol}{formatCurrency(bill.amount)}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(6) }}>
         <div className="flex justify-between items-center leading-none">
@@ -73,57 +94,6 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   };
 
-  if (isTrial) {
-    const bill = item as Bill;
-    const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
-
-    return (
-      <div
-        onClick={onViewDetails}
-        className="w-full bg-blue-50 border-2 border-dashed border-blue-200 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl"
-        style={{ height: scale(140), gap: scale(4), padding: scale(12) }}
-      >
-        <div className="flex items-center">
-          <div
-            className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
-            style={{ width: scale(36), height: scale(36), fontSize: scale(18), marginRight: scale(10), backgroundColor: category?.color || '#E5E7EB' }}
-          >
-            {category?.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-baseline">
-              <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
-              <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-                FREE
-              </h3>
-            </div>
-            <p className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>
-              {`Trial (${trialDays} days) • Ends ${format(new Date(bill.trialEndDate!), 'MMM d')}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex justify-between items-end">
-          <div className="text-left">
-            <p className="text-xs text-slate-500 font-medium">Renews at</p>
-            <p className="font-bold text-slate-700">{currencySymbol}{formatCurrency(bill.amount)}</p>
-          </div>
-          <button
-            onClick={(e) => {
-                e.stopPropagation();
-                // The actual stop logic is handled in BillFormModal, which is opened via onEdit
-                // So, onViewDetails is the correct action here, but it should open the form
-                onViewDetails();
-            }}
-            className="bg-red-100 text-red-800 hover:bg-red-200 active:scale-95 transition flex items-center justify-center shrink-0"
-            style={{ height: scale(36), borderRadius: scale(10), paddingLeft: scale(12), paddingRight: scale(12) }}
-          >
-            <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel Trial</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
   let displayAmount = isCommitment
     ? (item.recurrence === 'ONE_TIME' || item.recurrence === 'NO_DUE_DATE'
@@ -131,12 +101,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       : (instanceStatus === 'PAID' ? 0 : calculateInstallment(item)))
     : item.amount;
 
-  const subtitle = headerSubtitle || (isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), item.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+  const trialDays = isTrial ? differenceInDays(new Date((item as Bill).trialEndDate!), new Date((item as Bill).startDate)) : 0;
+  const subtitle = isTrial
+    ? `Trial (${trialDays} days) • Ends ${format(new Date((item as Bill).trialEndDate!), 'MMM d')}`
+    : headerSubtitle || (isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), item.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
 
   return (
     <div
       onClick={onViewDetails}
-      className={`w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
+      className={`w-full ${isTrial ? 'bg-blue-50 border-2 border-dashed border-blue-200' : 'bg-white border border-slate-100'} cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
       style={{
         height: scale(140),
         gap: scale(4),
@@ -154,9 +127,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-baseline">
             <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
-            <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-              {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
-            </h3>
+            {isTrial ? (
+                <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
+                  FREE
+                </h3>
+            ) : (
+                <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
+                  {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
+                </h3>
+            )}
           </div>
           <p
             className={`font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}
@@ -170,13 +149,26 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* FOOTER */}
       <div className="flex" style={{ gap: scale(8) }}>
         {renderInfoBox()}
-        <button
-          onClick={(e) => { e.stopPropagation(); onPay(); }}
-          className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
-          style={{ width: scale(64), borderRadius: scale(10) }}
-        >
-          <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
-        </button>
+        {isTrial ? (
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(item);
+                }}
+                className="bg-red-100 text-red-800 hover:bg-red-200 active:scale-95 transition flex items-center justify-center shrink-0"
+                style={{ width: scale(64), borderRadius: scale(10) }}
+            >
+                <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel</span>
+            </button>
+        ) : (
+            <button
+                onClick={(e) => { e.stopPropagation(); onPay(); }}
+                className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
+                style={{ width: scale(64), borderRadius: scale(10) }}
+            >
+                <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
+            </button>
+        )}
       </div>
     </div>
   );
