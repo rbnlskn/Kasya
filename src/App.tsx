@@ -96,6 +96,34 @@ const App: React.FC = () => {
     saveData(data);
   }, [data, isLoading]);
 
+  useEffect(() => {
+    if (isLoading) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let needsUpdate = false;
+    const updatedBills = data.bills.map(bill => {
+        if (bill.isTrialActive && bill.trialEndDate && new Date(bill.trialEndDate) < today) {
+            needsUpdate = true;
+            const trialEndDate = new Date(bill.trialEndDate);
+            const billingStartDate = new Date(trialEndDate);
+            billingStartDate.setDate(trialEndDate.getDate() + 1);
+
+            return {
+                ...bill,
+                isTrialActive: false,
+                billingStartDate: billingStartDate.toISOString().split('T')[0],
+            };
+        }
+        return bill;
+    });
+
+    if (needsUpdate) {
+        setData(prev => ({ ...prev, bills: updatedBills }));
+    }
+  }, [isLoading, data.bills]);
+
   const handleTabChange = useCallback((newTab: Tab) => {
     if (activeTab === newTab) return;
     setPrevTab(activeTab);

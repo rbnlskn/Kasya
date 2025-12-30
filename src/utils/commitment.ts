@@ -386,20 +386,17 @@ export const getActiveBillInstance = (
         trialEndDate.setHours(0, 0, 0, 0);
 
         // If trial has already ended based on today's date, it should have been converted.
-        // This check prevents it from showing up if the conversion logic hasn't run yet.
-        if (today > trialEndDate) {
-            // In a real scenario, a backend job would convert this.
-            // For the frontend, we just hide it until the state is updated.
-            // Or, we can proceed to treat it as a normal bill for its first payment due date.
-            // Let's assume conversion happens and it's no longer a trial.
-        } else {
-             // Trial is active. Show it if viewing month is the same as trial end month.
-             if (viewingYear === trialEndDate.getFullYear() && viewingMonth === trialEndDate.getMonth()) {
-                 return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id }; // Special 'TRIAL' status can be handled in the component
-             } else {
-                 return null; // Not relevant to this viewing month
-             }
+        if (today <= trialEndDate) {
+            // Trial is currently active.
+            // Show it if the viewing month is the same as the trial end month.
+            if (viewingYear === trialEndDate.getFullYear() && viewingMonth === trialEndDate.getMonth()) {
+                return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id };
+            } else {
+                return null; // Not relevant to this viewing month
+            }
         }
+        // If today > trialEndDate, the trial is over.
+        // Proceed with the rest of the function to treat it as a normal bill.
     }
 
     const startDate = new Date(bill.startDate);
@@ -454,36 +451,36 @@ export const getActiveBillInstance = (
         }
     }
 
-    // --- LOOKAHEAD LOGIC ---
-    if (!standardInstanceValid || isPaidThisMonth) {
-        // Calculate Next Month Date
-        const nextMonthDate = new Date(viewingDateClean);
-        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+    // If the instance for the current month is valid and not paid, return it.
+    if (standardInstanceValid && !isPaidThisMonth) {
+        return { bill, dueDate, status, id: bill.id };
+    }
 
-        let nextDueDate = new Date(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), bill.dueDay);
-        if (nextDueDate.getMonth() !== nextMonthDate.getMonth()) nextDueDate.setDate(0);
+    // If we reach here, it's because the current month is either not valid or already paid.
+    // In either case, we now ONLY check for a lookahead instance in the next month.
+    const nextMonthDate = new Date(viewingDateClean);
+    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
-        if (nextDueDate.getTime() >= effectiveFirstDate.getTime() && (!bill.endDate || nextDueDate.getTime() <= new Date(bill.endDate).getTime())) {
-             const diffTime = nextDueDate.getTime() - today.getTime();
-             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-             const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
+    let nextDueDate = new Date(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), bill.dueDay);
+    if (nextDueDate.getMonth() !== nextMonthDate.getMonth()) nextDueDate.setDate(0);
 
-             if (isViewingCurrentRealMonth && diffDays <= 7 && diffDays > 0) {
-                 const isNextPaid = transactions.some(t =>
-                    t.billId === bill.id &&
-                    new Date(t.date).getMonth() === nextDueDate.getMonth() &&
-                    new Date(t.date).getFullYear() === nextDueDate.getFullYear()
-                 );
-                 if (!isNextPaid) {
-                     return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
-                 }
-             }
+    if (nextDueDate.getTime() >= effectiveFirstDate.getTime() && (!bill.endDate || nextDueDate.getTime() <= new Date(bill.endDate).getTime())) {
+        const diffTime = nextDueDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
+
+        if (isViewingCurrentRealMonth && diffDays <= 7 && diffDays > 0) {
+            const isNextPaid = transactions.some(t =>
+                t.billId === bill.id &&
+                new Date(t.date).getMonth() === nextDueDate.getMonth() &&
+                new Date(t.date).getFullYear() === nextDueDate.getFullYear()
+            );
+            if (!isNextPaid) {
+                return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
+            }
         }
     }
 
-    // Final visibility decision
-    if (!standardInstanceValid) return null;
-    if (isPaidThisMonth) return { bill, dueDate, status: 'PAID', id: bill.id };
-
-    return { bill, dueDate, status, id: bill.id };
+    // If no valid current instance and no valid lookahead instance was found, return null.
+    return null;
 };

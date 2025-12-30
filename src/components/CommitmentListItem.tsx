@@ -21,7 +21,7 @@ const CommitmentListItem: React.FC<CommitmentListItemProps> = ({ instance, categ
   // Specific styling for trial cards
   if (isTrial) {
     return (
-      <div onClick={() => onClick(bill.id)} className="p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-dashed border-blue-300">
+      <div onClick={() => onClick(bill.id)} className="p-4 cursor-pointer bg-blue-50 rounded-2xl shadow-sm border border-blue-200">
         <div className="flex items-center">
           <div className="flex-1 min-w-0">
             <h4 className="font-bold text-blue-800 text-sm leading-tight truncate">

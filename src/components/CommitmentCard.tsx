@@ -63,7 +63,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       return (
         <div className="flex-1 bg-blue-100 flex flex-col justify-evenly" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
           <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-blue-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
+            <span className="font-bold text-blue-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
             <span className="font-bold text-blue-900" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
           </div>
           <div className="flex justify-between items-center leading-none">
@@ -107,7 +107,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className={`w-full ${isTrial ? 'bg-blue-50 border-2 border-dashed border-blue-200' : 'bg-white border border-slate-100'} cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
+      className={`w-full ${isTrial ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-slate-100'} cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
       style={{
         height: scale(140),
         gap: scale(4),
