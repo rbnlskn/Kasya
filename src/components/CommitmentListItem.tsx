@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { BillInstance, BillStatus } from '../utils/commitment';
-import { Category } from '../types';
+import { BillInstance } from '../utils/commitment';
+import { Category, BillStatus } from '../types';
 import { generateDueDateText } from '../utils/commitment';
 import { formatCurrency } from '../utils/number';
 
