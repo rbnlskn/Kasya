@@ -89,7 +89,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const combined = [...currentMonthInstances, ...lookaheadBills];
     const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
 
-    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'HISTORY' ? b.status === 'HISTORY' : b.status !== 'HISTORY');
+    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'HISTORY' ? b.status === 'PAID' : b.status !== 'PAID');
 
     const sortedInstances = sortUnified(filteredByStatus);
 
@@ -156,17 +156,17 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: status === 'HISTORY' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+            style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
           >
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'HISTORY' ? 'line-through' : ''}`}>{bill.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'HISTORY' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'PAID' ? 'line-through' : ''}`}>{bill.name}</h4>
+            <p className="text-xs text-gray-400">{status === 'PAID' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'HISTORY' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
-            {status !== 'HISTORY' && (
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'PAID' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
+            {status !== 'PAID' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayBill(bill); }}
                 className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
