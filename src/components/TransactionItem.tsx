@@ -33,9 +33,9 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const renderIcon = () => {
-    if (isTransfer) return <ArrowRightLeft className="w-6 h-6 text-gray-600" />;
-    if (category?.icon) return <span className="text-2xl leading-none">{category.icon}</span>;
-    return <DollarSign className="w-6 h-6 text-gray-500" />;
+    if (isTransfer) return <ArrowRightLeft className="w-5 h-5 text-gray-600" />;
+    if (category?.icon) return <span className="text-xl">{category.icon}</span>;
+    return <DollarSign className="w-5 h-5 text-gray-500" />;
   };
 
   const getIconStyle = () => {
