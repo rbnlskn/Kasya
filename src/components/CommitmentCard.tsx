@@ -61,7 +61,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       const bill = item as Bill;
       const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
       return (
-        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(6) }}>
+        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
           <div className="flex justify-between items-center leading-none">
             <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
             <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
@@ -78,7 +78,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     }
 
     return (
-      <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(6) }}>
+      <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
         <div className="flex justify-between items-center leading-none">
           <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
           <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{dueDateText}</span>
@@ -155,7 +155,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     e.stopPropagation();
                     onEdit?.(item);
                 }}
-                className="bg-red-100 text-red-800 hover:bg-red-200 active:scale-95 transition flex items-center justify-center shrink-0"
+                className="bg-rose-100 text-rose-800 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
                 style={{ width: scale(64), borderRadius: scale(10) }}
             >
                 <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel</span>
