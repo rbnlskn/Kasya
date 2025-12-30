@@ -4,6 +4,7 @@ import { X, Trash2, Calendar, ChevronDown } from 'lucide-react';
 import { Commitment, RecurrenceFrequency, Wallet, Category, CommitmentType } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import ToggleSwitch from './ToggleSwitch';
 
 interface CommitmentFormModalProps {
   isOpen: boolean;
@@ -210,10 +211,11 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
 
                         {!initialCommitment && (
                             <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record Disbursement</label>
-                                    <input id="record-tx-checkbox" type="checkbox" checked={recordDisbursement} onChange={(e) => setRecordDisbursement(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
-                                </div>
+                                <ToggleSwitch
+                                    label="Record Disbursement"
+                                    isChecked={recordDisbursement}
+                                    onChange={setRecordDisbursement}
+                                />
                                 {recordDisbursement && (
                                     <div className="mt-3">
                                         <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">Into Wallet</label>

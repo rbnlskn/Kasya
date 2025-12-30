@@ -384,19 +384,26 @@ export const getActiveBillInstance = (
     if (bill.isTrialActive) {
         const trialEndDate = new Date(bill.trialEndDate!);
         trialEndDate.setHours(0, 0, 0, 0);
+        const trialStartDate = new Date(bill.startDate);
+        trialStartDate.setHours(0, 0, 0, 0);
 
-        // If trial has already ended based on today's date, it should have been converted.
-        if (today <= trialEndDate) {
-            // Trial is currently active.
-            // Show it if the viewing month is the same as the trial end month.
-            if (viewingYear === trialEndDate.getFullYear() && viewingMonth === trialEndDate.getMonth()) {
-                return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id };
-            } else {
-                return null; // Not relevant to this viewing month
-            }
+        // New Logic: Show trial card for the entire duration of the trial
+        const startOfViewingMonth = new Date(viewingYear, viewingMonth, 1);
+        const endOfViewingMonth = new Date(viewingYear, viewingMonth + 1, 0);
+
+        if (trialStartDate <= endOfViewingMonth && trialEndDate >= startOfViewingMonth) {
+             // This ensures the trial is visible if any part of it overlaps with the viewing month.
+             return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id };
         }
-        // If today > trialEndDate, the trial is over.
-        // Proceed with the rest of the function to treat it as a normal bill.
+
+        // If the trial has ended, proceed to treat it as a normal bill.
+        if (today > trialEndDate) {
+            // The conversion logic in App.tsx will handle updating the bill's state.
+            // The rest of this function will then correctly find its first *real* due date.
+        } else {
+            // If we are here, it means the trial is active but not in the current viewing month.
+            return null;
+        }
     }
 
     const startDate = new Date(bill.startDate);

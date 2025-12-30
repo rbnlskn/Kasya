@@ -192,8 +192,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-2 justify-start">
-        <section className="flex flex-col m-0 p-0 w-full">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 gap-4 justify-start">
+        <section className="flex flex-col m-0 p-0 w-full mb-2">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
             title="CREDIT CARDS"
