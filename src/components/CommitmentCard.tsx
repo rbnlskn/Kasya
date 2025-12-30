@@ -61,15 +61,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       const bill = item as Bill;
       const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
       return (
-        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-evenly" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(2) }}>
+        <div className="flex-1 bg-transparent border border-blue-200/50 flex flex-col justify-evenly" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(2) }}>
           <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
-            <span className="font-medium text-slate-600" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
+            <span className="font-bold text-blue-300 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
+            <span className="font-medium text-blue-900" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
           </div>
-          <div className="w-full border-t border-solid border-slate-200" />
+          <div className="w-full border-t border-solid border-blue-200/50" />
           <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews At</span>
-            <span className="font-medium text-slate-600" style={{ fontSize: fontScale(10) }}>
+            <span className="font-bold text-blue-300 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews At</span>
+            <span className="font-medium text-blue-900" style={{ fontSize: fontScale(10) }}>
               {currencySymbol}{formatCurrency(bill.amount)}
             </span>
           </div>
