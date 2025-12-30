@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { X, Trash2, FileText, Repeat, Calendar, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Trash2, FileText, Repeat, Calendar, ChevronDown, Ban } from 'lucide-react';
 import { Bill, RecurrenceFrequency, Wallet } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
@@ -8,7 +8,7 @@ import { useCurrencyInput } from '../hooks/useCurrencyInput';
 interface BillFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (bill: Omit<Bill, 'id' | 'status'>, id?: string, recordInitialPayment?: { walletId: string }) => void;
+  onSave: (bill: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: { walletId: string }) => void;
   onDelete: (id: string) => void;
   initialBill?: Bill;
   currencySymbol: string;
@@ -23,10 +23,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [dueDay, setDueDay] = useState<number | ''>('');
   const [startDate, setStartDate] = useState(new Date());
   const [occurrence, setOccurrence] = useState<RecurrenceFrequency | '' | undefined>('');
-  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE' | 'WALLET'>('NONE');
+  const [selectorView, setSelectorView] = useState<'NONE' | 'DUE_DAY_CALENDAR' | 'TRIAL_END_DATE_CALENDAR' | 'DUE_DAY_PICKER' | 'OCCURRENCE' | 'WALLET'>('NONE');
   const [icon, setIcon] = useState('⚡');
   const [recordInitialPayment, setRecordInitialPayment] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState('');
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialEndDate, setTrialEndDate] = useState(new Date());
 
   useEffect(() => {
     if (isOpen) {
@@ -37,6 +39,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setDueDay(initialBill.dueDay);
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setOccurrence(initialBill.recurrence);
+        setIsTrial(initialBill.isTrialActive || false);
+        setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : new Date());
       } else {
         setType('BILL');
         setName('');
@@ -44,6 +48,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setDueDay(new Date().getDate());
         setStartDate(new Date());
         setOccurrence('');
+        setIsTrial(false);
+        setRecordInitialPayment(false);
+        setSelectedWalletId('');
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        setTrialEndDate(tomorrow);
       }
     }
   }, [isOpen, initialBill]);
@@ -54,6 +64,15 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     }
   }, [startDate, initialBill]);
 
+  // Auto-set trial end date to 7 days from start date for new trials
+  useEffect(() => {
+    if (!initialBill && isTrial) {
+      const newTrialEndDate = new Date(startDate);
+      newTrialEndDate.setDate(startDate.getDate() + 7);
+      setTrialEndDate(newTrialEndDate);
+    }
+  }, [isTrial, startDate, initialBill]);
+
   useEffect(() => {
     setIcon(type === 'BILL' ? '⚡' : '💬');
   }, [type]);
@@ -63,33 +82,29 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || amountInput.rawValue <= 0 || !dueDay || !occurrence) return;
-    if (recordInitialPayment && !selectedWalletId) return;
+    if (recordInitialPayment && !selectedWalletId && !isTrial) return;
 
     let firstPaymentDate: string | undefined;
 
     // "Magic" Logic: If NOT recording initial payment for a new bill, assume first payment is SKIPPED/DUE NEXT CYCLE.
-    // If we ARE recording initial payment, the system creates a transaction for the start date, so firstPaymentDate = startDate is implied/handled.
-    if (!initialBill && !recordInitialPayment) {
+    if (!initialBill && !recordInitialPayment && !isTrial) {
         const start = new Date(startDate);
         let nextDate = new Date(start);
 
         switch (occurrence) {
-            case 'WEEKLY':
-                nextDate.setDate(nextDate.getDate() + 7);
-                break;
-            case 'MONTHLY':
-                nextDate.setMonth(nextDate.getMonth() + 1);
-                break;
-            case 'YEARLY':
-                nextDate.setFullYear(nextDate.getFullYear() + 1);
-                break;
-            case 'ONE_TIME':
-                 // For one time, start date usually IS the due date.
-                 // If not paid, it is due. We don't push it.
-                 nextDate = start;
-                 break;
+            case 'WEEKLY': nextDate.setDate(nextDate.getDate() + 7); break;
+            case 'MONTHLY': nextDate.setMonth(nextDate.getMonth() + 1); break;
+            case 'YEARLY': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+            case 'ONE_TIME': nextDate = start; break;
         }
         firstPaymentDate = nextDate.toISOString();
+    }
+
+    let billingStartDate: string | undefined;
+    if (!initialBill && isTrial) {
+        const billingStart = new Date(trialEndDate);
+        billingStart.setDate(billingStart.getDate() + 1); // Day after trial ends
+        billingStartDate = billingStart.toISOString();
     }
 
     onSave({
@@ -100,19 +115,43 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       icon,
       type,
       startDate: new Date(startDate).toISOString(),
-      firstPaymentDate
-    }, initialBill?.id, recordInitialPayment ? { walletId: selectedWalletId } : undefined);
+      firstPaymentDate,
+      status: initialBill?.status || 'ACTIVE',
+      isTrialActive: isTrial,
+      trialEndDate: isTrial ? trialEndDate.toISOString() : undefined,
+      billingStartDate: billingStartDate,
+      remindTrialEnd: isTrial,
+    }, initialBill?.id, recordInitialPayment && !isTrial ? { walletId: selectedWalletId } : undefined);
     onClose();
   };
 
   const handleDelete = () => {
-    if (initialBill && window.confirm(`Delete this ${type.toLowerCase()}?`)) {
+    if (initialBill && window.confirm(`Delete this ${type.toLowerCase()}? This will also delete all associated payments.`)) {
       onDelete(initialBill.id);
       onClose();
     }
   };
 
-  const headerText = initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`;
+  const handleStopSubscription = () => {
+      if (!initialBill) return;
+      const confirmText = initialBill.isTrialActive
+        ? "Are you sure? This will cancel your trial immediately. The item will be moved to your history."
+        : "Are you sure? This will stop future bills from generating. Past payments will be saved.";
+
+      if (window.confirm(confirmText)) {
+        onSave({
+            ...initialBill,
+            status: 'INACTIVE',
+            endDate: new Date().toISOString(),
+            isTrialActive: false, // Ensure trial is marked as inactive
+        }, initialBill.id);
+        onClose();
+      }
+  }
+
+  const headerText = useMemo(() => initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`, [initialBill, type]);
+  const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
+  const buttonText = isResubscribeFlow ? 'Restart Subscription' : (initialBill ? 'Save Changes' : 'Add Item');
 
   return (
     <>
@@ -122,7 +161,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{headerText}</h2>
           <div className="flex items-center space-x-2">
-            {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
+            {initialBill && initialBill.status === 'ACTIVE' && <button type="button" onClick={handleStopSubscription} className="p-2.5 bg-amber-100 text-amber-600 rounded-full hover:bg-amber-200 transition-colors" title={initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}><Ban className="w-5 h-5" /></button>}
+            {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors" title="Delete"><Trash2 className="w-5 h-5" /></button>}
             <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
@@ -174,7 +214,24 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
               </div>
           </div>
 
-          {!initialBill && (
+          {!initialBill && type === 'SUBSCRIPTION' && (
+              <div className="bg-slate-100 p-3 rounded-2xl border-2 border-transparent">
+                  <div className="flex items-center justify-between">
+                      <label htmlFor="trial-checkbox" className="text-sm font-bold text-text-primary flex-1">Starts with a Free Trial?</label>
+                      <input id="trial-checkbox" type="checkbox" checked={isTrial} onChange={(e) => setIsTrial(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                  </div>
+                  {isTrial && (
+                      <div className="mt-3">
+                          <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">Trial Ends On</label>
+                          <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-surface border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
+                              <span className="text-sm font-bold text-text-primary">{trialEndDate.toLocaleDateString()}</span>
+                          </button>
+                      </div>
+                  )}
+              </div>
+          )}
+
+          {!initialBill && !isTrial && (
             <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
                 <div className="flex items-center justify-between">
                     <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
@@ -194,7 +251,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             </div>
           )}
 
-<button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBill ? 'Save Changes' : 'Add Item'}</button>
+<button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
 </form>
 </div>
 </div>
@@ -206,6 +263,16 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             selectedDate={startDate}
             onChange={(d) => {
                 setStartDate(d);
+                setSelectorView('NONE');
+            }}
+            onClose={() => setSelectorView('NONE')}
+        />
+    )}
+    {selectorView === 'TRIAL_END_DATE_CALENDAR' && (
+        <DayPicker
+            selectedDate={trialEndDate}
+            onChange={(d) => {
+                setTrialEndDate(d);
                 setSelectorView('NONE');
             }}
             onClose={() => setSelectorView('NONE')}

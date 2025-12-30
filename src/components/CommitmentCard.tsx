@@ -27,6 +27,8 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 }) => {
   const { scale, fontScale } = useResponsive();
   const isCommitment = 'principal' in item;
+  const isBill = 'dueDay' in item;
+  const isTrial = isBill && (item as Bill).isTrialActive;
 
   const renderInfoBox = () => {
     if (isCommitment) {
@@ -71,6 +73,45 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     );
   };
 
+  if (isTrial) {
+    return (
+      <div
+        onClick={onViewDetails}
+        className="w-full bg-blue-50 border-2 border-dashed border-blue-200 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl"
+        style={{ height: scale(140), gap: scale(4), padding: scale(12) }}
+      >
+        <div className="flex items-center">
+          <div
+            className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+            style={{ width: scale(36), height: scale(36), fontSize: scale(18), marginRight: scale(10), backgroundColor: category?.color || '#E5E7EB' }}
+          >
+            {category?.icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-baseline">
+              <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
+              <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
+                FREE
+              </h3>
+            </div>
+            <p className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>
+              Trial ends on {new Date((item as Bill).trialEndDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <button
+            onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
+            className="bg-blue-100 text-blue-800 hover:bg-blue-200 active:scale-95 transition flex items-center justify-center shrink-0"
+            style={{ height: scale(36), borderRadius: scale(10), paddingLeft: scale(12), paddingRight: scale(12) }}
+          >
+            <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel Trial</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
   let displayAmount = isCommitment
     ? (item.recurrence === 'ONE_TIME' || item.recurrence === 'NO_DUE_DATE'
@@ -83,7 +124,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   return (
     <div
       onClick={onViewDetails}
-      className="w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl"
+      className={`w-full bg-white border border-slate-100 cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
       style={{
         height: scale(140),
         gap: scale(4),

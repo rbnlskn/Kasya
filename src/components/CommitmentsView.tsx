@@ -26,6 +26,7 @@ interface CommitmentsViewProps {
   onAddBill: () => void;
   onEditBill: (bill: Bill) => void;
   onPayBill: (bill: Bill) => void;
+  onResubscribe: (bill: Bill) => void;
   onAddCommitment: () => void;
   onEditCommitment: (commitment: Commitment) => void;
   onPayCommitment: (commitment: Commitment, amount?: number) => void;
@@ -35,12 +36,12 @@ interface CommitmentsViewProps {
   onTransactionClick: (transaction: Transaction) => void;
 }
 
-const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick }) => {
+const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick, onResubscribe }) => {
   const { scale, fontScale } = useResponsive();
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
-  const [billFilter, setBillFilter] = useState<'PENDING' | 'PAID'>('PENDING');
+  const [billFilter, setBillFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const creditCards = useMemo(() => {
@@ -88,7 +89,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const combined = [...currentMonthInstances, ...lookaheadBills];
     const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
 
-    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'PAID' ? b.status === 'PAID' : b.status !== 'PAID');
+    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'HISTORY' ? b.status === 'HISTORY' : b.status !== 'HISTORY');
 
     const sortedInstances = sortUnified(filteredByStatus);
 
@@ -155,17 +156,17 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
+            style={{ backgroundColor: status === 'HISTORY' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
           >
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'PAID' ? 'line-through' : ''}`}>{bill.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'PAID' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'HISTORY' ? 'line-through' : ''}`}>{bill.name}</h4>
+            <p className="text-xs text-gray-400">{status === 'HISTORY' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'PAID' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
-            {status !== 'PAID' && (
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'HISTORY' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
+            {status !== 'HISTORY' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayBill(bill); }}
                 className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
@@ -464,29 +465,73 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
             <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
                 <div className="flex space-x-2 mb-4">
-                    <button onClick={() => setBillFilter('PENDING')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PENDING' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Pending</button>
-                    <button onClick={() => setBillFilter('PAID')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'PAID' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
+                    <button onClick={() => setBillFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
+                    <button onClick={() => setBillFilter('HISTORY')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'HISTORY' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
                 </div>
-                <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-                    <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
-                    <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                    <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
-                </div>
+                {billFilter === 'HISTORY' && (
+                    <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
+                        <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
+                        <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                        <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
+                    </div>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-                {billFilter === 'PENDING' ? (
-                    <CommitmentList
-                        items={activeBillInstances.filter(b => b.status !== 'PAID')}
-                        renderItem={renderBillItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">Nothing pending for this month</div>}
-                    />
+                {billFilter === 'ACTIVE' ? (
+                    <>
+                        <SectionHeader title="Free Trials" count={activeBillInstances.filter(b => b.bill.isTrialActive).length} />
+                        <CommitmentList
+                            items={activeBillInstances.filter(b => b.bill.isTrialActive)}
+                            renderItem={renderBillItem}
+                            placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active trials</div>}
+                        />
+                        <SectionHeader title="Active Subscriptions" count={activeBillInstances.filter(b => !b.bill.isTrialActive).length} />
+                        <CommitmentList
+                            items={activeBillInstances.filter(b => !b.bill.isTrialActive)}
+                            renderItem={renderBillItem}
+                            placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active subscriptions</div>}
+                        />
+                    </>
                 ) : (
-                    <CommitmentList
-                        items={activeBillInstances.filter(b => b.status === 'PAID')}
-                        renderItem={renderBillItem}
-                        placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No payment history for this month</div>}
-                    />
+                    Object.entries(
+                        bills.filter(b => b.status === 'INACTIVE')
+                            .reduce((acc, bill) => {
+                                const year = new Date(bill.endDate!).getFullYear();
+                                if (!acc[year]) {
+                                    acc[year] = [];
+                                }
+                                acc[year].push(bill);
+                                return acc;
+                            }, {} as Record<string, Bill[]>)
+                    ).map(([year, bills]) => (
+                        <div key={year}>
+                            <SectionHeader title={year} />
+                            <CommitmentList
+                                items={bills}
+                                renderItem={(bill) => {
+                                    const inactiveBill = bill as Bill;
+                                    return (
+                                        <div key={inactiveBill.id} className="p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
+                                            <div className="flex items-center">
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-gray-800 text-sm leading-tight truncate line-through">{inactiveBill.name}</h4>
+                                                    <p className="text-xs text-gray-400">Canceled on {new Date(inactiveBill.endDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onResubscribe(inactiveBill); }}
+                                                    className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200 mt-1"
+                                                >
+                                                    Restart
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )
+                                }}
+                                placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions</div>}
+                            />
+                        </div>
+                    ))
                 )}
             </div>
         </div>

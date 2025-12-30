@@ -362,6 +362,8 @@ export const getActiveBillInstance = (
     transactions: Transaction[],
     viewingDate: Date,
 ): BillInstance | null => {
+    if (bill.status === 'INACTIVE' || bill.status === 'PAUSED') return null;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -370,31 +372,56 @@ export const getActiveBillInstance = (
     const viewingMonth = viewingDateClean.getMonth();
     const viewingYear = viewingDateClean.getFullYear();
 
+    // --- Handle Trial Period ---
+    if (bill.isTrialActive) {
+        const trialEndDate = new Date(bill.trialEndDate!);
+        trialEndDate.setHours(0, 0, 0, 0);
+
+        // If trial has already ended based on today's date, it should have been converted.
+        // This check prevents it from showing up if the conversion logic hasn't run yet.
+        if (today > trialEndDate) {
+            // In a real scenario, a backend job would convert this.
+            // For the frontend, we just hide it until the state is updated.
+            // Or, we can proceed to treat it as a normal bill for its first payment due date.
+            // Let's assume conversion happens and it's no longer a trial.
+        } else {
+             // Trial is active. Show it if viewing month is the same as trial end month.
+             if (viewingYear === trialEndDate.getFullYear() && viewingMonth === trialEndDate.getMonth()) {
+                 return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id }; // Special 'TRIAL' status can be handled in the component
+             } else {
+                 return null; // Not relevant to this viewing month
+             }
+        }
+    }
+
     const startDate = new Date(bill.startDate);
     startDate.setHours(0, 0, 0, 0);
 
     // Determine the effective start date for visibility.
-    // If firstPaymentDate is set, we use that as the anchor.
-    // Otherwise, we use startDate.
-    const effectiveFirstDate = bill.firstPaymentDate ? new Date(bill.firstPaymentDate) : startDate;
+    // A trial's billingStartDate takes highest priority.
+    // Then a manually set firstPaymentDate.
+    // Finally, the original startDate.
+    const effectiveFirstDate = bill.billingStartDate ? new Date(bill.billingStartDate) :
+                               bill.firstPaymentDate ? new Date(bill.firstPaymentDate) : startDate;
     effectiveFirstDate.setHours(0, 0, 0, 0);
-
-    // --- Check for Lookahead Priority (Before Standard Visibility) ---
-    // If today is close to the NEXT instance (even if current view is earlier), we might want to return that.
-    // However, the function contract is to return the instance RELEVANT to the VIEWING DATE.
-    // If we are viewing Dec, and Jan is due soon.
 
     // We must FIRST determine if the standard instance for this viewing month is valid.
     let standardInstanceValid = true;
     if (viewingYear < effectiveFirstDate.getFullYear() || (viewingYear === effectiveFirstDate.getFullYear() && viewingMonth < effectiveFirstDate.getMonth())) {
         standardInstanceValid = false;
     }
+
     // Calculate Standard Due Date for this Viewing Month
     let dueDate = new Date(viewingYear, viewingMonth, bill.dueDay);
-    if (dueDate.getMonth() !== viewingMonth) dueDate.setDate(0); // Fix Feb 30 etc
+    if (dueDate.getMonth() !== viewingMonth) dueDate.setDate(0); // Fix for days like Feb 30
 
     // Check strict start date
     if (dueDate.getTime() < effectiveFirstDate.getTime()) {
+        standardInstanceValid = false;
+    }
+
+    // Check end date
+    if (bill.endDate && dueDate.getTime() > new Date(bill.endDate).getTime()) {
         standardInstanceValid = false;
     }
 
@@ -408,63 +435,45 @@ export const getActiveBillInstance = (
             new Date(t.date).getFullYear() === viewingYear
         );
 
-        if (dueDate < today) status = 'OVERDUE';
-        else if (dueDate.getTime() === today.getTime()) status = 'DUE';
-        else status = 'UPCOMING';
+        if (isPaidThisMonth) {
+            status = 'PAID';
+        } else if (dueDate < today) {
+            status = 'OVERDUE';
+        } else if (dueDate.getTime() === today.getTime()) {
+            status = 'DUE';
+        } else {
+            status = 'UPCOMING';
+        }
     }
 
     // --- LOOKAHEAD LOGIC ---
-    // If standard instance is invalid (too early) OR paid, we check for the *next* possible instance.
-    // Case A: Standard Invalid (Viewing Dec, Starts Jan).
-    // Case B: Standard Paid (Viewing Dec, Dec Paid).
-
     if (!standardInstanceValid || isPaidThisMonth) {
-        // Try to find the "Next" instance relative to TODAY (or Viewing Date?)
-        // Requirement: "january bill... be visible 3 days before the next month"
-        // This usually implies looking relative to *Today*.
-
-        // Let's look at the instance for the NEXT month relative to VIEWING month.
-        // If viewing Dec, check Jan.
-
         // Calculate Next Month Date
         const nextMonthDate = new Date(viewingDateClean);
         nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
-        // Calculate Due Date for Next Month
         let nextDueDate = new Date(nextMonthDate.getFullYear(), nextMonthDate.getMonth(), bill.dueDay);
         if (nextDueDate.getMonth() !== nextMonthDate.getMonth()) nextDueDate.setDate(0);
 
-        // Validate Next Due Date against Start/End
-        if (nextDueDate.getTime() >= effectiveFirstDate.getTime() &&
-            (!bill.endDate || nextDueDate.getTime() <= new Date(bill.endDate).getTime())) {
-
-             // Check if within 3 days of TODAY
+        if (nextDueDate.getTime() >= effectiveFirstDate.getTime() && (!bill.endDate || nextDueDate.getTime() <= new Date(bill.endDate).getTime())) {
              const diffTime = nextDueDate.getTime() - today.getTime();
              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-             // Only perform lookahead if we are viewing the Current Real-World Month.
-             // If we are looking at History, we do not want future bills showing up.
              const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
 
-             if (isViewingCurrentRealMonth) {
-                 if (diffDays <= 3 && diffDays > 0) {
-                     // Check if Next Instance is Paid
-                     const isNextPaid = transactions.some(t =>
-                        t.billId === bill.id &&
-                        new Date(t.date).getMonth() === nextDueDate.getMonth() &&
-                        new Date(t.date).getFullYear() === nextDueDate.getFullYear()
-                     );
-
-                     if (!isNextPaid) {
-                         // SHOW NEXT INSTANCE
-                         return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
-                     }
+             if (isViewingCurrentRealMonth && diffDays <= 7 && diffDays > 0) {
+                 const isNextPaid = transactions.some(t =>
+                    t.billId === bill.id &&
+                    new Date(t.date).getMonth() === nextDueDate.getMonth() &&
+                    new Date(t.date).getFullYear() === nextDueDate.getFullYear()
+                 );
+                 if (!isNextPaid) {
+                     return { bill, dueDate: nextDueDate, status: 'UPCOMING', id: bill.id };
                  }
              }
         }
     }
 
-    // If Lookahead didn't return, fallback to standard behavior
+    // Final visibility decision
     if (!standardInstanceValid) return null;
     if (isPaidThisMonth) return { bill, dueDate, status: 'PAID', id: bill.id };
 
