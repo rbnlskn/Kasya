@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { X, Trash2, FileText, Repeat, Calendar, ChevronDown, Ban } from 'lucide-react';
+import { X, Trash2, FileText, Repeat, ChevronDown } from 'lucide-react';
 import { Bill, RecurrenceFrequency, Wallet } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import ToggleSwitch from './ToggleSwitch';
+import { format } from 'date-fns';
 
 interface BillFormModalProps {
   isOpen: boolean;
@@ -29,6 +31,9 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [selectedWalletId, setSelectedWalletId] = useState('');
   const [isTrial, setIsTrial] = useState(false);
   const [trialEndDate, setTrialEndDate] = useState(new Date());
+  const [trialDuration, setTrialDuration] = useState(7);
+
+  const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
 
   useEffect(() => {
     if (isOpen) {
@@ -39,9 +44,16 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setDueDay(initialBill.dueDay);
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setOccurrence(initialBill.recurrence);
-        setIsTrial(initialBill.isTrialActive || false);
-        setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : new Date());
+        // For existing active bills, don't show trial/initial payment options
+        if (initialBill.status === 'ACTIVE') {
+            setIsTrial(initialBill.isTrialActive || false);
+            setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : new Date());
+        } else { // For resubscribe flow, reset these
+            setIsTrial(false);
+            setRecordInitialPayment(false);
+        }
       } else {
+        // Reset for new bill form
         setType('BILL');
         setName('');
         amountInput.setValue('');
@@ -51,27 +63,43 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setIsTrial(false);
         setRecordInitialPayment(false);
         setSelectedWalletId('');
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        setTrialEndDate(tomorrow);
+        const defaultTrialEnd = new Date();
+        defaultTrialEnd.setDate(defaultTrialEnd.getDate() + 7);
+        setTrialEndDate(defaultTrialEnd);
+        setTrialDuration(7);
       }
     }
   }, [isOpen, initialBill]);
 
   useEffect(() => {
-    if (!initialBill) {
+    if (!initialBill || isResubscribeFlow) {
         setDueDay(startDate.getDate());
     }
-  }, [startDate, initialBill]);
+  }, [startDate, initialBill, isResubscribeFlow]);
 
-  // Auto-set trial end date to 7 days from start date for new trials
+  // Sync trial end date from duration
   useEffect(() => {
-    if (!initialBill && isTrial) {
+    if (isTrial) {
       const newTrialEndDate = new Date(startDate);
-      newTrialEndDate.setDate(startDate.getDate() + 7);
+      newTrialEndDate.setDate(startDate.getDate() + trialDuration);
       setTrialEndDate(newTrialEndDate);
     }
-  }, [isTrial, startDate, initialBill]);
+  }, [trialDuration, startDate, isTrial]);
+
+  // Sync trial duration from end date
+  useEffect(() => {
+      if (isTrial) {
+          const newStartDate = new Date(startDate);
+          newStartDate.setHours(0,0,0,0);
+          const newEndDate = new Date(trialEndDate);
+          newEndDate.setHours(0,0,0,0);
+          const diffTime = Math.abs(newEndDate.getTime() - newStartDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          if (diffDays !== trialDuration && diffDays > 0) {
+              setTrialDuration(diffDays);
+          }
+      }
+  }, [trialEndDate, startDate, isTrial]);
 
   useEffect(() => {
     setIcon(type === 'BILL' ? '⚡' : '💬');
@@ -85,12 +113,9 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     if (recordInitialPayment && !selectedWalletId && !isTrial) return;
 
     let firstPaymentDate: string | undefined;
-
-    // "Magic" Logic: If NOT recording initial payment for a new bill, assume first payment is SKIPPED/DUE NEXT CYCLE.
-    if (!initialBill && !recordInitialPayment && !isTrial) {
+    if ((!initialBill || isResubscribeFlow) && !recordInitialPayment && !isTrial) {
         const start = new Date(startDate);
         let nextDate = new Date(start);
-
         switch (occurrence) {
             case 'WEEKLY': nextDate.setDate(nextDate.getDate() + 7); break;
             case 'MONTHLY': nextDate.setMonth(nextDate.getMonth() + 1); break;
@@ -101,9 +126,9 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     }
 
     let billingStartDate: string | undefined;
-    if (!initialBill && isTrial) {
+    if ((!initialBill || isResubscribeFlow) && isTrial) {
         const billingStart = new Date(trialEndDate);
-        billingStart.setDate(billingStart.getDate() + 1); // Day after trial ends
+        billingStart.setDate(billingStart.getDate() + 1);
         billingStartDate = billingStart.toISOString();
     }
 
@@ -116,12 +141,13 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       type,
       startDate: new Date(startDate).toISOString(),
       firstPaymentDate,
-      status: initialBill?.status || 'ACTIVE',
+      status: 'ACTIVE', // When saving, always set to active (for resubscribe)
+      endDate: undefined, // Clear end date on resubscribe
       isTrialActive: isTrial,
       trialEndDate: isTrial ? trialEndDate.toISOString() : undefined,
       billingStartDate: billingStartDate,
       remindTrialEnd: isTrial,
-    }, initialBill?.id, recordInitialPayment && !isTrial ? { walletId: selectedWalletId } : undefined);
+    }, initialBill?.id, (recordInitialPayment && !isTrial) ? { walletId: selectedWalletId } : undefined);
     onClose();
   };
 
@@ -143,15 +169,15 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             ...initialBill,
             status: 'INACTIVE',
             endDate: new Date().toISOString(),
-            isTrialActive: false, // Ensure trial is marked as inactive
+            isTrialActive: false,
         }, initialBill.id);
         onClose();
       }
   }
 
-  const headerText = useMemo(() => initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`, [initialBill, type]);
-  const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
+  const headerText = useMemo(() => isResubscribeFlow ? 'Restart Subscription' : (initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`), [initialBill, type, isResubscribeFlow]);
   const buttonText = isResubscribeFlow ? 'Restart Subscription' : (initialBill ? 'Save Changes' : 'Add Item');
+  const showAdvancedOptions = !initialBill || isResubscribeFlow;
 
   return (
     <>
@@ -161,7 +187,6 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{headerText}</h2>
           <div className="flex items-center space-x-2">
-            {initialBill && initialBill.status === 'ACTIVE' && <button type="button" onClick={handleStopSubscription} className="p-2.5 bg-amber-100 text-amber-600 rounded-full hover:bg-amber-200 transition-colors" title={initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}><Ban className="w-5 h-5" /></button>}
             {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors" title="Delete"><Trash2 className="w-5 h-5" /></button>}
             <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
@@ -193,7 +218,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
               <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
-                  <span className="text-sm font-bold text-text-primary">{startDate.toLocaleDateString()}</span>
+                  <span className="text-sm font-bold text-text-primary">{format(startDate, 'MMMM d, yyyy')}</span>
               </button>
           </div>
 
@@ -214,57 +239,59 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
               </div>
           </div>
 
-          {!initialBill && type === 'SUBSCRIPTION' && (
-              <div className="bg-slate-100 p-3 rounded-2xl border-2 border-transparent">
-                  <div className="flex items-center justify-between">
-                      <div>
-                          <label className="text-sm font-bold text-text-primary flex-1 block">Starts with a Free Trial?</label>
-                          <p className="text-xs text-slate-500 mt-1">Enable if it begins with a free period.</p>
+          {showAdvancedOptions && type === 'SUBSCRIPTION' && (
+            <div className="space-y-2">
+              <ToggleSwitch isChecked={isTrial} onChange={setIsTrial} label="Starts with a Free Trial?" description="Enable if the subscription begins with a free period." />
+              {isTrial && (
+                <div className="bg-slate-100 p-3 rounded-2xl space-y-2">
+                    <div className="flex space-x-2">
+                      <div className="flex-1">
+                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
+                          <div className="relative">
+                            <input type="number" value={trialDuration} onChange={e => setTrialDuration(parseInt(e.target.value))} className="w-full bg-white border-2 border-transparent focus:border-primary/30 rounded-xl px-4 text-sm font-bold text-text-primary h-12"/>
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-secondary">days</span>
+                          </div>
                       </div>
-                      <div onClick={() => setIsTrial(!isTrial)} className={`relative w-12 h-6 flex items-center rounded-full cursor-pointer transition-colors ${isTrial ? 'bg-primary' : 'bg-slate-300'}`}>
-                          <div className={`absolute left-0 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${isTrial ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </div>
-                  </div>
-                  {isTrial && (
-                      <div className="mt-4">
-                          <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">Trial Ends On</label>
-                          <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-surface border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
-                              <span className="text-sm font-bold text-text-primary">{trialEndDate.toLocaleDateString()}</span>
+                      <div className="flex-1">
+                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Ends On</label>
+                          <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
+                              <span className="text-sm font-bold text-text-primary">{format(trialEndDate, 'MMM d, yyyy')}</span>
                           </button>
                       </div>
-                  )}
-              </div>
-          )}
-
-          {!initialBill && !isTrial && (
-            <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <label className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
-                        <p className="text-xs text-primary/50 mt-1">Uncheck to schedule for the next cycle.</p>
-                    </div>
-                    <div onClick={() => setRecordInitialPayment(!recordInitialPayment)} className={`relative w-12 h-6 flex items-center rounded-full cursor-pointer transition-colors ${recordInitialPayment ? 'bg-primary' : 'bg-slate-300'}`}>
-                        <div className={`absolute left-0 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${recordInitialPayment ? 'translate-x-6' : 'translate-x-1'}`} />
                     </div>
                 </div>
-                {recordInitialPayment && (
-                    <div className="mt-4">
-                        <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">From Wallet</label>
-                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                            <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
-                                {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
-                            </span>
-                            <ChevronDown className="w-4 h-4 text-text-secondary" />
-                        </button>
-                    </div>
-                )}
+              )}
             </div>
           )}
 
-<button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
-</form>
-</div>
-</div>
+          {showAdvancedOptions && !isTrial && (
+            <div className="space-y-2">
+              <ToggleSwitch isChecked={recordInitialPayment} onChange={setRecordInitialPayment} label="Record initial payment?" description="Uncheck to schedule the first payment for the next cycle." />
+              {recordInitialPayment && (
+                  <div className="bg-slate-100 p-3 rounded-2xl">
+                      <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">From Wallet</label>
+                      <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-50 text-left">
+                          <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
+                              {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
+                          </span>
+                          <ChevronDown className="w-4 h-4 text-text-secondary" />
+                      </button>
+                  </div>
+              )}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
+            {initialBill && initialBill.status === 'ACTIVE' && (
+              <button type="button" onClick={handleStopSubscription} className="w-full text-center text-red-600 font-bold text-sm py-3 mt-2 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors">
+                {initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </div>
 {selectorView !== 'NONE' && (
 <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectorView('NONE')}>
 <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>

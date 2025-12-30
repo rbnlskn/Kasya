@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
 import { CommitmentInstanceStatus } from '../utils/commitment';
 import useResponsive from '../hooks/useResponsive';
+import { differenceInDays, format } from 'date-fns';
 
 interface CommitmentCardProps {
   item: Bill | Commitment;
@@ -74,6 +74,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   };
 
   if (isTrial) {
+    const bill = item as Bill;
+    const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
+
     return (
       <div
         onClick={onViewDetails}
@@ -95,14 +98,23 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
               </h3>
             </div>
             <p className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>
-              Trial ends on {new Date((item as Bill).trialEndDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {`Trial (${trialDays} days) • Ends ${format(new Date(bill.trialEndDate!), 'MMM d')}`}
             </p>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-between items-end">
+          <div className="text-left">
+            <p className="text-xs text-slate-500 font-medium">Renews at</p>
+            <p className="font-bold text-slate-700">{currencySymbol}{formatCurrency(bill.amount)}</p>
+          </div>
           <button
-            onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
-            className="bg-blue-100 text-blue-800 hover:bg-blue-200 active:scale-95 transition flex items-center justify-center shrink-0"
+            onClick={(e) => {
+                e.stopPropagation();
+                // The actual stop logic is handled in BillFormModal, which is opened via onEdit
+                // So, onViewDetails is the correct action here, but it should open the form
+                onViewDetails();
+            }}
+            className="bg-red-100 text-red-800 hover:bg-red-200 active:scale-95 transition flex items-center justify-center shrink-0"
             style={{ height: scale(36), borderRadius: scale(10), paddingLeft: scale(12), paddingRight: scale(12) }}
           >
             <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel Trial</span>

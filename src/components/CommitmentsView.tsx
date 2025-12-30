@@ -59,12 +59,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   };
 
   const activeBillInstances = useMemo(() => {
-    // Get instances for the currently viewed month
     const currentMonthInstances = bills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
       .filter((b): b is BillInstance => b !== null);
 
-    // Get instances for the next month to check for lookahead
     const nextMonthDate = new Date(currentDate);
     nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
@@ -72,12 +70,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
         .filter((b): b is BillInstance => b !== null);
 
-    // Filter next month's instances for the lookahead window (7 days)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Only perform lookahead if we are viewing the Current Real-World Month.
-    // If we are looking at History, we do not want future bills showing up.
     const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
 
     const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
@@ -86,44 +81,24 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         return today >= lookaheadDate;
     }) : [];
 
-    // Combine and remove duplicates
     const combined = [...currentMonthInstances, ...lookaheadBills];
     const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
-
-    const filteredByStatus = uniqueInstances.filter(b => billFilter === 'HISTORY' ? b.status === 'PAID' : b.status !== 'PAID');
-
+    const filteredByStatus = uniqueInstances.filter(b => b.bill.status === 'ACTIVE');
     const sortedInstances = sortUnified(filteredByStatus);
 
     return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
-  }, [bills, transactions, currentDate, billFilter]);
+  }, [bills, transactions, currentDate]);
 
-  // Refactored to accept viewingDate or default to current viewing date logic
   const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
       if (!day) return 'No Due Date';
-      const today = new Date(); // Real Today
-      today.setHours(0,0,0,0);
-
       const viewingMonth = viewingDate.getMonth();
       const viewingYear = viewingDate.getFullYear();
-
-      // Construct due date based on the viewing month
       let dueDate = new Date(viewingYear, viewingMonth, day);
-
-      // Credit Card specific logic:
-      // Typically, if statement day is X, the due date is usually X+Period.
-      // But assuming 'day' here is the Due Day as stored.
-
-      // If the due day (e.g. 5th) is BEFORE the current day of real-time month,
-      // AND we are viewing the real-time month, it might show "Next Month's Due Date"?
-      // But the requirement is to show the due date for the VIEWING month.
-      // So if I view Jan 2026, I want to see Jan 5 (or whatever).
-
       return `Due ${dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
   }
 
   const renderCreditCardItem = (cc: Wallet) => {
     const currentBalance = (cc.creditLimit || 0) - cc.balance;
-
     return (
         <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-2 flex justify-between items-center cursor-pointer">
             <div className="flex items-center flex-1 mr-4">
@@ -149,10 +124,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
-      .flatMap(c => getCommitmentInstances(c, transactions, currentDate)); // Use flatMap to allow multiple instances
-
+      .flatMap(c => getCommitmentInstances(c, transactions, currentDate));
     const sortedInstances = sortUnified(instances);
-
     return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
   }, [commitments, transactions, currentDate]);
 
@@ -165,21 +138,16 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       return sortUnified(settled);
   }, [commitments, transactions]);
 
+  const inactiveBills = useMemo(() => bills.filter(b => b.status === 'INACTIVE'), [bills]);
+
   const renderCommitmentItem = (item: (CommitmentInstance & { id: string }) | Commitment) => {
     const isInstance = 'commitment' in item;
     const commitment = isInstance ? item.commitment : item;
     const dueDate = isInstance ? item.dueDate : new Date();
     const status = isInstance ? item.status : 'SETTLED';
-
     const isLending = commitment.type === CommitmentType.LENDING;
     const category = categories.find(c => c.id === commitment.categoryId);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
-
-    // For specific instances, we want to show instance-specific data if available (e.g. amount due)
-    // but the original design relies on total stats.
-    // We will keep standard display but ensure status is correct.
-
-    // If it's an instance, we can calculate installment amount
     const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
 
     return (
@@ -470,41 +438,36 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                         />
                     </>
                 ) : (
-                    Object.entries(
-                        bills.filter(b => b.status === 'INACTIVE')
-                            .reduce((acc, bill) => {
+                    inactiveBills.length === 0
+                    ? <div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions</div>
+                    : Object.entries(
+                        inactiveBills.reduce((acc, bill) => {
                                 const year = new Date(bill.endDate!).getFullYear();
-                                if (!acc[year]) {
-                                    acc[year] = [];
-                                }
+                                if (!acc[year]) acc[year] = [];
                                 acc[year].push(bill);
                                 return acc;
                             }, {} as Record<string, Bill[]>)
-                    ).map(([year, bills]) => (
+                    ).map(([year, yearBills]) => (
                         <div key={year}>
                             <SectionHeader title={year} />
                             <CommitmentList
-                                items={bills}
-                                renderItem={(bill) => {
-                                    const inactiveBill = bill as Bill;
-                                    return (
-                                        <div key={inactiveBill.id} className="p-2 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
-                                            <div className="flex items-center">
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="font-bold text-gray-800 text-sm leading-tight truncate line-through">{inactiveBill.name}</h4>
-                                                    <p className="text-xs text-gray-400">Canceled on {new Date(inactiveBill.endDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); onResubscribe(inactiveBill); }}
-                                                    className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200"
-                                                >
-                                                    Restart
-                                                </button>
+                                items={yearBills}
+                                renderItem={(bill) => (
+                                    <div key={bill.id} className="p-2 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
+                                        <div className="flex items-center">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-gray-800 text-sm leading-tight truncate line-through">{bill.name}</h4>
+                                                <p className="text-xs text-gray-400">Canceled on {new Date(bill.endDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                                             </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onResubscribe(bill); }}
+                                                className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200"
+                                            >
+                                                Restart
+                                            </button>
                                         </div>
-                                    )
-                                }}
-                                placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions</div>}
+                                    </div>
+                                )}
                             />
                         </div>
                     ))
