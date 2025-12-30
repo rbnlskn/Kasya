@@ -61,15 +61,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       const bill = item as Bill;
       const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
       return (
-        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
+        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-evenly" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(2) }}>
           <div className="flex justify-between items-center leading-none">
             <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Trial Period</span>
-            <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
+            <span className="font-medium text-slate-600" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
           </div>
-          <div className="w-full border-t border-dashed border-slate-300/60" />
+          <div className="w-full border-t border-solid border-slate-200" />
           <div className="flex justify-between items-center leading-none">
             <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews At</span>
-            <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
+            <span className="font-medium text-slate-600" style={{ fontSize: fontScale(10) }}>
               {currencySymbol}{formatCurrency(bill.amount)}
             </span>
           </div>
@@ -155,7 +155,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
                     e.stopPropagation();
                     onEdit?.(item);
                 }}
-                className="bg-rose-100 text-rose-800 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
+                className="aspect-square bg-rose-100 text-rose-800 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
                 style={{ width: scale(64), borderRadius: scale(10) }}
             >
                 <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel</span>
