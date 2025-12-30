@@ -197,31 +197,34 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
               </button>
           </div>
 
-          <div className="flex space-x-2">
-              <div className="flex-1">
-                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
-                  <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                      <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
-                      <ChevronDown className="w-4 h-4 text-text-secondary"/>
-                  </button>
-              </div>
-              <div className="flex-1">
-                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
-                  <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                      <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace('_', ' ') : 'Select...'}</span>
-                      <ChevronDown className="w-4 h-4 text-text-secondary"/>
-                  </button>
-              </div>
+          <div>
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
+              <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                  <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary"/>
+              </button>
+          </div>
+          <div>
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
+              <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                  <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace('_', ' ') : 'Select...'}</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary"/>
+              </button>
           </div>
 
           {!initialBill && type === 'SUBSCRIPTION' && (
               <div className="bg-slate-100 p-3 rounded-2xl border-2 border-transparent">
                   <div className="flex items-center justify-between">
-                      <label htmlFor="trial-checkbox" className="text-sm font-bold text-text-primary flex-1">Starts with a Free Trial?</label>
-                      <input id="trial-checkbox" type="checkbox" checked={isTrial} onChange={(e) => setIsTrial(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                      <div>
+                          <label className="text-sm font-bold text-text-primary flex-1 block">Starts with a Free Trial?</label>
+                          <p className="text-xs text-slate-500 mt-1">Enable if it begins with a free period.</p>
+                      </div>
+                      <div onClick={() => setIsTrial(!isTrial)} className={`relative w-12 h-6 flex items-center rounded-full cursor-pointer transition-colors ${isTrial ? 'bg-primary' : 'bg-slate-300'}`}>
+                          <div className={`absolute left-0 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${isTrial ? 'translate-x-6' : 'translate-x-1'}`} />
+                      </div>
                   </div>
                   {isTrial && (
-                      <div className="mt-3">
+                      <div className="mt-4">
                           <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">Trial Ends On</label>
                           <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-surface border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
                               <span className="text-sm font-bold text-text-primary">{trialEndDate.toLocaleDateString()}</span>
@@ -234,11 +237,16 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           {!initialBill && !isTrial && (
             <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
                 <div className="flex items-center justify-between">
-                    <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
-                    <input id="record-tx-checkbox" type="checkbox" checked={recordInitialPayment} onChange={(e) => setRecordInitialPayment(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
+                    <div>
+                        <label className="text-sm font-bold text-primary/80 flex-1">Record initial payment</label>
+                        <p className="text-xs text-primary/50 mt-1">Uncheck to schedule for the next cycle.</p>
+                    </div>
+                    <div onClick={() => setRecordInitialPayment(!recordInitialPayment)} className={`relative w-12 h-6 flex items-center rounded-full cursor-pointer transition-colors ${recordInitialPayment ? 'bg-primary' : 'bg-slate-300'}`}>
+                        <div className={`absolute left-0 w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${recordInitialPayment ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </div>
                 </div>
                 {recordInitialPayment && (
-                    <div className="mt-3">
+                    <div className="mt-4">
                         <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">From Wallet</label>
                         <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
                             <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>

@@ -9,6 +9,7 @@ import { formatCurrency } from '../utils/number';
 import { CommitmentStack } from './CommitmentStack';
 import CommitmentCard from './CommitmentCard';
 import { CommitmentList } from './CommitmentList';
+import CommitmentListItem from './CommitmentListItem';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
@@ -146,40 +147,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     );
   };
 
-
-  const renderBillItem = (instance: BillInstance) => {
-    const { bill, dueDate, status } = instance;
-    const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
-    const lastPayment = findLastPayment(bill.id, transactions);
-    return (
-      <div key={bill.id} onClick={() => setDetailsModal({ type: 'BILL', item: bill })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100">
-        <div className="flex items-center">
-          <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
-            style={{ backgroundColor: status === 'PAID' ? '#E5E7EB' : category?.color || '#E5E7EB' }}
-          >
-            {category?.icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'PAID' ? 'line-through' : ''}`}>{bill.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'PAID' ? `Paid on ${new Date(lastPayment!.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : generateDueDateText(dueDate, status, bill.recurrence)}</p>
-          </div>
-          <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'PAID' ? 'opacity-50 line-through' : ''}`}>{currencySymbol}{formatCurrency(bill.amount)}</span>
-            {status !== 'PAID' && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onPayBill(bill); }}
-                className="text-xs bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-blue-200 mt-1"
-              >
-                Pay
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
       .flatMap(c => getCommitmentInstances(c, transactions, currentDate)); // Use flatMap to allow multiple instances
@@ -306,7 +273,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <CommitmentStack
                 items={activeBillInstances}
                 cardHeight={scale(140)}
-                maxVisible={2}
+                maxVisible={4}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
                     const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
@@ -349,7 +316,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <CommitmentStack
                   items={activeCommitmentInstances}
                   cardHeight={scale(140)}
-                  maxVisible={2}
+                  maxVisible={4}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
                     const category = categories.find(c => c.id === commitment.categoryId);
@@ -468,28 +435,37 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <button onClick={() => setBillFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
                     <button onClick={() => setBillFilter('HISTORY')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'HISTORY' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
                 </div>
-                {billFilter === 'HISTORY' && (
-                    <div className="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border w-full">
-                        <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-4 h-4" /></button>
-                        <span className="text-sm font-bold text-gray-800">{currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
-                        <button onClick={() => handleDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-4 h-4" /></button>
-                    </div>
-                )}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
+            <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-2">
                 {billFilter === 'ACTIVE' ? (
                     <>
                         <SectionHeader title="Free Trials" count={activeBillInstances.filter(b => b.bill.isTrialActive).length} />
                         <CommitmentList
                             items={activeBillInstances.filter(b => b.bill.isTrialActive)}
-                            renderItem={renderBillItem}
+                            renderItem={(instance) => (
+                                <CommitmentListItem
+                                    instance={instance}
+                                    category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+                                    currencySymbol={currencySymbol}
+                                    onPay={() => onPayBill(instance.bill)}
+                                    onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
+                                />
+                            )}
                             placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active trials</div>}
                         />
                         <SectionHeader title="Active Subscriptions" count={activeBillInstances.filter(b => !b.bill.isTrialActive).length} />
                         <CommitmentList
                             items={activeBillInstances.filter(b => !b.bill.isTrialActive)}
-                            renderItem={renderBillItem}
+                            renderItem={(instance) => (
+                                <CommitmentListItem
+                                    instance={instance}
+                                    category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+                                    currencySymbol={currencySymbol}
+                                    onPay={() => onPayBill(instance.bill)}
+                                    onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
+                                />
+                            )}
                             placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active subscriptions</div>}
                         />
                     </>
@@ -512,7 +488,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                 renderItem={(bill) => {
                                     const inactiveBill = bill as Bill;
                                     return (
-                                        <div key={inactiveBill.id} className="p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
+                                        <div key={inactiveBill.id} className="p-2 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
                                             <div className="flex items-center">
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="font-bold text-gray-800 text-sm leading-tight truncate line-through">{inactiveBill.name}</h4>
@@ -520,7 +496,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                                                 </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); onResubscribe(inactiveBill); }}
-                                                    className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200 mt-1"
+                                                    className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200"
                                                 >
                                                     Restart
                                                 </button>
