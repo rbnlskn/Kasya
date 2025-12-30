@@ -369,6 +369,14 @@ export const getActiveBillInstance = (
 
     const viewingDateClean = new Date(viewingDate);
     viewingDateClean.setHours(0, 0, 0, 0);
+
+    // If the bill has an end date, and the start of the viewing month is after that end date,
+    // then this bill is definitively finished and should not generate any instances.
+    const startOfViewingMonth = new Date(viewingDateClean.getFullYear(), viewingDateClean.getMonth(), 1);
+    if (bill.endDate && startOfViewingMonth.getTime() > new Date(bill.endDate).getTime()) {
+        return null;
+    }
+
     const viewingMonth = viewingDateClean.getMonth();
     const viewingYear = viewingDateClean.getFullYear();
 

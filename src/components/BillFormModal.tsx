@@ -32,6 +32,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [isTrial, setIsTrial] = useState(false);
   const [trialEndDate, setTrialEndDate] = useState(new Date());
   const [trialDuration, setTrialDuration] = useState(7);
+  const [dueDayManuallySet, setDueDayManuallySet] = useState(false);
 
   const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
 
@@ -42,13 +43,13 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setName(initialBill.name);
         amountInput.setValue(initialBill.amount);
         setDueDay(initialBill.dueDay);
+        setDueDayManuallySet(true); // For existing bills, due day is intentional
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setOccurrence(initialBill.recurrence);
-        // For existing active bills, don't show trial/initial payment options
         if (initialBill.status === 'ACTIVE') {
             setIsTrial(initialBill.isTrialActive || false);
             setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : new Date());
-        } else { // For resubscribe flow, reset these
+        } else {
             setIsTrial(false);
             setRecordInitialPayment(false);
         }
@@ -57,8 +58,10 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setType('BILL');
         setName('');
         amountInput.setValue('');
-        setDueDay(new Date().getDate());
-        setStartDate(new Date());
+        const today = new Date();
+        setStartDate(today);
+        setDueDay(today.getDate());
+        setDueDayManuallySet(false); // Default, can be auto-updated
         setOccurrence('');
         setIsTrial(false);
         setRecordInitialPayment(false);
@@ -71,41 +74,55 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     }
   }, [isOpen, initialBill]);
 
+  // Auto-update due day from start date, ONLY if not manually set by user
   useEffect(() => {
-    if (!initialBill || isResubscribeFlow) {
+    if ((!initialBill || isResubscribeFlow) && !dueDayManuallySet) {
         setDueDay(startDate.getDate());
     }
-  }, [startDate, initialBill, isResubscribeFlow]);
-
-  // Sync trial end date from duration
-  useEffect(() => {
-    if (isTrial) {
-      const newTrialEndDate = new Date(startDate);
-      newTrialEndDate.setDate(startDate.getDate() + trialDuration);
-      setTrialEndDate(newTrialEndDate);
-    }
-  }, [trialDuration, startDate, isTrial]);
-
-  // Sync trial duration from end date
-  useEffect(() => {
-      if (isTrial) {
-          const newStartDate = new Date(startDate);
-          newStartDate.setHours(0,0,0,0);
-          const newEndDate = new Date(trialEndDate);
-          newEndDate.setHours(0,0,0,0);
-          const diffTime = Math.abs(newEndDate.getTime() - newStartDate.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (diffDays !== trialDuration && diffDays > 0) {
-              setTrialDuration(diffDays);
-          }
-      }
-  }, [trialEndDate, startDate, isTrial]);
+  }, [startDate, initialBill, isResubscribeFlow, dueDayManuallySet]);
 
   useEffect(() => {
     setIcon(type === 'BILL' ? '⚡' : '💬');
   }, [type]);
 
   if (!isOpen && !isExiting) return null;
+
+  const handleTrialDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDuration = parseInt(e.target.value, 10);
+    const durationToSet = isNaN(newDuration) ? 0 : newDuration;
+
+    if (durationToSet >= 0) {
+        setTrialDuration(durationToSet);
+        const newTrialEndDate = new Date(startDate);
+        newTrialEndDate.setDate(startDate.getDate() + durationToSet);
+        setTrialEndDate(newTrialEndDate);
+    }
+  };
+
+  const handleTrialEndDateChange = (date: Date) => {
+    const newStartDate = new Date(startDate);
+    newStartDate.setHours(0, 0, 0, 0);
+    const newEndDate = new Date(date);
+    newEndDate.setHours(0, 0, 0, 0);
+
+    if (newEndDate < newStartDate) {
+        setTrialEndDate(newStartDate);
+        setTrialDuration(0);
+    } else {
+        setTrialEndDate(newEndDate);
+        const diffTime = newEndDate.getTime() - newStartDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        setTrialDuration(diffDays);
+    }
+    setSelectorView('NONE');
+  };
+
+  const handleDueDayChange = (day: number) => {
+    setDueDay(day);
+    setDueDayManuallySet(true);
+    setSelectorView('NONE');
+  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,7 +265,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                       <div className="flex-1">
                           <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
                           <div className="relative">
-                            <input type="number" value={trialDuration} onChange={e => setTrialDuration(parseInt(e.target.value))} className="w-full bg-white border-2 border-transparent focus:border-primary/30 rounded-xl px-4 text-sm font-bold text-text-primary h-12"/>
+                            <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-white border-2 border-transparent focus:border-primary/30 rounded-xl px-4 text-sm font-bold text-text-primary h-12"/>
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-secondary">days</span>
                           </div>
                       </div>
@@ -308,10 +325,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     {selectorView === 'TRIAL_END_DATE_CALENDAR' && (
         <DayPicker
             selectedDate={trialEndDate}
-            onChange={(d) => {
-                setTrialEndDate(d);
-                setSelectorView('NONE');
-            }}
+            onChange={handleTrialEndDateChange}
             onClose={() => setSelectorView('NONE')}
         />
     )}
@@ -332,7 +346,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             <h3 className="font-bold text-lg text-text-primary mb-4">Select Due Day</h3>
             <div className="grid grid-cols-7 gap-2">
                 {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                    <button key={day} onClick={() => { setDueDay(day); setSelectorView('NONE'); }} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
+                    <button key={day} onClick={() => handleDueDayChange(day)} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
                         {day}
                     </button>
                 ))}
