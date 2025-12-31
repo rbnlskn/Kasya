@@ -36,11 +36,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     ? (item.recurrence === 'ONE_TIME' || item.recurrence === 'NO_DUE_DATE'
       ? calculateTotalObligation(item) - paidAmount
       : (instanceStatus === 'PAID' ? 0 : calculateInstallment(item)))
-    : item.amount;
+    : (item as Bill).amount;
 
   if (displayAmount < 0) displayAmount = 0;
 
-  const totalObligation = isCommitment ? calculateTotalObligation(item) : item.amount;
+  const totalObligation = isCommitment ? calculateTotalObligation(item) : (item as Bill).amount;
   const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
 
   // --- DYNAMIC STYLES & TEXT ---
@@ -105,7 +105,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
         <div className="flex gap-1.5 items-center mt-px text-right">
-          <span className={`text-[13px] font-extrabold whitespace-nowrap ${isTrial ? 'text-blue-500' : 'text-slate-700'}`}>
+          <span className={`text-[13px] font-extrabold whitespace-nowrap ${isTrial ? 'text-blue-500' : 'text-blue-600'}`}>
             {isTrial ? 'FREE' : `${currencySymbol}${formatCurrency(displayAmount)}`}
           </span>
           <span className="text-lg text-slate-300 leading-none -mt-0.5">›</span>
