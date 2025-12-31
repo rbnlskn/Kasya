@@ -44,24 +44,24 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
 
   // --- DYNAMIC STYLES & TEXT ---
-  const cardClasses = `
+  let cardClasses = `
     w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
     border border-b-gray-100
-    ${isTrial ? 'border-blue-500' : 'border-transparent'}
-    ${isOverdue ? 'border-red-500' : ''}
-    ${!isTrial && !isOverdue ? 'shadow-[0_2px_10px_rgba(0,0,0,0.04)]' : ''}
-    ${isBill && (item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}
   `;
 
-  const getIconTheme = () => {
-    if (isTrial) return { bg: 'bg-blue-100', text: 'text-blue-600' };
-    if (isOverdue) return { bg: 'bg-red-100', text: 'text-red-600' };
-    if (isCommitment) return { bg: 'bg-purple-100', text: 'text-purple-600' };
-    return { bg: 'bg-indigo-100', text: 'text-indigo-600' }; // Standard Bill
-  };
-  const iconTheme = getIconTheme();
+  if (isTrial) {
+    cardClasses += ' border-blue-500 shadow-none';
+  } else if (isOverdue) {
+    cardClasses += ' border-red-500 shadow-none';
+  } else {
+    cardClasses += ' border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
+  }
+
+  if (isBill && (item as Bill).status === 'INACTIVE') {
+    cardClasses += ' opacity-50';
+  }
 
   const getButtonConfig = () => {
     if (isTrial) {
@@ -96,7 +96,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* --- HEADER --- */}
       <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">
         <div className="flex gap-2.5 items-center">
-          <div className={`w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${iconTheme.bg} ${iconTheme.text}`}>
+          <div
+            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+            style={{ backgroundColor: category?.color ? `${category.color}20` : '#EFF6FF', color: category?.color || '#3B82F6' }}
+          >
             {category?.icon}
           </div>
           <div className="flex flex-col">
@@ -122,7 +125,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-red-500' : 'text-slate-700'}`}>
               {isCommitment ? `${currencySymbol}${formatCurrency(paidAmount)}` : period}
               {isCommitment && (
-                 <span className="text-[10px] font-bold bg-purple-100 text-purple-600 px-1 py-0.5 rounded-md">
+                 <span className={`text-[10px] font-bold px-1 py-0.5 rounded-md ${isLending ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'}`}>
                    {Math.round(progress)}%
                  </span>
               )}
@@ -138,7 +141,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* --- SEPARATOR --- */}
       {isCommitment ? (
         <div className="w-full h-[6px] bg-slate-100 relative">
-          <div className="h-full bg-purple-500 rounded-r-md" style={{ width: `${progress}%` }}></div>
+          <div className={`h-full rounded-r-md ${isLending ? 'bg-emerald-500' : 'bg-purple-500'}`} style={{ width: `${progress}%` }}></div>
         </div>
       ) : (
         <div className="h-px w-full bg-slate-100"></div>

@@ -425,7 +425,7 @@ const App: React.FC = () => {
                       categoryId: commitmentData.categoryId,
                       walletId: initialTransactionWalletId,
                       date: commitmentData.startDate,
-                      title: isLoan ? 'Loan Disbursement' : 'Lending Disbursement',
+                      title: isLoan ? 'Loan' : 'Lending',
                       description: commitmentData.name,
                       commitmentId: newCommitmentId
                   };

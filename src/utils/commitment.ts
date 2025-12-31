@@ -386,7 +386,13 @@ export const getDisplayPeriod = (
     }
 
     // Handle One-Time / No Due Date
-    if (item.recurrence === 'NO_DUE_DATE' || item.recurrence === 'ONE_TIME') {
+    if (item.recurrence === 'NO_DUE_DATE') {
+        return {
+            period: 'One-Time',
+            endDate: 'N/A'
+        };
+    }
+    if (item.recurrence === 'ONE_TIME') {
         return {
             period: 'One-Time',
             endDate: formattedDueDate

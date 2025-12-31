@@ -204,7 +204,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <AddCommitmentCard
                         onClick={onAddCreditCard}
                         label="No credit cards yet. Add one?"
-                        style={{ height: 'calc(65vw * 200 / 340)' }}
                     />
                 </div>
             ) : (
