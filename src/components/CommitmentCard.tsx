@@ -48,15 +48,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
-    border border-b-gray-100
+    border border-gray-200
   `;
 
   if (isTrial) {
-    cardClasses += ' border-blue-500 shadow-none';
+    cardClasses += ' border-blue-500';
   } else if (isOverdue) {
-    cardClasses += ' border-red-500 shadow-none';
+    cardClasses += ' border-red-500';
   } else {
-    cardClasses += ' border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
+    cardClasses += ' shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
   }
 
   if (isBill && (item as Bill).status === 'INACTIVE') {
