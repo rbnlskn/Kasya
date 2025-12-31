@@ -16,7 +16,7 @@ const AddCommitmentCard: React.FC<AddCommitmentCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-[20px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.04)] border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full"
+      className="bg-white rounded-[20px] p-4 cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.99] flex flex-col items-center justify-center w-full border-2 border-dashed border-slate-300"
       style={{ minHeight: '155px', ...style }}
     >
       <div className="text-center text-slate-400">
