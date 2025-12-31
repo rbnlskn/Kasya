@@ -255,7 +255,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             paymentsMade={paymentsMade}
-                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: bill.recurrence })}
                             headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
@@ -299,7 +298,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             paymentsMade={paymentsMade}
-                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: commitment.recurrence })}
                             headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayCommitment(commitment)}

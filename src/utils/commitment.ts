@@ -336,25 +336,56 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
 };
 
 export const getBillingPeriod = (
-    item: { recurrence: RecurrenceFrequency, dueDate: Date },
-): string => {
-    const { recurrence, dueDate } = item;
+    item: Bill,
+    viewingDate: Date = new Date(),
+): { period: string, dueDate: string } | null => {
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
 
-    if (recurrence === 'NO_DUE_DATE' || recurrence === 'ONE_TIME') {
-        return 'One-Time Payment';
+    // Trial Period Logic
+    if (item.isTrialActive && item.trialEndDate) {
+        const startDate = new Date(item.startDate);
+        const endDate = new Date(item.trialEndDate);
+        return {
+            period: `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`,
+            dueDate: endDate.toLocaleDateString('en-US', options)
+        };
     }
 
-    // Per user feedback, the period is from the current due date to the day before the next one.
-    const periodStart = new Date(dueDate);
-    const nextDueDate = addInterval(dueDate, recurrence, 1);
-    const periodEnd = new Date(nextDueDate);
-    periodEnd.setDate(periodEnd.getDate() - 1);
+    if (item.recurrence === 'NO_due_DATE' || item.recurrence === 'ONE_TIME' || !item.dueDay) {
+        const startDate = new Date(item.startDate);
+        return {
+            period: 'One-Time',
+            dueDate: startDate.toLocaleDateString('en-US', options)
+        };
+    }
 
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    // Standard Bill Logic
+    const viewingYear = viewingDate.getFullYear();
+    const viewingMonth = viewingDate.getMonth();
+
+    // The due date for the current viewing month.
+    let currentdueDATE = new Date(viewingYear, viewingMonth, item.dueDay);
+    if (currentdueDATE.getMonth() !== viewingMonth) {
+      currentdueDATE.setDate(0); // Handles invalid dates like Feb 30
+    }
+
+    // The due date for the previous month, which is the start of the current period.
+    let periodStart = new Date(currentdueDATE);
+    periodStart.setMonth(periodStart.getMonth() - 1);
+
+    // Edge case: If start date is after the calculated period start, use the start date.
+    const itemStartDate = new Date(item.startDate);
+    if (itemStartDate > periodStart) {
+        periodStart = itemStartDate;
+    }
+
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
-    const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
+    const formattedEnd = currentdueDATE.toLocaleDateString('en-US', options);
 
-    return `${formattedStart} - ${formattedEnd}`;
+    return {
+        period: `${formattedStart} - ${formattedEnd}`,
+        dueDate: formattedEnd,
+    };
 };
 
 export const getActiveBillInstance = (

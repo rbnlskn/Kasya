@@ -2,7 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 test('Verify Commitments View Layout', async ({ page }) => {
-  await page.goto('http://localhost:5173/');
+  await page.goto('http://localhost:5174/');
 
   // Clear local storage first
   await page.evaluate(() => window.localStorage.clear());
@@ -34,8 +34,8 @@ test('Verify Commitments View Layout', async ({ page }) => {
 
   await page.reload();
 
-  // Wait for the app to be ready by checking for the Add Wallet card
-  await expect(page.getByTestId('add-wallet-card')).toBeVisible({ timeout: 20000 });
+  // Wait for the app to be ready by checking for the Logo
+  await expect(page.locator('.kasya-logo')).toBeVisible({ timeout: 20000 });
 
   // Navigate to Commitments
   await page.getByTestId('commitments-button').click();
