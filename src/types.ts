@@ -66,6 +66,7 @@ export interface Category {
 export type RecurrenceFrequency = 'ONE_TIME' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'NO_DUE_DATE';
 export type BillType = 'BILL' | 'SUBSCRIPTION';
 
+export type BillStatus = 'ACTIVE' | 'INACTIVE' | 'PAUSED';
 export interface Bill {
   id: string;
   name: string;
@@ -78,6 +79,11 @@ export interface Bill {
   firstPaymentDate?: string; // ISO String, explicit first due date override
   lastPaidDate?: string; // ISO String of last payment
   endDate?: string; // ISO String
+  status: BillStatus;
+  isTrialActive?: boolean;
+  trialEndDate?: string;
+  billingStartDate?: string;
+  remindTrialEnd?: boolean;
 }
 
 export enum CommitmentType {

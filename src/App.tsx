@@ -96,6 +96,34 @@ const App: React.FC = () => {
     saveData(data);
   }, [data, isLoading]);
 
+  useEffect(() => {
+    if (isLoading) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let needsUpdate = false;
+    const updatedBills = data.bills.map(bill => {
+        if (bill.isTrialActive && bill.trialEndDate && new Date(bill.trialEndDate) < today) {
+            needsUpdate = true;
+            const trialEndDate = new Date(bill.trialEndDate);
+            const billingStartDate = new Date(trialEndDate);
+            billingStartDate.setDate(trialEndDate.getDate() + 1);
+
+            return {
+                ...bill,
+                isTrialActive: false,
+                billingStartDate: billingStartDate.toISOString().split('T')[0],
+            };
+        }
+        return bill;
+    });
+
+    if (needsUpdate) {
+        setData(prev => ({ ...prev, bills: updatedBills }));
+    }
+  }, [isLoading, data.bills]);
+
   const handleTabChange = useCallback((newTab: Tab) => {
     if (activeTab === newTab) return;
     setPrevTab(activeTab);
@@ -350,14 +378,14 @@ const App: React.FC = () => {
   const handleDeleteWallet = (id: string) => setData(prev => ({ ...prev, wallets: prev.wallets.filter(w => w.id !== id) }));
   const handleSaveBudget = (bData: Omit<Budget, 'id'>, id?: string) => id ? setData(prev => ({ ...prev, budgets: prev.budgets.map(b => b.id === id ? { ...b, ...bData } : b) })) : setData(prev => ({ ...prev, budgets: [...prev.budgets, { ...bData, id: `b_${Date.now()}` }] }));
   const handleDeleteBudget = (id: string) => setData(prev => ({ ...prev, budgets: prev.budgets.filter(b => b.id !== id) }));
-  const handleSaveBill = (billData: Omit<Bill, 'id'>, id?: string, recordInitialPayment?: { walletId: string }) => {
+  const handleSaveBill = (billData: Partial<Bill>, id?: string, recordInitialPayment?: { walletId: string }) => {
     let newBillId = id;
     if (id) {
         setData(prev => ({ ...prev, bills: prev.bills.map(b => b.id === id ? { ...b, ...billData } : b) }));
     } else {
         newBillId = `bill_${Date.now()}`;
-        setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: newBillId! }] }));
-        if (recordInitialPayment) {
+        setData(prev => ({ ...prev, bills: [...prev.bills, { ...billData, id: newBillId! } as Bill] }));
+        if (recordInitialPayment && billData.amount && billData.startDate && billData.name) {
             const tx: Omit<Transaction, 'id'> = {
                 amount: billData.amount,
                 type: TransactionType.EXPENSE,
@@ -373,6 +401,11 @@ const App: React.FC = () => {
     }
   };
   const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
+
+  const handleResubscribe = (bill: Bill) => {
+    setSelectedBillId(bill.id);
+    handleOpenModal('BILL_FORM');
+  };
   
   const handleSaveCommitment = (commitmentData: Omit<Commitment, 'id'>, id?: string, initialTransactionWalletId?: string) => {
       let newCommitmentId = id;
@@ -538,7 +571,7 @@ const App: React.FC = () => {
         {activeTab === 'COMMITMENTS' && (
             <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
               <PageHeader title="Commitments" />
-              <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} />
+              <CommitmentsView wallets={data.wallets} currencySymbol={currentCurrency.symbol} bills={data.bills} commitments={data.commitments} transactions={data.transactions} categories={data.categories} onAddBill={() => { setSelectedBillId(null); handleOpenModal('BILL_FORM'); }} onEditBill={(b) => { setSelectedBillId(b.id); handleOpenModal('BILL_FORM'); }} onPayBill={handlePayBill} onAddCommitment={() => { setSelectedCommitmentId(null); handleOpenModal('COMMITMENT_FORM'); }} onEditCommitment={(c: Commitment) => { setSelectedCommitmentId(c.id); handleOpenModal('COMMITMENT_FORM'); }} onPayCommitment={handlePayCommitment} onPayCC={handlePayCC} onWalletClick={(w) => { setSelectedWalletId(w.id); handleOpenOverlay('WALLET_DETAIL'); }} onAddCreditCard={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} onResubscribe={handleResubscribe} />
             </div>
         )}
 

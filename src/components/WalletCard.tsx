@@ -49,6 +49,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const finalTextColor = !isHexText ? (wallet.textColor || 'text-white') : '';
   const isDarkBg = isHexBg ? !isColorLight(wallet.color) : true;
   const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-black/10';
+  const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
+  const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
 
   return (
     <div
@@ -99,9 +101,9 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
       {/* Card Footer */}
       <div className="relative z-10 flex justify-between items-center">
         <p className="font-bold leading-tight" style={{ fontSize: fontScale(28), letterSpacing: scale(-0.4) }}>
-          {currencySymbol}{formatCurrency(wallet.balance)}
+          {currencySymbol}{formatCurrency(currentBalance)}
         </p>
-        {onPay && (
+        {onPay && isCreditCard && currentBalance > 0 && (
             <button
               onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
               className={`rounded-xl transition-all active:scale-90 font-bold ${

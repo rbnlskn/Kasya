@@ -4,6 +4,8 @@ import { X, Trash2, Calendar, ChevronDown } from 'lucide-react';
 import { Commitment, RecurrenceFrequency, Wallet, Category, CommitmentType } from '../types';
 import DayPicker from './DayPicker';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
+import ToggleSwitch from './ToggleSwitch';
+import WalletSelectItem from './WalletSelectItem';
 
 interface CommitmentFormModalProps {
   isOpen: boolean;
@@ -209,15 +211,19 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                         )}
 
                         {!initialCommitment && (
-                            <div className="bg-primary/5 p-3 rounded-2xl border-2 border-primary/10">
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="record-tx-checkbox" className="text-sm font-bold text-primary/80 flex-1">Record Disbursement</label>
-                                    <input id="record-tx-checkbox" type="checkbox" checked={recordDisbursement} onChange={(e) => setRecordDisbursement(e.target.checked)} className="w-5 h-5 text-primary rounded focus:ring-primary/50" />
-                                </div>
+                            <div className="space-y-2">
+                                <ToggleSwitch
+                                    isChecked={recordDisbursement}
+                                    onChange={setRecordDisbursement}
+                                    label="Record Disbursement"
+                                    description={type === CommitmentType.LOAN ? "Record the borrowed amount you received." : "Record the lent amount you gave."}
+                                />
                                 {recordDisbursement && (
-                                    <div className="mt-3">
-                                        <label className="text-xs font-extrabold text-primary/60 uppercase mb-1.5 block">Into Wallet</label>
-                                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                                    <div className="bg-slate-100 p-3 rounded-2xl">
+                                        <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">
+                                            {type === CommitmentType.LOAN ? "Into Wallet" : "From Wallet"}
+                                        </label>
+                                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-50 text-left">
                                             <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
                                                 {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
                                             </span>
@@ -275,9 +281,13 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                 <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
                                 <div className="space-y-2 max-h-64 overflow-y-auto">
                                     {wallets.map(w => (
-                                        <button key={w.id} onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${selectedWalletId === w.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                                            {w.name}
-                                        </button>
+                                        <WalletSelectItem
+                                            key={w.id}
+                                            wallet={w}
+                                            currencySymbol={currencySymbol}
+                                            isSelected={selectedWalletId === w.id}
+                                            onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }}
+                                        />
                                     ))}
                                 </div>
                             </div>
