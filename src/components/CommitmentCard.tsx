@@ -92,6 +92,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     }
     return <>Last Pay: <b>{lastPaymentAmount ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}</b></>;
   };
+  const iconTheme = () => {
+    if (isLending) return { backgroundColor: '#ECFDF5', color: '#10B981' };
+    if (category?.color) return { backgroundColor: `${category.color}1A`, color: category.color };
+    return { backgroundColor: '#EFF6FF', color: '#3B82F6' };
+  };
 
   // --- RENDER ---
   return (
@@ -104,10 +109,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <div className="flex gap-2.5 items-center">
           <div
             className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
-            style={{
-              backgroundColor: category?.color ? `${category.color}33` : '#EFF6FF',
-              color: category?.color || '#3B82F6'
-            }}
+            style={iconTheme()}
           >
             {category?.icon}
           </div>
