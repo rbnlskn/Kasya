@@ -48,8 +48,9 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
-    ${isTrial ? 'border-2 border-blue-500 shadow-none' : 'shadow-[0_2px_10px_rgba(0,0,0,0.04)]'}
-    ${isOverdue ? 'border border-red-500 shadow-none' : ''}
+    border
+    ${isTrial ? 'border-blue-500 shadow-none' : 'border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.04)]'}
+    ${isOverdue ? 'border-red-500 shadow-none' : ''}
     ${isBill && (item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}
   `;
 
@@ -94,7 +95,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* --- HEADER --- */}
       <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">
         <div className="flex gap-2.5 items-center">
-          <div className={`w-[38px] h-[38px] rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${iconTheme.bg} ${iconTheme.text}`}>
+          <div className={`w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${iconTheme.bg} ${iconTheme.text}`}>
             {category?.icon}
           </div>
           <div className="flex flex-col">

@@ -43,7 +43,7 @@ export const CommitmentStack = <T extends { id: string }>({
     }
   };
 
-  const cardSpacing = 8;
+  const cardSpacing = 12;
   const totalHeight = cardHeight + (maxVisible * cardSpacing);
 
   return (
