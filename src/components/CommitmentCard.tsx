@@ -45,7 +45,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
   // --- DYNAMIC STYLES & TEXT ---
   const cardClasses = `
-    w-full max-w-[350px] bg-white rounded-[20px] overflow-hidden
+    w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
     ${isTrial ? 'border-2 border-blue-500 shadow-none' : ''}
