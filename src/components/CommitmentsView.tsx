@@ -237,7 +237,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           />
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
-                items={activeBillInstances}
+                  items={activeCommitmentInstances}
                 cardHeight={155}
                 maxVisible={4}
                 renderItem={(instance) => {

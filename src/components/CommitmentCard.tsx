@@ -48,8 +48,8 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
-    ${isTrial ? 'border-2 border-blue-500 shadow-none' : ''}
-    ${isOverdue ? 'border border-red-500 shadow-none' : 'border-transparent shadow-[0_2px_10px_rgba(0,0,0,0.04)]'}
+    ${isTrial ? 'border-2 border-blue-500 shadow-none' : 'shadow-[0_2px_10px_rgba(0,0,0,0.04)]'}
+    ${isOverdue ? 'border border-red-500 shadow-none' : ''}
     ${isBill && (item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}
   `;
 
