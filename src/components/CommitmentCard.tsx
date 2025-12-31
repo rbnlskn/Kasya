@@ -77,7 +77,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
   const footerText = () => {
     if (isTrial) {
-      return <>Renews for <b>{currencySymbol}{formatCurrency(item.amount)}</b></>;
+      return <>Renews for <b>{currencySymbol}{formatCurrency((item as Bill).amount)}</b></>;
     }
     if (isCommitment) {
       return <>Total Balance: <b>{currencySymbol}{formatCurrency(totalObligation - paidAmount)}</b></>;
