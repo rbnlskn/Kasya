@@ -335,26 +335,68 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
   });
 };
 
-export const getBillingPeriod = (
-    item: { recurrence: RecurrenceFrequency, dueDate: Date },
-): string => {
-    const { recurrence, dueDate } = item;
+const subtractInterval = (
+    date: Date,
+    unit: RecurrenceFrequency | 'WEEKS' | 'MONTHS' | 'YEARS',
+    duration: number,
+): Date => {
+    const newDate = new Date(date);
+    switch (unit) {
+        case 'WEEKS':
+        case 'WEEKLY':
+            newDate.setDate(newDate.getDate() - 7 * duration);
+            break;
+        case 'MONTHS':
+        case 'MONTHLY':
+            newDate.setMonth(newDate.getMonth() - duration);
+            break;
+        case 'YEARS':
+        case 'YEARLY':
+            newDate.setFullYear(newDate.getFullYear() - duration);
+            break;
+    }
+    return newDate;
+};
 
-    if (recurrence === 'NO_DUE_DATE' || recurrence === 'ONE_TIME') {
-        return 'One-Time Payment';
+export const getDisplayPeriod = (
+    item: Bill | Commitment,
+    dueDate: Date,
+): { period: string; endDate: string } => {
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const formattedDueDate = new Date(dueDate).toLocaleDateString('en-US', options);
+
+    // Handle Trial Bill
+    if ('isTrialActive' in item && item.isTrialActive) {
+        const startDate = new Date(item.startDate);
+        const endDate = new Date(item.trialEndDate!);
+        const formattedStart = startDate.toLocaleDateString('en-US', options);
+        const formattedEnd = endDate.toLocaleDateString('en-US', options);
+        return {
+            period: `${formattedStart} - ${formattedEnd}`,
+            endDate: formattedEnd
+        };
     }
 
-    // Per user feedback, the period is from the current due date to the day before the next one.
-    const periodStart = new Date(dueDate);
-    const nextDueDate = addInterval(dueDate, recurrence, 1);
-    const periodEnd = new Date(nextDueDate);
-    periodEnd.setDate(periodEnd.getDate() - 1);
+    // Handle One-Time / No Due Date
+    if (item.recurrence === 'NO_DUE_DATE' || item.recurrence === 'ONE_TIME') {
+        return {
+            period: 'One-Time',
+            endDate: formattedDueDate
+        };
+    }
 
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    // Handle Standard Recurring Bill/Commitment
+    const periodEnd = new Date(dueDate);
+    periodEnd.setDate(periodEnd.getDate() - 1);
+    const periodStart = subtractInterval(new Date(dueDate), item.recurrence, 1);
+
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
     const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
 
-    return `${formattedStart} - ${formattedEnd}`;
+    return {
+        period: `${formattedStart} - ${formattedEnd}`,
+        endDate: formattedDueDate
+    };
 };
 
 export const getActiveBillInstance = (

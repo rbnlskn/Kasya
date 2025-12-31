@@ -12,7 +12,7 @@ import { CommitmentList } from './CommitmentList';
 import CommitmentListItem from './CommitmentListItem';
 import CommitmentDetailsModal from './CommitmentDetailsModal';
 import BillHistoryModal from './BillHistoryModal';
-import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getBillingPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
+import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getDisplayPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import WalletCard, { getWalletIcon } from './WalletCard';
 import useResponsive from '../hooks/useResponsive';
@@ -255,7 +255,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             paymentsMade={paymentsMade}
-                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: bill.recurrence })}
+                            dueDate={instance.dueDate}
                             headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
@@ -299,7 +299,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             paymentsMade={paymentsMade}
-                            dueDateText={getBillingPeriod({ dueDate: instance.dueDate, recurrence: commitment.recurrence })}
+                            dueDate={instance.dueDate}
                             headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayCommitment(commitment)}
