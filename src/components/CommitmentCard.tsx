@@ -48,7 +48,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     w-full bg-white rounded-[20px] overflow-hidden
     flex flex-col min-h-[155px] cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
-    border border-gray-200
+    border
   `;
 
   if (isTrial) {
@@ -56,7 +56,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   } else if (isOverdue) {
     cardClasses += ' border-red-500';
   } else {
-    cardClasses += ' shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
+    cardClasses += ' border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
   }
 
   if (isBill && (item as Bill).status === 'INACTIVE') {
@@ -76,6 +76,12 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     return { text: 'Pay', className: 'bg-indigo-100 text-indigo-700', action: onPay };
   };
   const buttonConfig = getButtonConfig();
+
+  const headerAmountColor = () => {
+    if (isTrial) return 'text-blue-500';
+    if (isLending) return 'text-emerald-600';
+    return 'text-blue-600';
+  };
 
   const footerText = () => {
     if (isTrial) {
@@ -98,7 +104,10 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <div className="flex gap-2.5 items-center">
           <div
             className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
-            style={{ backgroundColor: category?.color ? `${category.color}20` : '#EFF6FF', color: category?.color || '#3B82F6' }}
+            style={{
+              backgroundColor: category?.color ? `${category.color}33` : '#EFF6FF',
+              color: category?.color || '#3B82F6'
+            }}
           >
             {category?.icon}
           </div>
@@ -110,7 +119,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
         <div className="flex gap-1.5 items-center mt-px text-right">
-          <span className={`font-extrabold whitespace-nowrap ${isTrial ? 'text-blue-500 text-[13px]' : 'text-blue-600 text-sm'}`}>
+          <span className={`font-extrabold whitespace-nowrap ${isTrial ? 'text-[13px]' : 'text-sm'} ${headerAmountColor()}`}>
             {isTrial ? 'FREE' : `${currencySymbol}${formatCurrency(displayAmount)}`}
           </span>
           <span className="text-lg text-slate-300 leading-none -mt-0.5">›</span>
@@ -133,7 +142,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
           <div className="flex flex-col gap-0.5 items-end">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.5px]">{isTrial ? 'ENDS ON' : 'DUE DATE'}</span>
-            <span className="text-xs font-semibold text-slate-700">{endDate}</span>
+            <span className="text-xs font-semibold text-slate-700">{item.recurrence === 'NO_DUE_DATE' ? 'N/A' : endDate}</span>
           </div>
         </div>
       </div>
