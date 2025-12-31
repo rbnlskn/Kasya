@@ -233,16 +233,23 @@ export const getActiveCommitmentInstance = (
     return instances.length > 0 ? instances[0] : null;
 };
 
-export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus, recurrence?: RecurrenceFrequency): string => {
+export const generateDueDateText = (
+    dueDate: Date,
+    status: CommitmentInstanceStatus,
+    recurrence?: RecurrenceFrequency,
+    includeDate: boolean = true,
+): string => {
     if (recurrence === 'NO_DUE_DATE') return 'No Due Date';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const isToday = dueDate.getTime() === today.getTime();
+    const cleanDueDate = new Date(dueDate);
+    cleanDueDate.setHours(0, 0, 0, 0);
 
-    // Get the difference in days
-    const diffTime = dueDate.getTime() - today.getTime();
+    const isToday = cleanDueDate.getTime() === today.getTime();
+
+    const diffTime = cleanDueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     let relativeText = '';
@@ -251,20 +258,21 @@ export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceSta
         relativeText = `Overdue by ${daysOverdue} day${daysOverdue > 1 ? 's' : ''}`;
     } else if (isToday) {
         relativeText = 'Due Today';
-    } else {
-        if (diffDays > 0) {
-            if (diffDays === 1) {
-                relativeText = 'Due Tomorrow';
-            } else if (diffDays <= 7) {
-                relativeText = `Due in ${diffDays} days`;
-            }
-        }
+    } else if (diffDays === 1) {
+        relativeText = 'Due Tomorrow';
+    } else if (diffDays > 1 && diffDays <= 7) {
+        relativeText = `Due in ${diffDays} days`;
+    } else if (diffDays > 7 && diffDays <= 30) {
+        relativeText = `Due in ${Math.round(diffDays / 7)} weeks`;
     }
 
-    const specificDate = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const specificDate = cleanDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    if (relativeText) {
+    if (relativeText && includeDate) {
         return `${relativeText} • ${specificDate}`;
+    }
+    if (relativeText) {
+        return relativeText;
     }
     return `Due ${specificDate}`;
 };

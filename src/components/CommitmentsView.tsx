@@ -15,7 +15,6 @@ import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getDisplayPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import WalletCard, { getWalletIcon } from './WalletCard';
-import useResponsive from '../hooks/useResponsive';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -38,7 +37,6 @@ interface CommitmentsViewProps {
 }
 
 const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick, onResubscribe }) => {
-  const { scale, fontScale } = useResponsive();
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
@@ -240,7 +238,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={scale(140)}
+                cardHeight={155}
                 maxVisible={4}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
@@ -255,7 +253,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             dueDate={instance.dueDate}
-                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence)}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, bill.recurrence, false)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayBill(bill)}
                             onViewDetails={() => setDetailsModal({ type: 'BILL', item: bill })}
@@ -283,7 +281,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={scale(140)}
+                  cardHeight={155}
                   maxVisible={4}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
@@ -298,7 +296,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             category={category}
                             paidAmount={paidAmount}
                             dueDate={instance.dueDate}
-                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence)}
+                            headerSubtitle={generateDueDateText(instance.dueDate, instance.status, commitment.recurrence, false)}
                             currencySymbol={currencySymbol}
                             onPay={() => onPayCommitment(commitment)}
                             onViewDetails={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })}

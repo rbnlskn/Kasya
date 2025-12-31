@@ -105,7 +105,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
           </div>
         </div>
         <div className="flex gap-1.5 items-center mt-px text-right">
-          <span className={`text-[13px] font-extrabold whitespace-nowrap ${isTrial ? 'text-blue-500' : 'text-blue-600'}`}>
+          <span className={`font-extrabold whitespace-nowrap ${isTrial ? 'text-blue-500 text-[13px]' : 'text-blue-600 text-sm'}`}>
             {isTrial ? 'FREE' : `${currencySymbol}${formatCurrency(displayAmount)}`}
           </span>
           <span className="text-lg text-slate-300 leading-none -mt-0.5">›</span>
