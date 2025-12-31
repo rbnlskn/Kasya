@@ -216,11 +216,11 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
           <div className="grid grid-cols-2 gap-3">
              <div onClick={() => { setActiveColorTab('BG'); setIsColorPickerOpen(true); }} className="flex items-center space-x-2 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
-                 <div className="w-7 h-7 rounded-lg border border-border shadow-sm" style={{ backgroundColor: customBg }}></div>
+                 <div className="w-7 h-7 rounded-xl border border-border shadow-sm" style={{ backgroundColor: customBg }}></div>
                  <span className="text-sm font-medium text-text-primary">Color</span>
              </div>
              <div onClick={() => { setActiveColorTab('TEXT'); setIsColorPickerOpen(true); }} className="flex items-center space-x-2 p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
-                 <div className="w-7 h-7 rounded-lg border border-border shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
+                 <div className="w-7 h-7 rounded-xl border border-border shadow-sm flex items-center justify-center bg-gray-200 font-bold" style={{ color: customText }}>T</div>
                  <span className="text-sm font-medium text-text-primary">Text</span>
              </div>
           </div>

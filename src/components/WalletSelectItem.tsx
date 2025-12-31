@@ -16,7 +16,7 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-2 rounded-lg text-left flex justify-between items-center transition-colors ${
+      className={`w-full p-2 rounded-xl text-left flex justify-between items-center transition-colors ${
         isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'
       }`}
     >

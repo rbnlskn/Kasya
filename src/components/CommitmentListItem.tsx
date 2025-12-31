@@ -45,7 +45,7 @@ const CommitmentListItem: React.FC<CommitmentListItemProps> = ({ instance, categ
     <div onClick={() => onClick(bill.id)} className={`p-2 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 ${isPaid ? 'opacity-60' : ''}`}>
       <div className="flex items-center">
         <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-3"
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 mr-3"
           style={{ backgroundColor: isPaid ? '#E5E7EB' : category?.color || '#E5E7EB' }}
         >
           {category?.icon}
