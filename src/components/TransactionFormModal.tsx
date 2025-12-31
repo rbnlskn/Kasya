@@ -188,7 +188,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
-                                <div className="w-8 h-8" style={{ backgroundColor: getCategory(selectedCategory)?.color, borderRadius: '0.75rem' }}>
+                                <div className="w-8 h-8 rounded-xl" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
                                     <div className="icon-container">{getCategoryIcon(selectedCategory)}</div>
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
@@ -288,7 +288,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                         <div className="grid grid-cols-4 gap-2">
                             {categories.map(c => (
                                 <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
-                                    <div className="w-10 h-10 text-xl mb-1.5 shadow-sm" style={{backgroundColor: c.color, borderRadius: '0.75rem'}}><div className="icon-container">{c.icon}</div></div>
+                                    <div className="w-10 h-10 text-xl mb-1.5 shadow-sm rounded-xl" style={{backgroundColor: c.color}}><div className="icon-container">{c.icon}</div></div>
                                     <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                                 </button>
                             ))}

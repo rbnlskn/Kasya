@@ -21,7 +21,7 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
       }`}
     >
       <div className="flex items-center flex-1 min-w-0">
-        <div className={`w-8 h-8 rounded-lg ${wallet.color} flex items-center justify-center text-white mr-2 shadow-sm flex-shrink-0`}>
+        <div className={`w-8 h-8 rounded-xl ${wallet.color} flex items-center justify-center text-white mr-2 shadow-sm flex-shrink-0`}>
           <div className={`${wallet.textColor} opacity-50`}>
             {getWalletIcon(wallet.type, "w-4 h-4")}
           </div>

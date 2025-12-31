@@ -118,7 +118,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* HEADER */}
       <div className="flex items-center">
         <div
-          className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+          className="rounded-xl flex items-center justify-center shadow-sm flex-shrink-0"
           style={{ width: scale(36), height: scale(36), fontSize: scale(18), marginRight: scale(10), backgroundColor: category?.color || '#E5E7EB' }}
         >
           {category?.icon}
