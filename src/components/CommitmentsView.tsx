@@ -43,6 +43,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const [billFilter, setBillFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
 
+  const COMMITMENT_CARD_HEIGHT = 161;
+
   const creditCards = useMemo(() => {
       const cards = wallets.filter(w => w.type === WalletType.CREDIT_CARD);
       return sortUnified(cards);
@@ -190,8 +192,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 justify-start">
-        <section className="flex flex-col m-0 p-0 w-full mb-3">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 justify-start gap-2">
+        <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
             className="px-6 mb-2 flex-shrink-0"
             title="CREDIT CARDS"
@@ -204,7 +206,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     <AddCommitmentCard
                         onClick={onAddCreditCard}
                         label="No credit cards yet. Add one?"
-                        height={155}
+                        height={COMMITMENT_CARD_HEIGHT}
                     />
                 </div>
             ) : (
@@ -238,7 +240,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div data-testid="commitment-stack-bills" className="w-full px-6">
             <CommitmentStack
                 items={activeBillInstances}
-                cardHeight={155}
+                cardHeight={COMMITMENT_CARD_HEIGHT}
                 maxVisible={4}
                 renderItem={(instance) => {
                     const { bill, status } = instance;
@@ -261,12 +263,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             instanceStatus={status}
                             lastPaymentAmount={lastPayment?.amount}
                             isOverdue={status === 'OVERDUE'}
-                            height={155}
+                            height={COMMITMENT_CARD_HEIGHT}
                         />
                     );
                 }}
                 placeholder={
-                    <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" height={155} />
+                    <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" height={COMMITMENT_CARD_HEIGHT} />
                 }
             />
         </div>
@@ -282,7 +284,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={161}
+                  cardHeight={COMMITMENT_CARD_HEIGHT}
                   maxVisible={4}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
@@ -304,12 +306,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             instanceStatus={status}
                             lastPaymentAmount={lastPayment?.amount}
                             isOverdue={status === 'OVERDUE'}
-                            height={161}
+                            height={COMMITMENT_CARD_HEIGHT}
                         />
                     );
                   }}
                   placeholder={
-                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" height={161} />
+                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" height={COMMITMENT_CARD_HEIGHT} />
                   }
                 />
             </div>
