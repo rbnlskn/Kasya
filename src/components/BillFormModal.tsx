@@ -272,7 +272,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
               </div>
           </div>
 
-          {showAdvancedOptions && type === 'SUBSCRIPTION' && (
+          {showAdvancedOptions && type === 'SUBSCRIPTION' && !recordInitialPayment && (
             <div className="space-y-2">
               <ToggleSwitch isChecked={isTrial} onChange={setIsTrial} label="Starts with a Free Trial?" description="Enable if the subscription begins with a free period." />
               {isTrial && (

@@ -19,8 +19,12 @@ export const CommitmentStack = <T extends { id: string }>({
   const [activeIndex, setActiveIndex] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
 
+  const cardSpacing = 10;
   const displayItems = items.slice(0, maxVisible);
   const stackItems = [...displayItems, { id: 'placeholder', isPlaceholder: true }];
+
+  const numCardsUnderneath = Math.min(stackItems.length - 1, maxVisible - 1);
+  const containerHeight = cardHeight + (numCardsUnderneath > 0 ? numCardsUnderneath * cardSpacing : 0);
 
   const handleCardClick = (index: number) => {
     setActiveIndex(index);
@@ -43,13 +47,10 @@ export const CommitmentStack = <T extends { id: string }>({
     }
   };
 
-  const cardSpacing = 8;
-  const totalHeight = cardHeight + (maxVisible * cardSpacing);
-
   return (
     <div
       className="relative"
-      style={{ height: `${totalHeight}px` }}
+      style={{ height: `${containerHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -60,7 +61,7 @@ export const CommitmentStack = <T extends { id: string }>({
         const style = {
           zIndex: stackItems.length - position,
           transform: `scale(${1 - position * 0.04}) translateY(${position * cardSpacing}px)`,
-          opacity: position >= (maxVisible + 1) ? 0 : 1,
+          opacity: position >= maxVisible ? 0 : 1,
           transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
           pointerEvents: isTopCard ? 'auto' : 'none',
         };

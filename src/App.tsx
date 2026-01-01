@@ -392,7 +392,7 @@ const App: React.FC = () => {
                 categoryId: billData.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6',
                 walletId: recordInitialPayment.walletId,
                 date: billData.startDate,
-                title: billData.type === 'SUBSCRIPTION' ? 'Subscription' : 'Bill',
+                title: billData.type === 'SUBSCRIPTION' ? 'Subscriptions' : 'Bills',
                 description: billData.name,
                 billId: newBillId
             };
@@ -400,7 +400,13 @@ const App: React.FC = () => {
         }
     }
   };
-  const handleDeleteBill = (id: string) => setData(prev => ({ ...prev, bills: prev.bills.filter(b => b.id !== id) }));
+  const handleDeleteBill = (id: string) => {
+    setData(prev => ({
+        ...prev,
+        bills: prev.bills.filter(b => b.id !== id),
+        transactions: prev.transactions.filter(t => t.billId !== id),
+    }));
+  };
 
   const handleResubscribe = (bill: Bill) => {
     setSelectedBillId(bill.id);
@@ -425,7 +431,7 @@ const App: React.FC = () => {
                       categoryId: commitmentData.categoryId,
                       walletId: initialTransactionWalletId,
                       date: commitmentData.startDate,
-                      title: isLoan ? 'Loan Disbursement' : 'Lending Disbursement',
+                      title: isLoan ? 'Loan' : 'Lending',
                       description: commitmentData.name,
                       commitmentId: newCommitmentId
                   };

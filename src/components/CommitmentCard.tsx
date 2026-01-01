@@ -1,173 +1,183 @@
 import React from 'react';
 import { Bill, Commitment, Category, CommitmentType } from '../types';
+import { CommitmentInstanceStatus, getDisplayPeriod } from '../utils/commitment';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
-import { CommitmentInstanceStatus } from '../utils/commitment';
-import useResponsive from '../hooks/useResponsive';
-import { differenceInDays, format } from 'date-fns';
+import { isColorLight } from '../utils/color';
 
+// --- PROPS ---
 interface CommitmentCardProps {
   item: Bill | Commitment;
   category?: Category;
   paidAmount: number;
-  paymentsMade: number;
-  dueDateText: string;
+  dueDate: Date;
   headerSubtitle?: string;
   currencySymbol: string;
   onPay: () => void;
   onViewDetails: () => void;
   onEdit?: (item: Bill | Commitment) => void;
-  instanceStatus?: CommitmentInstanceStatus;
   lastPaymentAmount?: number;
   isOverdue?: boolean;
+  instanceStatus?: CommitmentInstanceStatus;
+  height: number;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
-  item, category, paidAmount, paymentsMade, dueDateText, headerSubtitle,
-  currencySymbol, onPay, onViewDetails, onEdit, instanceStatus, lastPaymentAmount, isOverdue,
+  item, category, paidAmount, dueDate, headerSubtitle,
+  currencySymbol, onPay, onViewDetails, onEdit, lastPaymentAmount, isOverdue, instanceStatus,
+  height,
 }) => {
-  const { scale, fontScale } = useResponsive();
   const isCommitment = 'principal' in item;
   const isBill = 'dueDay' in item;
   const isTrial = isBill && (item as Bill).isTrialActive;
-
-  const renderInfoBox = () => {
-    if (isCommitment) {
-      const commitment = item as Commitment;
-      const totalObligation = calculateTotalObligation(commitment);
-      const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
-      const isLending = commitment.type === CommitmentType.LENDING;
-
-      return (
-        <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
-          <div className="flex justify-between items-center leading-none">
-            <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Progress</span>
-            <span className="font-bold text-slate-600" style={{ fontSize: fontScale(10) }}>{Math.round(progress)}%</span>
-          </div>
-          <div className="w-full bg-slate-200 rounded-full overflow-hidden" style={{ height: scale(4) }}>
-            <div className={`h-full ${isLending ? 'bg-green-500' : 'bg-blue-600'} rounded-full`} style={{ width: `${progress}%` }} />
-          </div>
-          <div className="flex justify-between items-center leading-none">
-            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>
-              Paid: <span className="text-slate-600">{currencySymbol}{formatCurrency(paidAmount)}</span>
-            </span>
-            <span className="font-medium text-slate-400" style={{ fontSize: fontScale(10) }}>/ {currencySymbol}{formatCurrency(totalObligation)}</span>
-          </div>
-        </div>
-      );
-    }
-
-    if (isTrial) {
-        const bill = item as Bill;
-        const trialDays = differenceInDays(new Date(bill.trialEndDate!), new Date(bill.startDate));
-        return (
-          <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
-            <div className="flex justify-between items-center leading-none">
-              <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
-              <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{trialDays} Days</span>
-            </div>
-            <div className="w-full border-t border-dashed border-slate-300/60" />
-            <div className="flex justify-between items-center leading-none">
-              <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Renews For</span>
-              <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
-                {currencySymbol}{formatCurrency(bill.amount)}
-              </span>
-            </div>
-          </div>
-        );
-    }
-
-    return (
-      <div className="flex-1 bg-slate-50 border border-slate-100 flex flex-col justify-center" style={{ borderRadius: scale(10), padding: scale(8), gap: scale(4) }}>
-        <div className="flex justify-between items-center leading-none">
-          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Period</span>
-          <span className="font-bold text-slate-700" style={{ fontSize: fontScale(10) }}>{dueDateText}</span>
-        </div>
-        <div className="w-full border-t border-dashed border-slate-300/60" />
-        <div className="flex justify-between items-center leading-none">
-          <span className="font-bold text-slate-400 uppercase" style={{ fontSize: fontScale(9), letterSpacing: scale(0.5) }}>Last Pay</span>
-          <span className="font-bold text-slate-500" style={{ fontSize: fontScale(10) }}>
-            {lastPaymentAmount !== undefined ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}
-          </span>
-        </div>
-      </div>
-    );
-  };
-
   const isLending = isCommitment && (item as Commitment).type === CommitmentType.LENDING;
+
+  // --- DERIVED DATA ---
+  const { period, endDate } = getDisplayPeriod(item, dueDate);
+
   let displayAmount = isCommitment
     ? (item.recurrence === 'ONE_TIME' || item.recurrence === 'NO_DUE_DATE'
       ? calculateTotalObligation(item) - paidAmount
       : (instanceStatus === 'PAID' ? 0 : calculateInstallment(item)))
-    : item.amount;
+    : (item as Bill).amount;
 
-  const subtitle = isTrial
-    ? `Trial • Ends ${format(new Date((item as Bill).trialEndDate!), 'MMM d')}`
-    : headerSubtitle || (isCommitment ? dueDateText : `Due ${new Date(new Date().getFullYear(), new Date().getMonth(), item.dueDay).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`);
+  if (displayAmount < 0) displayAmount = 0;
 
+  const totalObligation = isCommitment ? calculateTotalObligation(item) : (item as Bill).amount;
+  const progress = totalObligation > 0 ? (paidAmount / totalObligation) * 100 : 0;
+
+  // --- DYNAMIC STYLES & TEXT ---
+  let cardClasses = `
+    w-full bg-white rounded-[20px] overflow-hidden
+    flex flex-col cursor-pointer
+    transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
+    border
+  `;
+
+  if (isTrial) {
+    cardClasses += ' border-blue-500';
+  } else if (isOverdue) {
+    cardClasses += ' border-red-500';
+  } else {
+    cardClasses += ' border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
+  }
+
+  if (isBill && (item as Bill).status === 'INACTIVE') {
+    cardClasses += ' opacity-50';
+  }
+
+  const getButtonConfig = () => {
+    if (isTrial) {
+      return { text: 'Cancel', className: 'bg-red-50 text-red-700', action: onEdit ? () => onEdit(item) : () => {} };
+    }
+    if (isOverdue) {
+      return { text: isLending ? 'Collect' : 'Pay', className: 'bg-red-100 text-red-700', action: onPay };
+    }
+    if (isLending) {
+      return { text: 'Collect', className: 'bg-emerald-100 text-emerald-700', action: onPay };
+    }
+    return { text: 'Pay', className: 'bg-indigo-100 text-indigo-700', action: onPay };
+  };
+  const buttonConfig = getButtonConfig();
+
+  const headerAmountColor = () => {
+    if (isTrial) return 'text-blue-500';
+    if (isLending) return 'text-emerald-600';
+    return 'text-blue-600';
+  };
+
+  const footerText = () => {
+    if (isTrial) {
+      return <>Renews for <b>{currencySymbol}{formatCurrency((item as Bill).amount)}</b></>;
+    }
+    if (isCommitment) {
+      return <>Total Balance: <b>{currencySymbol}{formatCurrency(totalObligation - paidAmount)}</b></>;
+    }
+    return <>Last Pay: <b>{lastPaymentAmount ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}</b></>;
+  };
+
+  const iconTheme = () => {
+    const defaultTheme = { backgroundColor: '#EFF6FF', color: '#3B82F6' };
+    if (!category?.color) return defaultTheme;
+
+    const bgColor = category.color;
+    const textColor = isColorLight(bgColor) ? '#000000' : '#FFFFFF';
+
+    return { backgroundColor: bgColor, color: textColor };
+  };
+
+  // --- RENDER ---
   return (
     <div
       onClick={onViewDetails}
-      className={`w-full ${isTrial ? 'bg-blue-50 border border-blue-200' : 'bg-white border border-slate-100'} cursor-pointer active:scale-[0.99] transition-transform duration-200 flex flex-col justify-between shadow-sm rounded-2xl ${(item as Bill).status === 'INACTIVE' ? 'opacity-50' : ''}`}
-      style={{
-        height: scale(140),
-        gap: scale(4),
-        padding: scale(12),
-      }}
+      className={cardClasses}
+      style={{ height: `${height}px` }}
     >
-      {/* HEADER */}
-      <div className="flex items-center">
-        <div
-          className="rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
-          style={{ width: scale(36), height: scale(36), fontSize: scale(18), marginRight: scale(10), backgroundColor: category?.color || '#E5E7EB' }}
-        >
-          {category?.icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-baseline">
-            <h3 className="font-bold text-slate-800 truncate" style={{ fontSize: fontScale(15) }}>{item.name}</h3>
-            {isTrial ? (
-                <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-                  FREE
-                </h3>
-            ) : (
-                <h3 className="font-extrabold text-blue-600 ml-2 whitespace-nowrap" style={{ fontSize: fontScale(15) }}>
-                  {currencySymbol}{formatCurrency(displayAmount < 0 ? 0 : displayAmount)}
-                </h3>
-            )}
-          </div>
-          <p
-            className={`font-medium ${isOverdue ? 'text-red-500 font-bold' : 'text-slate-400'}`}
-            style={{ fontSize: fontScale(10) }}
+      {/* --- HEADER --- */}
+      <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">
+        <div className="flex gap-2.5 items-center">
+          <div
+            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+            style={iconTheme()}
           >
-            {subtitle}
-          </p>
+            {category?.icon}
+          </div>
+          <div className="flex flex-col">
+            <h3 className="text-sm font-bold text-[#1E293B] leading-tight truncate">{item.name}</h3>
+            <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
+              {isTrial ? 'Trial' : headerSubtitle}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-1.5 items-center mt-px text-right">
+          <span className={`font-extrabold whitespace-nowrap ${isTrial ? 'text-[13px]' : 'text-sm'} ${headerAmountColor()}`}>
+            {isTrial ? 'FREE' : `${currencySymbol}${formatCurrency(displayAmount)}`}
+          </span>
+          <span className="text-lg text-slate-300 leading-none -mt-0.5">›</span>
         </div>
       </div>
 
-      {/* FOOTER */}
-      <div className="flex" style={{ gap: scale(8) }}>
-        {renderInfoBox()}
-        {isTrial ? (
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit?.(item);
-                }}
-                className="aspect-square bg-rose-100 text-rose-800 hover:bg-rose-200 active:scale-95 transition flex items-center justify-center shrink-0"
-                style={{ width: scale(64), borderRadius: scale(10) }}
-            >
-                <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>Cancel</span>
-            </button>
-        ) : (
-            <button
-                onClick={(e) => { e.stopPropagation(); onPay(); }}
-                className={`aspect-square ${isLending ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'} active:scale-95 transition flex items-center justify-center shrink-0`}
-                style={{ width: scale(64), borderRadius: scale(10) }}
-            >
-                <span className="font-bold tracking-wide" style={{ fontSize: fontScale(11) }}>{isLending ? 'Collect' : 'Pay'}</span>
-            </button>
-        )}
+      {/* --- MIDDLE / DATA GRID --- */}
+      <div className="px-4 pt-1.5 pb-3 flex-grow flex flex-col justify-center">
+        <div className="flex justify-between w-full items-end">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.5px]">{isCommitment ? 'AMOUNT PAID' : 'PERIOD'}</span>
+            <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-red-500' : 'text-slate-700'}`}>
+              {isCommitment ? `${currencySymbol}${formatCurrency(paidAmount)}` : period}
+              {isCommitment && (
+                 <span className={`text-[10px] font-bold px-1 py-0.5 rounded-md ${isLending ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'}`}>
+                   {Math.round(progress)}%
+                 </span>
+              )}
+            </span>
+          </div>
+          <div className="flex flex-col gap-0.5 items-end">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.5px]">{isTrial ? 'ENDS ON' : 'DUE DATE'}</span>
+            <span className="text-xs font-semibold text-slate-700">{item.recurrence === 'NO_DUE_DATE' ? 'N/A' : endDate}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* --- SEPARATOR --- */}
+      {isCommitment ? (
+        <div className="w-full h-[6px] bg-slate-100 relative">
+          <div className={`h-full rounded-r-md ${isLending ? 'bg-emerald-500' : 'bg-purple-500'}`} style={{ width: `${progress}%` }}></div>
+        </div>
+      ) : (
+        <div className="h-px w-full bg-slate-100"></div>
+      )}
+
+      {/* --- FOOTER --- */}
+      <div className="bg-[#FAFAFA] px-4 py-2 flex justify-between items-center min-h-[36px]">
+        <div className="text-xs text-slate-500 font-medium">
+          {footerText()}
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); buttonConfig.action(); }}
+          className={`h-7 px-3.5 rounded-md text-xs font-bold ${buttonConfig.className}`}
+        >
+          {buttonConfig.text}
+        </button>
       </div>
     </div>
   );

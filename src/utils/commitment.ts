@@ -233,16 +233,23 @@ export const getActiveCommitmentInstance = (
     return instances.length > 0 ? instances[0] : null;
 };
 
-export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceStatus, recurrence?: RecurrenceFrequency): string => {
+export const generateDueDateText = (
+    dueDate: Date,
+    status: CommitmentInstanceStatus,
+    recurrence?: RecurrenceFrequency,
+    includeDate: boolean = true,
+): string => {
     if (recurrence === 'NO_DUE_DATE') return 'No Due Date';
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const isToday = dueDate.getTime() === today.getTime();
+    const cleanDueDate = new Date(dueDate);
+    cleanDueDate.setHours(0, 0, 0, 0);
 
-    // Get the difference in days
-    const diffTime = dueDate.getTime() - today.getTime();
+    const isToday = cleanDueDate.getTime() === today.getTime();
+
+    const diffTime = cleanDueDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     let relativeText = '';
@@ -251,20 +258,21 @@ export const generateDueDateText = (dueDate: Date, status: CommitmentInstanceSta
         relativeText = `Overdue by ${daysOverdue} day${daysOverdue > 1 ? 's' : ''}`;
     } else if (isToday) {
         relativeText = 'Due Today';
-    } else {
-        if (diffDays > 0) {
-            if (diffDays === 1) {
-                relativeText = 'Due Tomorrow';
-            } else if (diffDays <= 7) {
-                relativeText = `Due in ${diffDays} days`;
-            }
-        }
+    } else if (diffDays === 1) {
+        relativeText = 'Due Tomorrow';
+    } else if (diffDays > 1 && diffDays <= 7) {
+        relativeText = `Due in ${diffDays} days`;
+    } else if (diffDays > 7 && diffDays <= 30) {
+        relativeText = `Due in ${Math.round(diffDays / 7)} weeks`;
     }
 
-    const specificDate = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const specificDate = cleanDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    if (relativeText) {
+    if (relativeText && includeDate) {
         return `${relativeText} • ${specificDate}`;
+    }
+    if (relativeText) {
+        return relativeText;
     }
     return `Due ${specificDate}`;
 };
@@ -335,26 +343,74 @@ export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] 
   });
 };
 
-export const getBillingPeriod = (
-    item: { recurrence: RecurrenceFrequency, dueDate: Date },
-): string => {
-    const { recurrence, dueDate } = item;
+const subtractInterval = (
+    date: Date,
+    unit: RecurrenceFrequency | 'WEEKS' | 'MONTHS' | 'YEARS',
+    duration: number,
+): Date => {
+    const newDate = new Date(date);
+    switch (unit) {
+        case 'WEEKS':
+        case 'WEEKLY':
+            newDate.setDate(newDate.getDate() - 7 * duration);
+            break;
+        case 'MONTHS':
+        case 'MONTHLY':
+            newDate.setMonth(newDate.getMonth() - duration);
+            break;
+        case 'YEARS':
+        case 'YEARLY':
+            newDate.setFullYear(newDate.getFullYear() - duration);
+            break;
+    }
+    return newDate;
+};
 
-    if (recurrence === 'NO_DUE_DATE' || recurrence === 'ONE_TIME') {
-        return 'One-Time Payment';
+export const getDisplayPeriod = (
+    item: Bill | Commitment,
+    dueDate: Date,
+): { period: string; endDate: string } => {
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const formattedDueDate = new Date(dueDate).toLocaleDateString('en-US', options);
+
+    // Handle Trial Bill
+    if ('isTrialActive' in item && item.isTrialActive) {
+        const startDate = new Date(item.startDate);
+        const endDate = new Date(item.trialEndDate!);
+        const formattedStart = startDate.toLocaleDateString('en-US', options);
+        const formattedEnd = endDate.toLocaleDateString('en-US', options);
+        return {
+            period: `${formattedStart} - ${formattedEnd}`,
+            endDate: formattedEnd
+        };
     }
 
-    // Per user feedback, the period is from the current due date to the day before the next one.
-    const periodStart = new Date(dueDate);
-    const nextDueDate = addInterval(dueDate, recurrence, 1);
-    const periodEnd = new Date(nextDueDate);
-    periodEnd.setDate(periodEnd.getDate() - 1);
+    // Handle One-Time / No Due Date
+    if (item.recurrence === 'NO_DUE_DATE') {
+        return {
+            period: 'One-Time',
+            endDate: 'N/A'
+        };
+    }
+    if (item.recurrence === 'ONE_TIME') {
+        return {
+            period: 'One-Time',
+            endDate: formattedDueDate
+        };
+    }
 
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    // Handle Standard Recurring Bill/Commitment
+    const periodEnd = new Date(dueDate);
+    periodEnd.setDate(periodEnd.getDate() - 1);
+    const periodStart = subtractInterval(new Date(dueDate), item.recurrence, 1);
+
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
     const formattedEnd = periodEnd.toLocaleDateString('en-US', options);
 
-    return `${formattedStart} - ${formattedEnd}`;
+    return {
+        period: `${formattedStart} - ${formattedEnd}`,
+        endDate: formattedDueDate
+    };
 };
 
 export const getActiveBillInstance = (
@@ -458,13 +514,20 @@ export const getActiveBillInstance = (
         }
     }
 
-    // If the instance for the current month is valid and not paid, return it.
+    // --- Return Logic ---
+
+    // If the instance for this month is valid and PAID, we are done. Return null.
+    if (standardInstanceValid && isPaidThisMonth) {
+        return null;
+    }
+
+    // If the instance for this month is valid and NOT paid, it's the one we should show.
     if (standardInstanceValid && !isPaidThisMonth) {
         return { bill, dueDate, status, id: bill.id };
     }
 
-    // If we reach here, it's because the current month is either not valid or already paid.
-    // In either case, we now ONLY check for a lookahead instance in the next month.
+    // If we reach here, it means this month's standard instance is not valid (e.g., before start date).
+    // Now, we can check for a "lookahead" instance from next month.
     const nextMonthDate = new Date(viewingDateClean);
     nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 
