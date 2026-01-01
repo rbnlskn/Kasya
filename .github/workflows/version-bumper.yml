@@ -23,13 +23,14 @@ jobs:
           cache: 'npm'
 
       - name: 'Increment Minor Version'
-        run: node scripts/increment-minor.cjs
+        run: npm run bump:minor
 
       - name: 'Commit version bump'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          # Files are already staged by the script, but we add them explicitly just in case environment differs
           git add package.json src/constants.ts android/app/build.gradle
           VERSION=$(node -p "require('./package.json').version")
-          git commit -m "build: 🤖 bump version to v${VERSION}"
+          git commit --no-verify -m "build: 🤖 bump version to v${VERSION}"
           git push
