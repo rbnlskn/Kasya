@@ -514,13 +514,20 @@ export const getActiveBillInstance = (
         }
     }
 
-    // If the instance for the current month is valid and not paid, return it.
+    // --- Return Logic ---
+
+    // If the instance for this month is valid and PAID, we are done. Return null.
+    if (standardInstanceValid && isPaidThisMonth) {
+        return null;
+    }
+
+    // If the instance for this month is valid and NOT paid, it's the one we should show.
     if (standardInstanceValid && !isPaidThisMonth) {
         return { bill, dueDate, status, id: bill.id };
     }
 
-    // If we reach here, it's because the current month is either not valid or already paid.
-    // In either case, we now ONLY check for a lookahead instance in the next month.
+    // If we reach here, it means this month's standard instance is not valid (e.g., before start date).
+    // Now, we can check for a "lookahead" instance from next month.
     const nextMonthDate = new Date(viewingDateClean);
     nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
 

@@ -3,6 +3,7 @@ import { Bill, Commitment, Category, CommitmentType } from '../types';
 import { CommitmentInstanceStatus, getDisplayPeriod } from '../utils/commitment';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
+import { isColorLight } from '../utils/color';
 
 // --- PROPS ---
 interface CommitmentCardProps {
@@ -92,10 +93,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     }
     return <>Last Pay: <b>{lastPaymentAmount ? `${currencySymbol}${formatCurrency(lastPaymentAmount)}` : 'N/A'}</b></>;
   };
+
   const iconTheme = () => {
-    if (isLending) return { backgroundColor: '#ECFDF5', color: '#10B981' };
-    if (category?.color) return { backgroundColor: `${category.color}1A`, color: category.color };
-    return { backgroundColor: '#EFF6FF', color: '#3B82F6' };
+    const defaultTheme = { backgroundColor: '#EFF6FF', color: '#3B82F6' };
+    if (!category?.color) return defaultTheme;
+
+    const bgColor = category.color;
+    const textColor = isColorLight(bgColor) ? '#000000' : '#FFFFFF';
+
+    return { backgroundColor: bgColor, color: textColor };
   };
 
   // --- RENDER ---

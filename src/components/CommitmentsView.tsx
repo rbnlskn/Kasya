@@ -272,7 +272,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-              className="px-6 mb-2 flex-shrink-0"
+              className="px-6 mb-0 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
@@ -280,7 +280,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <div data-testid="commitment-stack-loans" className="w-full px-6">
                 <CommitmentStack
                   items={activeCommitmentInstances}
-                  cardHeight={166}
+                  cardHeight={161}
                   maxVisible={4}
                   renderItem={(instance) => {
                     const { commitment, status } = instance as (CommitmentInstance & { id: string });
@@ -306,7 +306,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                     );
                   }}
                   placeholder={
-                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" style={{ minHeight: '166px' }} />
+                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" style={{ minHeight: '161px' }} />
                   }
                 />
             </div>

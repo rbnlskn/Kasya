@@ -44,12 +44,11 @@ export const CommitmentStack = <T extends { id: string }>({
   };
 
   const cardSpacing = 12;
-  const totalHeight = cardHeight + (maxVisible * cardSpacing);
 
   return (
     <div
       className="relative"
-      style={{ height: `${totalHeight}px` }}
+      style={{ height: `${cardHeight}px` }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
