@@ -31,9 +31,10 @@ You must check the labels on the Issue before acting.
 2.  **Plan:** Post a comment detailing exactly what you intend to do (files to touch, logic to change).
 3.  **Execute:** Write the code to solve the sub-issues immediately. Do NOT wait for approval.
 4.  **Versioning:**
-    -   **Start of Batch:** Manually increment the **MINOR** version in `package.json` (e.g., `1.0.0` -> `1.1.0`). Reset the PATCH version to `0`.
-    -   **During Development:** The `pre-commit` hook will automatically increment the **PATCH** version (e.g., `1.1.0` -> `1.1.1`) on every commit. Do not increment manually after the start.
-    -   **Changelog:** Add a new entry to the `CHANGELOG` array in `src/constants.ts` for the MINOR version you just set.
+    -   **Start of Batch (GitHub Action):** The GitHub Action will automatically increment the **MINOR** version when the PR is opened.
+    -   **During Development (Agent):** The pre-commit hook may not reliably trigger in the agent environment. Therefore, the Agent **MUST** manually run `node scripts/manage-version.cjs --bump=patch` before committing changes to ensure the Patch (Z) version is incremented and staged.
+    -   **During Development (User):** The pre-commit hook is active and will automatically increment the Patch (Z) version on every local commit.
+    -   **Changelog:** Add a new entry to the `CHANGELOG` array in `src/constants.ts` for the MINOR version.
         ```typescript
         { version: 'x.x.x', date: 'YYYY-MM-DD', changes: ['Description of change'] }
         ```

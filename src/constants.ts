@@ -2,7 +2,7 @@
 import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment, RecurrenceFrequency, CommitmentType, TransactionType } from './types';
 import { WALLET_TEMPLATES } from './data/templates';
 
-export const APP_VERSION = '1.17.0';
+export const APP_VERSION = '1.18.4';
 export const CHANGELOG = [
     { version: '1.0.0', date: '2024-05-24', changes: ['Initial Release'] },
 ];
