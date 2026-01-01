@@ -19,11 +19,13 @@ interface CommitmentCardProps {
   lastPaymentAmount?: number;
   isOverdue?: boolean;
   instanceStatus?: CommitmentInstanceStatus;
+  height: number;
 }
 
 const CommitmentCard: React.FC<CommitmentCardProps> = ({
   item, category, paidAmount, dueDate, headerSubtitle,
-  currencySymbol, onPay, onViewDetails, onEdit, lastPaymentAmount, isOverdue, instanceStatus
+  currencySymbol, onPay, onViewDetails, onEdit, lastPaymentAmount, isOverdue, instanceStatus,
+  height,
 }) => {
   const isCommitment = 'principal' in item;
   const isBill = 'dueDay' in item;
@@ -47,7 +49,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   // --- DYNAMIC STYLES & TEXT ---
   let cardClasses = `
     w-full bg-white rounded-[20px] overflow-hidden
-    flex flex-col min-h-[155px] cursor-pointer
+    flex flex-col cursor-pointer
     transition-transform duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_rgba(0,0,0,0.06)]
     border
   `;
@@ -109,6 +111,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     <div
       onClick={onViewDetails}
       className={cardClasses}
+      style={{ height: `${height}px` }}
     >
       {/* --- HEADER --- */}
       <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">

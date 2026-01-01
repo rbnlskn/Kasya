@@ -260,11 +260,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             instanceStatus={status}
                             lastPaymentAmount={lastPayment?.amount}
                             isOverdue={status === 'OVERDUE'}
+                            height={155}
                         />
                     );
                 }}
                 placeholder={
-                    <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" style={{ minHeight: '155px' }} />
+                    <AddCommitmentCard onClick={onAddBill} label="Add Bill or Subscription" height={155} />
                 }
             />
         </div>
@@ -272,7 +273,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-              className="px-6 mb-0 flex-shrink-0"
+              className="px-6 mb-1 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
@@ -302,11 +303,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                             instanceStatus={status}
                             lastPaymentAmount={lastPayment?.amount}
                             isOverdue={status === 'OVERDUE'}
+                            height={161}
                         />
                     );
                   }}
                   placeholder={
-                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" style={{ minHeight: '161px' }} />
+                    <AddCommitmentCard onClick={onAddCommitment} label="Add Loan or Lending" height={161} />
                   }
                 />
             </div>
