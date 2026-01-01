@@ -1,2 +1,3 @@
 This is a temporary test file to verify the version bumping hook.
 Updated content to trigger a new commit and verify patch bumping.
+Final verification check.
