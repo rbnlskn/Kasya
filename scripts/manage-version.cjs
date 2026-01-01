@@ -21,13 +21,21 @@ if (!['major', 'minor', 'patch'].includes(bumpType)) {
 // Branch check for patch bumps (skip on main)
 if (bumpType === 'patch') {
     try {
-        const branchName = execSync('git symbolic-ref --short HEAD 2>/dev/null || echo "detached"').toString().trim();
+        // Use a more cross-platform compatible way to check branch
+        // On Windows, /dev/null redirection can cause "The system cannot find the path specified"
+        let branchName = 'detached';
+        try {
+            branchName = execSync('git symbolic-ref --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+        } catch (innerError) {
+            // If symbolic-ref fails, we might be detached.
+        }
+
         if (branchName === 'main') {
             console.log('On branch main. Skipping auto-increment for patch.');
             process.exit(0);
         }
     } catch (e) {
-        // If git fails, we continue (might be in a detached head in CI, but usually CI is not "main" branch for PRs)
+        // Fallback
         console.log('Could not determine branch name. Proceeding.');
     }
 }
