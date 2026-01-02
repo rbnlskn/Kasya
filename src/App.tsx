@@ -31,7 +31,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { requestInitialPermissions } from './services/permissionService';
-import { calculateNetProceeds, calculateInstallment } from './utils/math';
+import { calculateNetProceeds, calculateInstallment, calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade } from './utils/math';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
