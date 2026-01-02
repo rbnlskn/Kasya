@@ -541,7 +541,7 @@ const App: React.FC = () => {
               <div className="flex-1 px-6 pt-2 pb-safe flex flex-col overflow-y-auto">
                  <div className="flex-grow flex flex-col gap-4">
                      <section>
-                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}/>
+                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
                          <div className="mt-2">
                             <WalletCarousel
                                 wallets={data.wallets}

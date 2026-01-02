@@ -91,8 +91,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
             <button onClick={onEdit} className="text-sm font-bold text-primary">Edit</button>
         </div>
 
-        <div className="flex justify-center mb-2 h-[160px]">
-            <div className="w-full" style={{ transform: 'scale(0.9)' }}>
+        <div className="flex justify-center mb-2 h-auto">
+            <div className="w-[75%] aspect-[340/200]">
               <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
             </div>
         </div>

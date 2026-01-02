@@ -13,9 +13,9 @@ interface SectionHeaderProps {
 const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd, className = '' }) => {
   return (
     <div className={`flex justify-between items-center ${className}`}>
-      <h2 className="text-xs font-extrabold text-slate-400 uppercase tracking-[1px] flex items-center">
+      <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center">
         {title}
-        {count !== undefined && <span className="ml-1.5">({count})</span>}
+        {count !== undefined && <span className="text-xs font-bold text-gray-800 ml-2">({count})</span>}
       </h2>
       <div className="flex items-center space-x-4">
         {onViewAll && (
