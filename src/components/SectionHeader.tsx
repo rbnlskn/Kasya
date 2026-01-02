@@ -6,20 +6,26 @@ interface SectionHeaderProps {
   title: string;
   count?: number;
   onViewAll?: () => void;
+  onAdd?: () => void;
   className?: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, className = '' }) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd, className = '' }) => {
   return (
-    <div className={`flex justify-between items-center px-1 ${className}`}>
-      <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center">
+    <div className={`flex justify-between items-center ${className}`}>
+      <h2 className="text-xs font-extrabold text-slate-400 uppercase tracking-[1px] flex items-center">
         {title}
-        {count !== undefined && count > 0 && <span className="text-xs font-bold text-gray-800 ml-2">({count})</span>}
+        {count !== undefined && <span className="ml-1.5">({count})</span>}
       </h2>
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-4">
         {onViewAll && (
-          <button onClick={onViewAll} className="text-xs text-primary font-bold uppercase tracking-wide hover:text-primary-hover transition-colors">
+          <button onClick={onViewAll} className="text-[11px] text-primary font-bold uppercase tracking-wider hover:text-primary-hover transition-colors">
             VIEW ALL
+          </button>
+        )}
+        {onAdd && (
+          <button data-testid={`add-${title.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}-button`} onClick={onAdd} className="text-primary hover:text-primary-hover transition-colors">
+            <Plus className="w-5 h-5" />
           </button>
         )}
       </div>

@@ -131,24 +131,24 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="flex bg-slate-100 p-1 rounded-2xl">
-                            <button type="button" onClick={() => setType(CommitmentType.LOAN)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === CommitmentType.LOAN ? 'bg-surface shadow text-red-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                            <button type="button" onClick={() => setType(CommitmentType.LOAN)} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === CommitmentType.LOAN ? 'bg-surface shadow text-red-500 scale-[1.02]' : 'text-text-secondary'}`}>
                                 I Borrowed
                             </button>
-                            <button type="button" onClick={() => setType(CommitmentType.LENDING)} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === CommitmentType.LENDING ? 'bg-surface shadow text-green-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                            <button type="button" onClick={() => setType(CommitmentType.LENDING)} className={`flex-1 py-2.5 text-sm font-bold rounded-lg flex items-center justify-center gap-2 transition-all ${type === CommitmentType.LENDING ? 'bg-surface shadow text-green-500 scale-[1.02]' : 'text-text-secondary'}`}>
                                 I Lent
                             </button>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name *</label>
-                            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., Car Loan, Friend" required />
+                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name <span className="text-red-500">*</span></label>
+                            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., Car Loan, Friend" required />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Principal *</label>
+                            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Principal <span className="text-red-500">*</span></label>
                             <div className="relative group">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                                <input type="text" {...principalInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
+                                <input type="text" {...principalInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
                             </div>
                         </div>
 
@@ -157,29 +157,29 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Interest</label>
                                 <div className="relative group">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                                    <input type="text" {...interestInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
+                                    <input type="text" {...interestInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
                                 </div>
                             </div>
                             <div className="flex-1">
                                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Fee</label>
                                 <div className="relative group">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                                    <input type="text" {...feeInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
+                                    <input type="text" {...feeInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" inputMode="decimal" />
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex space-x-2">
                             <div className="flex-1">
-                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date *</label>
-                                <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
+                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date <span className="text-red-500">*</span></label>
+                                <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center h-12 transition-all hover:bg-slate-200">
                                     <Calendar className="w-4 h-4 mr-2 text-text-secondary" />
                                     <span className="text-sm font-bold text-text-primary">{startDate.toLocaleDateString()}</span>
                                 </button>
                             </div>
                             <div className="flex-1">
-                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence *</label>
-                                <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence <span className="text-red-500">*</span></label>
+                                <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
                                     <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace(/_/g, ' ') : 'Select...'}</span>
                                     <ChevronDown className="w-4 h-4 text-text-secondary" />
                                 </button>
@@ -189,15 +189,15 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                         {!isNoDueDay && (
                             <div className="flex space-x-2">
                                 <div className="flex-1">
-                                    <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day *</label>
-                                    <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                                    <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day <span className="text-red-500">*</span></label>
+                                    <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
                                         <span className={`text-sm font-bold ${dueDay === '' ? 'text-text-secondary/80' : 'text-text-primary'}`}>{dueDay || 'Select...'}</span>
                                         <ChevronDown className="w-4 h-4 text-text-secondary" />
                                     </button>
                                 </div>
                                 <div className="flex-1">
-                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Duration *</label>
-                                    <div className="flex items-center bg-slate-100 rounded-xl h-12">
+                                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Duration <span className="text-red-500">*</span></label>
+                                    <div className="flex items-center bg-slate-100 rounded-lg h-12">
                                         <input type="number" value={duration} onChange={e => setDuration(e.target.value)} className="w-full bg-transparent px-4 text-base font-medium text-text-primary outline-none" placeholder="e.g., 12"/>
                                         {occurrence === 'ONE_TIME' && (
                                             <button type="button" onClick={() => setSelectorView('DURATION_UNIT')} className="pr-3 text-sm font-bold text-text-secondary flex items-center gap-1">
@@ -219,11 +219,11 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                     description={type === CommitmentType.LOAN ? "Record the borrowed amount you received." : "Record the lent amount you gave."}
                                 />
                                 {recordDisbursement && (
-                                    <div className="bg-slate-100 p-3 rounded-2xl">
+                                    <div className="bg-slate-100 p-3 rounded-lg">
                                         <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">
                                             {type === CommitmentType.LOAN ? "Into Wallet" : "From Wallet"}
                                         </label>
-                                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-50 text-left">
+                                        <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-lg px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-50 text-left">
                                             <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
                                                 {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
                                             </span>
@@ -234,7 +234,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                             </div>
                         )}
 
-                        <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialCommitment ? 'Save Changes' : `Create ${type === CommitmentType.LOAN ? 'Loan' : 'Lending'}`}</button>
+                        <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialCommitment ? 'Save Changes' : `Create ${type === CommitmentType.LOAN ? 'Loan' : 'Lending'}`}</button>
                     </form>
                 </div>
             </div>

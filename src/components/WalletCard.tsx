@@ -55,7 +55,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-sm rounded-2xl w-full h-full`}
+      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-md hover:shadow-lg rounded-2xl w-full h-full`}
       style={cardStyle}
     >
       {/* Background Decorations */}

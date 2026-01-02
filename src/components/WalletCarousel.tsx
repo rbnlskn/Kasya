@@ -13,15 +13,15 @@ interface WalletCarouselProps {
 
 const WalletCarousel: React.FC<WalletCarouselProps> = ({ wallets, onWalletClick, onAddWalletClick, currencySymbol, className }) => {
   return (
-    <div className={`flex space-x-4 overflow-x-auto no-scrollbar pb-4 ${className || ''}`}>
-      {wallets.map((w) => (
-        <div key={w.id} className="w-[75%] aspect-[340/200] flex-shrink-0">
+    <div className={`flex overflow-x-auto no-scrollbar pb-4 ${className || ''}`}>
+      {wallets.map((w, index) => (
+        <div
+          key={w.id}
+          className={`w-[75%] aspect-[340/200] flex-shrink-0 ${index > 0 ? 'ml-4' : ''}`}
+        >
           <WalletCard wallet={w} onClick={onWalletClick} currencySymbol={currencySymbol} />
         </div>
       ))}
-      <div data-testid="add-wallet-card" className="w-[75%] aspect-[340/200] flex-shrink-0">
-        <AddCard onClick={onAddWalletClick} label="Add Wallet" />
-      </div>
     </div>
   );
 };

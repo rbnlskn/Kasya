@@ -459,8 +459,28 @@ const App: React.FC = () => {
 
   const handlePayCommitment = (commitment: Commitment, amount?: number) => {
     setSelectedCommitmentId(commitment.id);
-    const paymentAmount = amount || calculateInstallment(commitment) || 0;
     const isLending = commitment.type === CommitmentType.LENDING;
+
+    let paymentAmount = amount;
+    if (isLending && !amount) {
+        const totalPaid = calculateTotalPaid(commitment.id, data.transactions);
+        const totalObligation = calculateTotalObligation(commitment);
+        const remainingBalance = totalObligation - totalPaid;
+
+        if (commitment.recurrence === 'ONE_TIME' || commitment.recurrence === 'NO_DUE_DATE') {
+            paymentAmount = remainingBalance;
+        } else {
+            const paymentsMade = calculatePaymentsMade(commitment.id, data.transactions);
+            if (commitment.duration && paymentsMade >= commitment.duration - 1) {
+                paymentAmount = remainingBalance;
+            } else {
+                paymentAmount = calculateInstallment(commitment);
+            }
+        }
+    } else if (!amount) {
+        paymentAmount = calculateInstallment(commitment) || 0;
+    }
+
     const title = isLending ? 'Lending Payment' : 'Loan Payment';
 
     setPresetTransaction({
@@ -518,22 +538,24 @@ const App: React.FC = () => {
               <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
                   <div className="flex justify-between items-center w-full"><Logo size="1.75rem" /></div>
               </div>
-              <div className="flex-1 p-6 pt-4 pb-safe flex flex-col overflow-y-auto">
-                 <div className="flex-grow flex flex-col" style={{ gap: `${scale(16)}px`}}>
+              <div className="flex-1 px-6 pt-2 pb-safe flex flex-col overflow-y-auto">
+                 <div className="flex-grow flex flex-col gap-4">
                      <section>
-                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} />
-                         <WalletCarousel
-                            wallets={data.wallets}
+                         <SectionHeader title="WALLETS" onViewAll={() => handleOpenOverlay('ALL_WALLETS')} onAdd={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}/>
+                         <div className="mt-2">
+                            <WalletCarousel
+                                wallets={data.wallets}
                             onWalletClick={(wallet) => { setSelectedWalletId(wallet.id); handleOpenOverlay('WALLET_DETAIL'); }}
                             onAddWalletClick={() => { setSelectedWalletId(null); handleOpenModal('WALLET_FORM'); }}
                             currencySymbol={currentCurrency.symbol}
                             className="-mx-6 px-6"
                          />
+                        </div>
                      </section>
 
                     <section>
                         <SectionHeader title="BUDGETS" onViewAll={() => handleOpenOverlay('ALL_BUDGETS')} />
-                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6">
+                        <div className="flex space-x-4 overflow-x-auto no-scrollbar pb-2 -mx-6 px-6 mt-2">
                             {data.budgets.map((b) => (
                                 <div key={b.id} style={{ height: scale(80) }} className="aspect-[2/1] flex-shrink-0">
                                     <BudgetRing budget={b} category={data.categories.find(c => c.id === b.categoryId)} spent={spendingMap[b.id] || 0} currencySymbol={currentCurrency.symbol} onClick={(budget) => { setSelectedBudgetId(budget.id); handleOpenOverlay('BUDGET_DETAIL'); }} />
@@ -547,7 +569,7 @@ const App: React.FC = () => {
 
                     <section>
                         <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
-                        <div>
+                        <div className="mt-2">
                             {data.transactions.length === 0 ? (
                                 <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
                             ) : (

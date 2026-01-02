@@ -226,7 +226,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
 
           <div>
-            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Type</label>
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Type <span className="text-red-500">*</span></label>
             <div onClick={() => setIsSelectingType(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
               <span className={`font-medium text-sm ${type ? 'text-text-primary' : 'text-text-secondary'}`}>{type || 'Select a type'}</span>
               <ChevronDown className="w-4 h-4 text-text-secondary" />
@@ -234,12 +234,12 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
           </div>
 
           <div>
-            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name</label>
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name <span className="text-red-500">*</span></label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required />
           </div>
 
           <div>
-            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCreditCard ? 'Credit Limit' : 'Current Balance'}</label>
+            <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCreditCard ? 'Credit Limit' : 'Current Balance'} <span className="text-red-500">*</span></label>
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
               <input 

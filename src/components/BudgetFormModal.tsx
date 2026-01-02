@@ -80,33 +80,33 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
 
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category <span className="text-red-500">*</span></label>
-            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
-                <div className="flex items-center text-text-primary">
+            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-2 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
+                <div className="flex items-center text-text-primary space-x-2">
                     {selectedCategoryObj ? (
                         <>
-                            <div className="w-8 h-8 icon-container text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
+                            <div className="w-8 h-8 rounded-md flex items-center justify-center text-xl" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
                             <span className="font-medium text-sm">{selectedCategoryObj.name}</span>
                         </>
                     ) : <span className="pl-2 text-sm text-text-secondary">Select Category</span>}
                 </div>
-                <ChevronDown className="w-4 h-4 text-text-secondary" />
+                <ChevronDown className="w-5 h-5 text-text-secondary mr-2" />
             </div>
           </div>
           
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name <span className="text-red-500">*</span></label>
-            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="e.g. Food Budget" />
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="e.g. Food Budget" />
           </div>
 
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
             <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1-2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
+                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
-          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
+          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
         </form>
       </div>
     </div>

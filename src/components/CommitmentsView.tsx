@@ -192,15 +192,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-4 justify-start gap-2">
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto w-full pt-2 justify-start gap-4">
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-            className="px-6 mb-2 flex-shrink-0"
+            className="px-6 flex-shrink-0"
             title="CREDIT CARDS"
             count={creditCards.length}
             onViewAll={() => setOverlay('ALL_CREDIT_CARDS')}
             />
-          <div className="w-full">
+          <div className="w-full mt-2">
             {creditCards.length === 0 ? (
                 <div className="px-6 w-full">
                     <AddCommitmentCard
@@ -232,12 +232,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
         <section className="flex flex-col m-0 p-0 w-full">
           <SectionHeader
-            className="px-6 mb-2 flex-shrink-0"
+            className="px-6 flex-shrink-0"
             title="BILLS & SUBSCRIPTIONS"
             count={activeBillInstances.length}
             onViewAll={() => setOverlay('ALL_BILLS')}
           />
-        <div data-testid="commitment-stack-bills" className="w-full px-6">
+        <div data-testid="commitment-stack-bills" className="w-full px-6 mt-2">
             <CommitmentStack
                 items={activeBillInstances}
                 cardHeight={COMMITMENT_CARD_HEIGHT}
@@ -276,12 +276,12 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
         <section className="flex flex-col m-0 p-0 w-full">
             <SectionHeader
-              className="px-6 mb-1 flex-shrink-0"
+              className="px-6 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
               onViewAll={() => setOverlay('ALL_COMMITMENTS')}
             />
-            <div data-testid="commitment-stack-loans" className="w-full px-6">
+            <div data-testid="commitment-stack-loans" className="w-full px-6 mt-2">
                 <CommitmentStack
                   items={activeCommitmentInstances}
                   cardHeight={COMMITMENT_CARD_HEIGHT}
