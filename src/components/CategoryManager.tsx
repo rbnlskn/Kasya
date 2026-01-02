@@ -105,7 +105,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                             <span className="text-xl">{cat.icon}</span>
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"><GripVertical className="w-3 h-3 text-gray-500"/></div>
                         </div>
-                        <span className="text-[10px] font-bold text-text-primary text-center leading-tight w-full px-1">{cat.name}</span>
+                        <span className="text-[11px] font-bold text-text-primary text-center leading-tight w-full">{cat.name}</span>
                     </div>
                 ))}
                 

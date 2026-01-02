@@ -148,7 +148,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             </div>
             {title === 'Lending Payment' && (
               <p className="text-xs text-slate-400 mt-1.5 px-1">
-                The remaining balance is pre-filled. You can edit this for a partial collection.
+                Pre-filled with remaining balance. Edit for partial collection.
               </p>
             )}
           </div>
@@ -213,9 +213,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
-                            <div className={`w-8 h-8 shadow-sm rounded-lg ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
-                                <div className={`icon-container ${getWallet(selectedWallet)?.textColor || 'text-gray-500'}`}>
-                                    {getWalletIcon(getWallet(selectedWallet)?.type || '')}
+                            <div className={`w-8 h-8 shadow-sm rounded-lg flex items-center justify-center ${getWallet(selectedWallet)?.color || 'bg-gray-100'}`}>
+                                <div className={`opacity-50 ${getWallet(selectedWallet)?.textColor || 'text-gray-500'}`}>
+                                    {getWalletIcon(getWallet(selectedWallet)?.type || '', 'w-5 h-5')}
                                 </div>
                             </div>
                             <span className="text-sm font-bold text-text-primary">{getWalletName(selectedWallet)}</span>
@@ -236,9 +236,9 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
-                                <div className={`w-8 h-8 shadow-sm rounded-lg ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
-                                    <div className={`icon-container ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'}`}>
-                                        {getWalletIcon(getWallet(selectedToWallet)?.type || '')}
+                                <div className={`w-8 h-8 shadow-sm rounded-lg flex items-center justify-center ${getWallet(selectedToWallet)?.color || 'bg-gray-100'}`}>
+                                    <div className={`opacity-50 ${getWallet(selectedToWallet)?.textColor || 'text-gray-500'}`}>
+                                        {getWalletIcon(getWallet(selectedToWallet)?.type || '', 'w-5 h-5')}
                                     </div>
                                 </div>
                                 <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>

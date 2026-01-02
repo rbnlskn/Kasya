@@ -118,11 +118,11 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
               <h3 className="font-bold text-lg text-text-primary">Select Category</h3>
               <button onClick={() => setSelectorOpen(false)} className="p-2 bg-slate-100 rounded-full"><X className="w-4 h-4" /></button>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2">
                 {categories.map(c => (
-                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/5 border-2 border-primary' : 'hover:bg-slate-100'}`}>
+                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-lg transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
                         <div className="w-10 h-10 icon-container text-xl mb-2" style={{backgroundColor: c.color}}>{c.icon}</div>
-                        <span className="text-xs font-semibold text-center leading-tight truncate w-full text-text-primary">{c.name}</span>
+                        <span className="text-[11px] font-bold text-text-primary text-center leading-tight w-full">{c.name}</span>
                     </button>
                 ))}
             </div>
