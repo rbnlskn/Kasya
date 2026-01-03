@@ -2,7 +2,7 @@
 name: 🚀 Feature
 about: Suggest a new capability for the app
 title: "[FEATURE] "
-labels: feature
+labels: feature, backlog
 assignees: ''
 ---
 
