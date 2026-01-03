@@ -69,7 +69,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
     }
 
     if (transaction.note) {
-      return mainDesc ? `${mainDesc} - ${transaction.note}` : transaction.note;
+      return mainDesc ? `${mainDesc} • ${transaction.note}` : transaction.note;
     }
 
     return mainDesc;

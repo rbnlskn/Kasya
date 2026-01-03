@@ -5,6 +5,7 @@ import { Category, Wallet, TransactionType, Transaction } from '../types';
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
+import ToggleSwitch from './ToggleSwitch';
 import { useCurrencyInput } from '../hooks/useCurrencyInput';
 
 interface TransactionFormModalProps {
@@ -159,17 +160,6 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                   autoFocus={false}
                 />
               </div>
-              {title === 'Lending Payment' && (
-                <div className="mt-2 flex items-center space-x-2">
-                  <input type="checkbox" checked={isOffset} onChange={(e) => { setIsOffset(e.target.checked); if (e.target.checked) setShowNote(true); }} id="offset-toggle" className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300" />
-                  <label htmlFor="offset-toggle" className="text-xs text-gray-600 font-bold select-none cursor-pointer">Mark as Non-Monetary / Offset</label>
-                </div>
-              )}
-              {title === 'Lending Payment' && isOffset && (
-                <p className="text-[10px] text-amber-600 font-medium px-1 mt-1">
-                  * Debt will decrease, but no wallet balance will be affected.
-                </p>
-              )}
             </div>
 
             {type === TransactionType.TRANSFER && (
@@ -274,23 +264,6 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             )}
 
             <div>
-              <div className="flex items-center justify-between mb-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-text-primary">Add Note</span>
-                  <span className="text-[10px] text-text-secondary">Add extra context (e.g. Invoice #, Dinner with Client)</span>
-                </div>
-                <div
-                  onClick={() => {
-                    const newState = !showNote;
-                    setShowNote(newState);
-                    if (!newState) setNote('');
-                  }}
-                  className={`w-12 h-7 rounded-full p-1 transition-colors cursor-pointer ${showNote ? 'bg-primary' : 'bg-slate-200'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showNote ? 'translate-x-5' : 'translate-x-0'}`} />
-                </div>
-              </div>
-
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
               <input
                 type="text"
@@ -299,18 +272,68 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
                 placeholder="What was this for?"
               />
-              {showNote && (
-                <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none"
-                    placeholder="Enter note..."
-                    rows={2}
-                    autoFocus
+            </div>
+
+            {/* Note & Offset Logic */}
+            <div className="space-y-4 py-2">
+              {title === 'Lending Payment' ? (
+                <>
+                  <ToggleSwitch
+                    isChecked={isOffset}
+                    onChange={(checked) => { setIsOffset(checked); setShowNote(checked); }}
+                    label="Mark as Non-Monetary / Offset"
+                    description="Debt will decrease, but no wallet balance will be affected."
                   />
-                </div>
+                  {isOffset && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+                      <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        placeholder="Enter note..."
+                        rows={1}
+                      />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {type === TransactionType.REFUND ? (
+                    <div>
+                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Refund Reason</label>
+                      <textarea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        placeholder="Enter reason..."
+                        rows={1}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <ToggleSwitch
+                        isChecked={showNote}
+                        onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
+                        label="Add Note"
+                        description="Add extra context (e.g. Invoice #, Dinner with Client)"
+                      />
+                      {showNote && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+                          <textarea
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                            placeholder="Enter note..."
+                            rows={1}
+                            autoFocus
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
               )}
             </div>
 
@@ -322,86 +345,88 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
               Save Transaction
             </button>
           </form>
-        </div>
-      </div>
+        </div >
+      </div >
 
       {/* OVERLAY SELECTORS */}
-      {selectorView !== 'NONE' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" onClick={() => setSelectorView('NONE')}>
+      {
+        selectorView !== 'NONE' && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60" onClick={() => setSelectorView('NONE')}>
 
-          {selectorView !== 'TIME_PICKER' && selectorView !== 'DATE_PICKER' && (
-            <div className="bg-surface w-[90%] max-w-md rounded-3xl p-4 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4 p-2">
-                <h3 className="font-bold text-lg text-text-primary">
-                  {selectorView === 'CATEGORY' && 'Select Category'}
-                  {selectorView === 'WALLET_FROM' && 'Select Wallet'}
-                  {selectorView === 'WALLET_TO' && 'Select Destination'}
-                </h3>
-                <button onClick={() => setSelectorView('NONE')} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"><X className="w-5 h-5 text-text-secondary" /></button>
-              </div>
-
-              {selectorView === 'CATEGORY' && (
-                <div className="grid grid-cols-4 gap-2">
-                  {categories.map(c => (
-                    <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
-                      <div className="w-10 h-10 text-xl mb-1.5 shadow-sm rounded-lg" style={{ backgroundColor: c.color }}><div className="icon-container">{c.icon}</div></div>
-                      <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
-                    </button>
-                  ))}
+            {selectorView !== 'TIME_PICKER' && selectorView !== 'DATE_PICKER' && (
+              <div className="bg-surface w-[90%] max-w-md rounded-3xl p-4 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4 p-2">
+                  <h3 className="font-bold text-lg text-text-primary">
+                    {selectorView === 'CATEGORY' && 'Select Category'}
+                    {selectorView === 'WALLET_FROM' && 'Select Wallet'}
+                    {selectorView === 'WALLET_TO' && 'Select Destination'}
+                  </h3>
+                  <button onClick={() => setSelectorView('NONE')} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200"><X className="w-5 h-5 text-text-secondary" /></button>
                 </div>
-              )}
 
-              {(selectorView === 'WALLET_FROM' || selectorView === 'WALLET_TO') && (
-                <div className="space-y-2">
-                  {wallets.map(w => (
-                    <button key={w.id} onClick={() => { if (selectorView === 'WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-colors border-2 border-transparent ${(selectorView === 'WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 ${w.color} shadow-sm flex items-center justify-center`} style={{ borderRadius: '0.75rem' }}>
-                          <div className={`icon-container opacity-50 ${w.textColor}`}>{getWalletIcon(w.type)}</div>
+                {selectorView === 'CATEGORY' && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {categories.map(c => (
+                      <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
+                        <div className="w-10 h-10 text-xl mb-1.5 shadow-sm rounded-lg" style={{ backgroundColor: c.color }}><div className="icon-container">{c.icon}</div></div>
+                        <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {(selectorView === 'WALLET_FROM' || selectorView === 'WALLET_TO') && (
+                  <div className="space-y-2">
+                    {wallets.map(w => (
+                      <button key={w.id} onClick={() => { if (selectorView === 'WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-colors border-2 border-transparent ${(selectorView === 'WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 ${w.color} shadow-sm flex items-center justify-center`} style={{ borderRadius: '0.75rem' }}>
+                            <div className={`icon-container opacity-50 ${w.textColor}`}>{getWalletIcon(w.type)}</div>
+                          </div>
+                          <div className="text-left">
+                            <div className="font-bold text-sm text-text-primary">{w.name}</div>
+                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <div className="font-bold text-sm text-text-primary">{w.name}</div>
-                          <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
-                        </div>
-                      </div>
-                      {(selectorView === 'WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}
-                    </button>
-                  ))}
+                        {(selectorView === 'WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectorView === 'TIME_PICKER' && (
+              <div className="bg-surface w-[90%] max-w-sm rounded-3xl p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="mb-5 text-center">
+                  <p className="text-xs font-extrabold text-text-secondary uppercase tracking-widest">Select time</p>
                 </div>
-              )}
-            </div>
-          )}
-
-          {selectorView === 'TIME_PICKER' && (
-            <div className="bg-surface w-[90%] max-w-sm rounded-3xl p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="mb-5 text-center">
-                <p className="text-xs font-extrabold text-text-secondary uppercase tracking-widest">Select time</p>
+                <TimePickerV2 value={dateVal} onChange={setDateVal} />
+                <div className="flex justify-center mt-6">
+                  <button onClick={() => setSelectorView('NONE')} className="bg-primary text-white font-bold text-base px-10 py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30">Done</button>
+                </div>
               </div>
-              <TimePickerV2 value={dateVal} onChange={setDateVal} />
-              <div className="flex justify-center mt-6">
-                <button onClick={() => setSelectorView('NONE')} className="bg-primary text-white font-bold text-base px-10 py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-primary/30">Done</button>
-              </div>
-            </div>
-          )}
+            )}
 
-          {selectorView === 'DATE_PICKER' && (
-            <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <DayPicker
-                selectedDate={dateVal}
-                onChange={(d) => {
-                  // Preserve time
-                  const newDate = new Date(d);
-                  newDate.setHours(dateVal.getHours());
-                  newDate.setMinutes(dateVal.getMinutes());
-                  setDateVal(newDate);
-                  setSelectorView('NONE');
-                }}
-                onClose={() => setSelectorView('NONE')}
-              />
-            </div>
-          )}
-        </div>
-      )}
+            {selectorView === 'DATE_PICKER' && (
+              <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <DayPicker
+                  selectedDate={dateVal}
+                  onChange={(d) => {
+                    // Preserve time
+                    const newDate = new Date(d);
+                    newDate.setHours(dateVal.getHours());
+                    newDate.setMinutes(dateVal.getMinutes());
+                    setDateVal(newDate);
+                    setSelectorView('NONE');
+                  }}
+                  onClose={() => setSelectorView('NONE')}
+                />
+              </div>
+            )}
+          </div>
+        )
+      }
     </>
   );
 };
