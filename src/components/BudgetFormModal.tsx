@@ -120,7 +120,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
             </div>
             <div className="grid grid-cols-4 gap-2">
                 {categories.map(c => (
-                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
+                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
                         <div className="w-10 h-10 icon-container text-xl mb-1.5 shadow-sm rounded-lg" style={{backgroundColor: c.color}}>{c.icon}</div>
                         <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                     </button>

@@ -189,27 +189,27 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
           {type !== TransactionType.TRANSFER && (
               <div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category <span className="text-red-500">*</span></label>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('CATEGORY'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-2 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
-                    <div className="flex items-center space-x-2">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('CATEGORY'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
+                    <div className="flex items-center space-x-3">
                         {selectedCategory ? (
                              <>
-                                <div className="w-8 h-8 rounded-md flex items-center justify-center text-xl" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xl" style={{ backgroundColor: getCategory(selectedCategory)?.color }}>
                                     {getCategoryIcon(selectedCategory)}
                                 </div>
-                                <span className="text-sm font-bold text-text-primary">{getCategoryName(selectedCategory)}</span>
+                                <span className="text-base font-medium text-text-primary">{getCategoryName(selectedCategory)}</span>
                              </>
                         ) : (
-                            <span className="text-sm font-medium text-text-secondary pl-2">Select Category</span>
+                            <span className="text-base font-medium text-slate-400">Select Category</span>
                         )}
                     </div>
-                    <ChevronDown className="w-5 h-5 text-text-secondary mr-2" />
+                    <ChevronDown className="w-5 h-5 text-text-secondary" />
                 </div>
               </div>
           )}
 
           <div>
             <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{type === TransactionType.TRANSFER ? 'From Wallet' : 'Wallet'} <span className="text-red-500">*</span></label>
-            <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_FROM'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
+            <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_FROM'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
                 <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                         <>
@@ -218,10 +218,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                                     {getWalletIcon(getWallet(selectedWallet)?.type || '', 'w-5 h-5')}
                                 </div>
                             </div>
-                            <span className="text-sm font-bold text-text-primary">{getWalletName(selectedWallet)}</span>
+                            <span className="text-base font-medium text-text-primary">{getWalletName(selectedWallet)}</span>
                         </>
                     ) : (
-                         <span className="text-sm font-medium text-text-secondary pl-2">Select Wallet</span>
+                         <span className="text-base font-medium text-slate-400">Select Wallet</span>
                     )}
                 </div>
                 <ChevronDown className="w-5 h-5 text-text-secondary" />
@@ -232,7 +232,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
              <div>
                 <div className="flex justify-center -my-2.5 relative z-10"><div className="bg-slate-200 p-1.5 rounded-full ring-4 ring-surface"><ArrowRightLeft className="w-4 h-4 text-gray-500" /></div></div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">To Wallet <span className="text-red-500">*</span></label>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg py-2 pl-2 pr-4 flex items-center justify-between cursor-pointer h-12 transition-all hover:bg-slate-200">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
                     <div className="flex items-center space-x-3">
                          {selectedToWallet ? (
                             <>
@@ -241,10 +241,10 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                                         {getWalletIcon(getWallet(selectedToWallet)?.type || '', 'w-5 h-5')}
                                     </div>
                                 </div>
-                                <span className="text-sm font-bold text-text-primary">{getWalletName(selectedToWallet)}</span>
+                                <span className="text-base font-medium text-text-primary">{getWalletName(selectedToWallet)}</span>
                             </>
                         ) : (
-                             <span className="text-sm font-medium text-text-secondary pl-2">Select Destination</span>
+                             <span className="text-base font-medium text-slate-400">Select Destination</span>
                         )}
                     </div>
                     <ChevronDown className="w-5 h-5 text-text-secondary" />
@@ -292,7 +292,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     {selectorView === 'CATEGORY' && (
                         <div className="grid grid-cols-4 gap-2">
                             {categories.map(c => (
-                                <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
+                                <button key={c.id} onClick={() => { setSelectedCategory(c.id); setSelectorView('NONE'); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${selectedCategory === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
                                     <div className="w-10 h-10 text-xl mb-1.5 shadow-sm rounded-lg" style={{backgroundColor: c.color}}><div className="icon-container">{c.icon}</div></div>
                                     <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                                 </button>
