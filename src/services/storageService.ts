@@ -6,34 +6,42 @@ import { Preferences } from '@capacitor/preferences';
 const STORAGE_KEY = 'moneyfest_lite_v2';
 
 export const DEFAULT_APP_STATE: AppState = {
-    wallets: INITIAL_WALLETS,
-    budgets: INITIAL_BUDGETS,
-    transactions: INITIAL_TRANSACTIONS,
-    categories: DEFAULT_CATEGORIES,
-    bills: INITIAL_BILLS,
-    commitments: INITIAL_COMMITMENTS,
-    currency: 'PHP'
+  wallets: INITIAL_WALLETS,
+  budgets: INITIAL_BUDGETS,
+  transactions: INITIAL_TRANSACTIONS,
+  categories: DEFAULT_CATEGORIES,
+  bills: INITIAL_BILLS,
+  commitments: INITIAL_COMMITMENTS,
+  currency: 'PHP'
 };
 
 const parseAndMigrate = (serializedData: string): AppState => {
-    const data = JSON.parse(serializedData);
-      
-    if (!data.currency) data.currency = 'PHP';
-    
-    if (!data.categories) {
-      data.categories = DEFAULT_CATEGORIES;
-    } else {
-      const existingIds = new Set(data.categories.map((c: any) => c.id));
-      const missingDefaults = DEFAULT_CATEGORIES.filter(dc => !existingIds.has(dc.id));
-      if (missingDefaults.length > 0) {
-        data.categories = [...data.categories, ...missingDefaults];
-      }
+  const data = JSON.parse(serializedData);
+
+  if (!data.currency) data.currency = 'PHP';
+
+  if (!data.categories) {
+    data.categories = DEFAULT_CATEGORIES;
+  } else {
+    const existingIds = new Set(data.categories.map((c: any) => c.id));
+    const missingDefaults = DEFAULT_CATEGORIES.filter(dc => !existingIds.has(dc.id));
+    if (missingDefaults.length > 0) {
+      data.categories = [...data.categories, ...missingDefaults];
     }
+  }
 
-    if (!data.bills) data.bills = INITIAL_BILLS;
-    if (!data.commitments) data.commitments = INITIAL_COMMITMENTS;
+  if (!data.bills) data.bills = INITIAL_BILLS;
+  if (!data.commitments) data.commitments = INITIAL_COMMITMENTS;
 
-    return data;
+  if (data.transactions) {
+    data.transactions = data.transactions.map((t: any) => ({
+      ...t,
+      note: t.note || null,
+      exclude_from_cashflow: t.exclude_from_cashflow === true
+    }));
+  }
+
+  return data;
 };
 
 export const loadData = async (): Promise<AppState> => {
@@ -45,15 +53,15 @@ export const loadData = async (): Promise<AppState> => {
 
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
-        const migratedData = parseAndMigrate(localData);
-        await saveData(migratedData);
-        return migratedData;
+      const migratedData = parseAndMigrate(localData);
+      await saveData(migratedData);
+      return migratedData;
     }
 
   } catch (error) {
     console.error("Failed to load local data:", error);
   }
-  
+
   return DEFAULT_APP_STATE;
 };
 
