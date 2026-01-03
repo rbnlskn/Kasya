@@ -1,7 +1,7 @@
 ---
-name: 🚀 New Feature
+name: 🚀 Feature
 about: Suggest a new capability for the app
-title: "[FEAT] "
+title: "[FEATURE] "
 labels: feature
 assignees: ''
 ---
