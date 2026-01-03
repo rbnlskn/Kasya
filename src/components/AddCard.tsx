@@ -20,9 +20,7 @@ const AddCard: React.FC<AddCardProps> = ({ onClick, label = 'Add New', banner })
       className={`w-full aspect-[1.58/1] flex-shrink-0 bg-white border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors active:scale-[0.98] shadow-sm ${bannerClasses}`}
     >
       <div className="flex flex-col items-center justify-center text-gray-400">
-        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-2">
-            <Plus className="w-6 h-6 text-gray-400" />
-        </div>
+        <Plus className="w-8 h-8 text-gray-400 mb-2" />
         <p className="font-semibold text-sm">{label}</p>
       </div>
     </div>

@@ -67,7 +67,7 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
           <h2 className="text-2xl font-black text-text-primary tracking-tight">{initialBudget ? 'Edit Budget' : 'New Budget'}</h2>
           <div className="flex items-center space-x-2">
             {initialBudget && onDelete && <button onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors"><Trash2 className="w-5 h-5" /></button>}
-            <button onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            <button data-testid="close-button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
           </div>
         </div>
 
@@ -80,33 +80,33 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
 
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category <span className="text-red-500">*</span></label>
-            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl py-2 pl-2 pr-4 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
-                <div className="flex items-center text-text-primary">
+            <div onClick={() => setSelectorOpen(true)} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-2 flex justify-between items-center cursor-pointer h-12 transition-all hover:bg-slate-200">
+                <div className="flex items-center text-text-primary space-x-2">
                     {selectedCategoryObj ? (
                         <>
-                            <div className="w-8 h-8 icon-container text-xl mr-3" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
+                            <div className="w-8 h-8 rounded-md flex items-center justify-center text-xl" style={{backgroundColor: selectedCategoryObj.color}}>{selectedCategoryObj.icon}</div>
                             <span className="font-medium text-sm">{selectedCategoryObj.name}</span>
                         </>
                     ) : <span className="pl-2 text-sm text-text-secondary">Select Category</span>}
                 </div>
-                <ChevronDown className="w-4 h-4 text-text-secondary" />
+                <ChevronDown className="w-5 h-5 text-text-secondary mr-2" />
             </div>
           </div>
           
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name <span className="text-red-500">*</span></label>
-            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="e.g. Food Budget" />
+            <input autoFocus={false} type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="e.g. Food Budget" />
           </div>
 
           <div>
             <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Limit <span className="text-red-500">*</span></label>
             <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1-2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
+                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" required placeholder="0.00" inputMode="decimal" />
             </div>
           </div>
           
-          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
+          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
         </form>
       </div>
     </div>
@@ -118,11 +118,11 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
               <h3 className="font-bold text-lg text-text-primary">Select Category</h3>
               <button onClick={() => setSelectorOpen(false)} className="p-2 bg-slate-100 rounded-full"><X className="w-4 h-4" /></button>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2">
                 {categories.map(c => (
-                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/5 border-2 border-primary' : 'hover:bg-slate-100'}`}>
-                        <div className="w-10 h-10 icon-container text-xl mb-2" style={{backgroundColor: c.color}}>{c.icon}</div>
-                        <span className="text-xs font-semibold text-center leading-tight truncate w-full text-text-primary">{c.name}</span>
+                    <button key={c.id} type="button" onClick={() => { setCategoryId(c.id); setName(c.name); setSelectorOpen(false); }} className={`flex flex-col items-center p-2 rounded-2xl transition-all active:scale-95 ${categoryId === c.id ? 'bg-primary/10' : 'hover:bg-slate-100'}`}>
+                        <div className="w-10 h-10 icon-container text-xl mb-1.5 shadow-sm rounded-lg" style={{backgroundColor: c.color}}>{c.icon}</div>
+                        <span className="text-xs font-bold text-text-primary text-center leading-tight truncate w-full">{c.name}</span>
                     </button>
                 ))}
             </div>

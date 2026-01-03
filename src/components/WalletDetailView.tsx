@@ -91,11 +91,13 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ wallet, transaction
             <button onClick={onEdit} className="text-sm font-bold text-primary">Edit</button>
         </div>
 
-        <div className="flex justify-center mb-4">
-            <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
+        <div className="flex justify-center mb-2 h-auto">
+            <div className="w-[75%] aspect-[340/200]">
+              <WalletCard wallet={wallet} currencySymbol={currencySymbol} />
+            </div>
         </div>
 
-        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 mb-2 w-full">
+        <div className="flex justify-center space-x-2 overflow-x-auto no-scrollbar pb-2 w-full">
           <FilterPill label="All" active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
           <FilterPill label="Income" active={filter === 'INCOME'} onClick={() => setFilter('INCOME')} icon={<ArrowDown className="w-3 h-3 mr-1"/>} />
           <FilterPill label="Expenses" active={filter === 'EXPENSE'} onClick={() => setFilter('EXPENSE')} icon={<ArrowUp className="w-3 h-3 mr-1"/>} />

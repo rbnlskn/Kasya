@@ -95,23 +95,23 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                         onDragOver={(e) => onDragOver(e, index)}
                         onDragEnd={onDragEnd}
                         onClick={() => setEditingCategory(cat)}
-                        className={`flex flex-col items-center justify-center p-2 bg-surface rounded-2xl active:scale-95 transition-transform ${draggedItemIndex === index ? 'opacity-50' : ''} cursor-pointer group`}
+                        className={`flex flex-col items-center justify-center p-2 bg-surface rounded-lg active:scale-95 transition-transform ${draggedItemIndex === index ? 'opacity-50' : ''} cursor-pointer group`}
                     >
                         {/* SQUIRCLE ICON: Standardized */}
                         <div 
-                            className={`w-12 h-12 flex items-center justify-center text-xl mb-2 relative shadow-sm rounded-2xl ${!cat.color.startsWith('#') ? cat.color : ''}`}
+                            className={`w-12 h-12 flex items-center justify-center text-xl mb-2 relative shadow-sm rounded-lg ${!cat.color.startsWith('#') ? cat.color : ''}`}
                             style={getStyle(cat.color)}
                         >
                             <span className="text-xl">{cat.icon}</span>
                             <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100"><GripVertical className="w-3 h-3 text-gray-500"/></div>
                         </div>
-                        <span className="text-[10px] font-bold text-text-primary text-center leading-tight w-full truncate px-1">{cat.name}</span>
+                        <span className="text-[11px] font-bold text-text-primary text-center leading-tight w-full">{cat.name}</span>
                     </div>
                 ))}
                 
                 <button 
                     onClick={() => setEditingCategory({ id: `cat_${Date.now()}`, name: '', icon: '😊', color: CATEGORY_COLORS[0] })} 
-                    className="flex flex-col items-center justify-center p-2 border-2 border-dashed border-border rounded-2xl text-text-secondary hover:border-primary/60 hover:text-primary/60 transition-colors active:scale-95 h-24"
+                    className="flex flex-col items-center justify-center p-2 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-primary/60 hover:text-primary/60 transition-colors active:scale-95 h-24"
                 >
                    <Plus className="w-6 h-6 mb-1" />
                    <span className="text-[10px] font-bold">Add</span>
@@ -132,11 +132,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                 
                 <form onSubmit={handleSave} className="space-y-6">
                   <div className="flex justify-center">
-                      {/* SQUIRCLE ICON: rounded-xl for large preview */}
+                      {/* SQUIRCLE ICON: rounded-lg for large preview */}
                       <button 
                           type="button" 
                           onClick={() => setEmojiPickerOpen(true)} 
-                          className={`w-24 h-24 rounded-2xl flex items-center justify-center text-5xl shadow-sm transition-transform hover:scale-105 active:scale-95 ${!editingCategory.color.startsWith('#') ? editingCategory.color : ''}`}
+                          className={`w-24 h-24 rounded-lg flex items-center justify-center text-5xl shadow-sm transition-transform hover:scale-105 active:scale-95 ${!editingCategory.color.startsWith('#') ? editingCategory.color : ''}`}
                           style={getStyle(editingCategory.color)}
                       >
                           {editingCategory.icon}
@@ -145,7 +145,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                   
                   <div>
                     <label className="text-xs font-bold uppercase mb-1 block text-text-secondary tracking-wider">Name</label>
-                    <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })} className="w-full bg-slate-100 dark:bg-slate-800 border border-border rounded-xl py-3 px-4 font-bold text-text-primary focus:ring-2 focus:ring-primary outline-none" required placeholder="Category Name" />
+                    <input type="text" value={editingCategory.name} onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })} className="w-full bg-slate-100 dark:bg-slate-800 border border-border rounded-lg py-3 px-4 font-bold text-text-primary focus:ring-2 focus:ring-primary outline-none" required placeholder="Category Name" />
                   </div>
 
                   <div>
@@ -164,8 +164,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                   </div>
 
                   <div className="flex items-center space-x-3 pt-2 border-t border-border mt-4">
-                    <button type="button" onClick={handleDelete} className="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>
-                    <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-primary-hover">Save</button>
+                    <button type="button" onClick={handleDelete} className="p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>
+                    <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-lg shadow-lg hover:bg-primary-hover">Save</button>
                   </div>
                 </form>
             </div>
