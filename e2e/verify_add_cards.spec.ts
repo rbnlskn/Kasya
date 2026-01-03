@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('verify add card UI', async ({ page }) => {
-  await page.goto('http://localhost:5175/');
+  await page.goto('/');
 
   // Wait for the app to load
   await expect(page.getByText('WALLETS')).toBeVisible();
@@ -24,15 +24,15 @@ test('verify add card UI', async ({ page }) => {
 
   const performSwipe = async () => {
     if (boundingBox) {
-        const startX = boundingBox.x + boundingBox.width / 2;
-        const startY = boundingBox.y + boundingBox.height * 0.8;
-        const endY = boundingBox.y + boundingBox.height * 0.2;
+      const startX = boundingBox.x + boundingBox.width / 2;
+      const startY = boundingBox.y + boundingBox.height * 0.8;
+      const endY = boundingBox.y + boundingBox.height * 0.2;
 
-        await page.mouse.move(startX, startY);
-        await page.mouse.down();
-        await page.mouse.move(startX, endY, { steps: 10 });
-        await page.mouse.up();
-        await page.waitForTimeout(500); // wait for swipe animation
+      await page.mouse.move(startX, startY);
+      await page.mouse.down();
+      await page.mouse.move(startX, endY, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(500); // wait for swipe animation
     }
   };
 
