@@ -21,13 +21,11 @@ if (!['major', 'minor', 'patch'].includes(bumpType)) {
 // Branch check for patch bumps (skip on main)
 if (bumpType === 'patch') {
     try {
-        // Use a more cross-platform compatible way to check branch
-        // On Windows, /dev/null redirection can cause "The system cannot find the path specified"
-        let branchName = 'detached';
+        let branchName = '';
         try {
             branchName = execSync('git symbolic-ref --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-        } catch (innerError) {
-            // If symbolic-ref fails, we might be detached.
+        } catch (e) {
+            // Fallback for detached usage or other git states
         }
 
         if (branchName === 'main') {
@@ -35,8 +33,7 @@ if (bumpType === 'patch') {
             process.exit(0);
         }
     } catch (e) {
-        // Fallback
-        console.log('Could not determine branch name. Proceeding.');
+        console.log('Could not determine branch name. Proceeding with bump.');
     }
 }
 
