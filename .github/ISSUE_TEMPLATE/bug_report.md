@@ -1,8 +1,8 @@
 ---
-name: 🐛 Bug Report
+name: 🐛 Bug
 about: Something is broken (logic, crash, or design glitch)
 title: "[BUG] "
-labels: bug
+labels: bug, backlog
 assignees: ''
 ---
 
