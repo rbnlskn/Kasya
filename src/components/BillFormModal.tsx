@@ -49,11 +49,11 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         setStartDate(initialBill.startDate ? new Date(initialBill.startDate) : new Date());
         setOccurrence(initialBill.recurrence);
         if (initialBill.status === 'ACTIVE') {
-            setIsTrial(initialBill.isTrialActive || false);
-            setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : null);
+          setIsTrial(initialBill.isTrialActive || false);
+          setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : null);
         } else {
-            setIsTrial(false);
-            setRecordInitialPayment(false);
+          setIsTrial(false);
+          setRecordInitialPayment(false);
         }
       } else {
         // Reset for new bill form
@@ -78,7 +78,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   // Auto-update due day from start date, ONLY if not manually set by user
   useEffect(() => {
     if ((!initialBill || isResubscribeFlow) && !dueDayManuallySet) {
-        setDueDay(startDate.getDate());
+      setDueDay(startDate.getDate());
     }
   }, [startDate, initialBill, isResubscribeFlow, dueDayManuallySet]);
 
@@ -91,26 +91,26 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const handleTrialDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDuration = e.target.value;
     if (newDuration === '' || /^[0-9\b]+$/.test(newDuration)) {
-        const durationValue = newDuration === '' ? '' : parseInt(newDuration, 10);
-        setTrialDuration(durationValue);
+      const durationValue = newDuration === '' ? '' : parseInt(newDuration, 10);
+      setTrialDuration(durationValue);
 
-        if (durationValue !== '') {
-            const newTrialEndDate = new Date(startDate);
-            switch (trialDurationUnit) {
-                case 'DAYS':
-                    newTrialEndDate.setDate(startDate.getDate() + durationValue);
-                    break;
-                case 'WEEKS':
-                    newTrialEndDate.setDate(startDate.getDate() + durationValue * 7);
-                    break;
-                case 'MONTHS':
-                    newTrialEndDate.setMonth(startDate.getMonth() + durationValue);
-                    break;
-            }
-            setTrialEndDate(newTrialEndDate);
-        } else {
-            setTrialEndDate(null);
+      if (durationValue !== '') {
+        const newTrialEndDate = new Date(startDate);
+        switch (trialDurationUnit) {
+          case 'DAYS':
+            newTrialEndDate.setDate(startDate.getDate() + durationValue);
+            break;
+          case 'WEEKS':
+            newTrialEndDate.setDate(startDate.getDate() + durationValue * 7);
+            break;
+          case 'MONTHS':
+            newTrialEndDate.setMonth(startDate.getMonth() + durationValue);
+            break;
         }
+        setTrialEndDate(newTrialEndDate);
+      } else {
+        setTrialEndDate(null);
+      }
     }
   };
 
@@ -121,14 +121,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
     newEndDate.setHours(0, 0, 0, 0);
 
     if (newEndDate < newStartDate) {
-        setTrialEndDate(newStartDate);
-        setTrialDuration(0);
+      setTrialEndDate(newStartDate);
+      setTrialDuration(0);
     } else {
-        setTrialEndDate(newEndDate);
-        const diffTime = newEndDate.getTime() - newStartDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setTrialDuration(diffDays);
-        setTrialDurationUnit('DAYS');
+      setTrialEndDate(newEndDate);
+      const diffTime = newEndDate.getTime() - newStartDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setTrialDuration(diffDays);
+      setTrialDurationUnit('DAYS');
     }
     setSelectorView('NONE');
   };
@@ -147,22 +147,22 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
     let firstPaymentDate: string | undefined;
     if ((!initialBill || isResubscribeFlow) && !recordInitialPayment && !isTrial) {
-        const start = new Date(startDate);
-        let nextDate = new Date(start);
-        switch (occurrence) {
-            case 'WEEKLY': nextDate.setDate(nextDate.getDate() + 7); break;
-            case 'MONTHLY': nextDate.setMonth(nextDate.getMonth() + 1); break;
-            case 'YEARLY': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
-            case 'ONE_TIME': nextDate = start; break;
-        }
-        firstPaymentDate = nextDate.toISOString();
+      const start = new Date(startDate);
+      let nextDate = new Date(start);
+      switch (occurrence) {
+        case 'WEEKLY': nextDate.setDate(nextDate.getDate() + 7); break;
+        case 'MONTHLY': nextDate.setMonth(nextDate.getMonth() + 1); break;
+        case 'YEARLY': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+        case 'ONE_TIME': nextDate = start; break;
+      }
+      firstPaymentDate = nextDate.toISOString();
     }
 
     let billingStartDate: string | undefined;
     if ((!initialBill || isResubscribeFlow) && isTrial && trialEndDate) {
-        const billingStart = new Date(trialEndDate);
-        billingStart.setDate(billingStart.getDate() + 1);
-        billingStartDate = billingStart.toISOString();
+      const billingStart = new Date(trialEndDate);
+      billingStart.setDate(billingStart.getDate() + 1);
+      billingStartDate = billingStart.toISOString();
     }
 
     onSave({
@@ -192,20 +192,20 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   };
 
   const handleStopSubscription = () => {
-      if (!initialBill) return;
-      const confirmText = initialBill.isTrialActive
-        ? "Are you sure? This will cancel your trial immediately. The item will be moved to your history."
-        : "Are you sure? This will stop future bills from generating. Past payments will be saved.";
+    if (!initialBill) return;
+    const confirmText = initialBill.isTrialActive
+      ? "Are you sure? This will cancel your trial immediately. The item will be moved to your history."
+      : "Are you sure? This will stop future bills from generating. Past payments will be saved.";
 
-      if (window.confirm(confirmText)) {
-        onSave({
-            ...initialBill,
-            status: 'INACTIVE',
-            endDate: new Date().toISOString(),
-            isTrialActive: false,
-        }, initialBill.id);
-        onClose();
-      }
+    if (window.confirm(confirmText)) {
+      onSave({
+        ...initialBill,
+        status: 'INACTIVE',
+        endDate: new Date().toISOString(),
+        isTrialActive: false,
+      }, initialBill.id);
+      onClose();
+    }
   }
 
   const headerText = useMemo(() => isResubscribeFlow ? 'Restart Subscription' : (initialBill ? `Edit ${type === 'BILL' ? 'Bill' : 'Subscription'}` : `New ${type === 'BILL' ? 'Bill' : 'Subscription'}`), [initialBill, type, isResubscribeFlow]);
@@ -214,195 +214,195 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
   return (
     <>
-    <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4 pb-safe">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={onClose}></div>
-      <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-black text-text-primary tracking-tight">{headerText}</h2>
-          <div className="flex items-center space-x-2">
-            {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors" title="Delete"><Trash2 className="w-5 h-5" /></button>}
-            <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex bg-slate-100 p-1 rounded-2xl">
-            <button type="button" onClick={() => setType('BILL')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'BILL' ? 'bg-surface shadow text-amber-500 scale-[1.02]' : 'text-text-secondary'}`}>
-                <FileText className="w-4 h-4"/> Bill
-            </button>
-            <button type="button" onClick={() => setType('SUBSCRIPTION')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'SUBSCRIPTION' ? 'bg-surface shadow text-sky-500 scale-[1.02]' : 'text-text-secondary'}`}>
-                <Repeat className="w-4 h-4"/> Subscription
-            </button>
+      <div className="fixed inset-0 z-[70] flex items-center justify-center pointer-events-none p-4 pb-safe">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto" onClick={onClose}></div>
+        <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] overflow-y-auto pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-black text-text-primary tracking-tight">{headerText}</h2>
+            <div className="flex items-center space-x-2">
+              {initialBill && <button type="button" onClick={handleDelete} className="p-2.5 bg-expense-bg text-expense rounded-full hover:bg-expense-bg/80 transition-colors" title="Delete"><Trash2 className="w-5 h-5" /></button>}
+              <button data-testid="close-button" type="button" onClick={onClose} className="p-2.5 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"><X className="w-5 h-5 text-text-secondary" /></button>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., Netflix, Rent" required />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex bg-slate-100 p-1 rounded-2xl">
+              <button type="button" onClick={() => setType('BILL')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'BILL' ? 'bg-surface shadow text-amber-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                <FileText className="w-4 h-4" /> Bill
+              </button>
+              <button type="button" onClick={() => setType('SUBSCRIPTION')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'SUBSCRIPTION' ? 'bg-surface shadow text-sky-500 scale-[1.02]' : 'text-text-secondary'}`}>
+                <Repeat className="w-4 h-4" /> Subscription
+              </button>
+            </div>
 
-          <div>
+            <div>
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., Netflix, Rent" required />
+            </div>
+
+            <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Amount</label>
               <div className="relative group">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                  <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
+                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
               </div>
-          </div>
+            </div>
 
-          <div>
+            <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
               <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
-                  <span className="text-sm font-bold text-text-primary">{format(startDate, 'MMMM d, yyyy')}</span>
+                <span className="text-sm font-bold text-text-primary">{format(startDate, 'MMMM d, yyyy')}</span>
               </button>
-          </div>
+            </div>
 
-          <div className="flex space-x-2">
+            <div className="flex space-x-2">
               <div className="flex-1">
-                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
-                  <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                      <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
-                      <ChevronDown className="w-4 h-4 text-text-secondary"/>
-                  </button>
+                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
+                <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                  <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary" />
+                </button>
               </div>
               <div className="flex-1">
-                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
-                  <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
-                      <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace('_', ' ') : 'Select...'}</span>
-                      <ChevronDown className="w-4 h-4 text-text-secondary"/>
-                  </button>
+                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
+                <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                  <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace('_', ' ') : 'Select...'}</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary" />
+                </button>
               </div>
-          </div>
+            </div>
 
-          {showAdvancedOptions && type === 'SUBSCRIPTION' && !recordInitialPayment && (
-            <div className="space-y-2">
-              <ToggleSwitch isChecked={isTrial} onChange={setIsTrial} label="Starts with a Free Trial?" description="Enable if the subscription begins with a free period." />
-              {isTrial && (
-                <div className="bg-slate-100 p-3 rounded-2xl space-y-2">
+            {showAdvancedOptions && type === 'SUBSCRIPTION' && !recordInitialPayment && (
+              <div className="space-y-2">
+                <ToggleSwitch isChecked={isTrial} onChange={setIsTrial} label="Free Trial" description="Toggle to start with a free period." />
+                {isTrial && (
+                  <div className="space-y-4 pt-2">
                     <div className="flex space-x-2">
                       <div className="flex-1">
-                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
-                          <div className="flex items-center bg-white rounded-xl h-12">
-                               <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-transparent px-4 text-sm font-bold text-text-primary outline-none" placeholder="e.g., 7"/>
-                               <button type="button" onClick={() => setSelectorView('TRIAL_DURATION_UNIT')} className="pr-3 text-sm font-bold text-text-secondary flex items-center gap-1">
-                                   {trialDurationUnit}
-                                   <ChevronDown className="w-3 h-3" />
-                               </button>
-                          </div>
+                        <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
+                        <div className="flex items-center bg-slate-100 rounded-xl h-12 border-2 border-transparent focus-within:border-primary focus-within:bg-surface transition-all">
+                          <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-transparent px-4 text-base font-medium text-text-primary outline-none" placeholder="e.g., 7" />
+                          <button type="button" onClick={() => setSelectorView('TRIAL_DURATION_UNIT')} className="pr-3 text-sm font-bold text-text-secondary flex items-center gap-1">
+                            {trialDurationUnit}
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                       <div className="flex-1">
-                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Ends On</label>
-                          <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-50 text-left">
-                              <span className={`text-sm font-bold ${trialEndDate ? 'text-text-primary' : 'text-text-secondary/80'}`}>{trialEndDate ? format(trialEndDate, 'MMM d, yyyy') : 'Select...'}</span>
-                          </button>
+                        <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Ends On</label>
+                        <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200 text-left">
+                          <span className={`text-sm font-bold ${trialEndDate ? 'text-text-primary' : 'text-text-secondary/80'}`}>{trialEndDate ? format(trialEndDate, 'MMM d, yyyy') : 'Select...'}</span>
+                        </button>
                       </div>
                     </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {showAdvancedOptions && !isTrial && (
-            <div className="space-y-2">
-              <ToggleSwitch isChecked={recordInitialPayment} onChange={setRecordInitialPayment} label="Record initial payment?" description="Disable to schedule the first payment for the next cycle." />
-              {recordInitialPayment && (
-                  <div className="bg-slate-100 p-3 rounded-2xl">
-                      <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">From Wallet</label>
-                      <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-white border-2 border-transparent active:border-primary/30 rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-50 text-left">
-                          <span className={`text-sm font-bold ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
-                              {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
-                          </span>
-                          <ChevronDown className="w-4 h-4 text-text-secondary" />
-                      </button>
                   </div>
+                )}
+              </div>
+            )}
+
+            {showAdvancedOptions && !isTrial && (
+              <div className="space-y-2">
+                <ToggleSwitch isChecked={recordInitialPayment} onChange={setRecordInitialPayment} label="Record Initial Payment" description="Toggle to record the initial payment now." />
+                {recordInitialPayment && (
+                  <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">From Wallet</label>
+                    <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                      <span className={`text-base font-medium ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
+                        {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-text-secondary" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="pt-2">
+              <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
+              {initialBill && initialBill.status === 'ACTIVE' && (
+                <button type="button" onClick={handleStopSubscription} className="w-full text-center text-red-600 font-bold text-sm py-3 mt-2 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors">
+                  {initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}
+                </button>
               )}
             </div>
-          )}
-
-          <div className="pt-2">
-            <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
-            {initialBill && initialBill.status === 'ACTIVE' && (
-              <button type="button" onClick={handleStopSubscription} className="w-full text-center text-red-600 font-bold text-sm py-3 mt-2 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors">
-                {initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}
-              </button>
+          </form>
+        </div>
+      </div>
+      {selectorView !== 'NONE' && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectorView('NONE')}>
+          <div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {selectorView === 'DUE_DAY_CALENDAR' && (
+              <DayPicker
+                selectedDate={startDate}
+                onChange={(d) => {
+                  setStartDate(d);
+                  setSelectorView('NONE');
+                }}
+                onClose={() => setSelectorView('NONE')}
+              />
+            )}
+            {selectorView === 'TRIAL_END_DATE_CALENDAR' && (
+              <DayPicker
+                selectedDate={trialEndDate || new Date()}
+                onChange={handleTrialEndDateChange}
+                onClose={() => setSelectorView('NONE')}
+              />
+            )}
+            {selectorView === 'TRIAL_DURATION_UNIT' && (
+              <div>
+                <h3 className="font-bold text-lg text-text-primary mb-4">Select Unit</h3>
+                <div className="space-y-2">
+                  {(['DAYS', 'WEEKS', 'MONTHS']).map(o => (
+                    <button key={o} onClick={() => { setTrialDurationUnit(o as any); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${trialDurationUnit === o ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectorView === 'OCCURRENCE' && (
+              <div>
+                <h3 className="font-bold text-lg text-text-primary mb-4">Select Occurrence</h3>
+                <div className="space-y-2">
+                  {(['ONE_TIME', 'WEEKLY', 'MONTHLY', 'YEARLY'] as RecurrenceFrequency[]).map(o => (
+                    <button key={o} onClick={() => { setOccurrence(o); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${occurrence === o ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
+                      {o.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectorView === 'DUE_DAY_PICKER' && (
+              <div>
+                <h3 className="font-bold text-lg text-text-primary mb-4">Select Due Day</h3>
+                <div className="grid grid-cols-7 gap-2">
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                    <button key={day} onClick={() => handleDueDayChange(day)} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
+                      {day}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectorView === 'WALLET' && (
+              <div>
+                <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {wallets.map(w => (
+                    <WalletSelectItem
+                      key={w.id}
+                      wallet={w}
+                      currencySymbol={currencySymbol}
+                      isSelected={selectedWalletId === w.id}
+                      onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-        </form>
-      </div>
-    </div>
-{selectorView !== 'NONE' && (
-<div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectorView('NONE')}>
-<div className="bg-surface w-[90%] max-w-sm rounded-[2rem] p-6 animate-in zoom-in-95 duration-200 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-    {selectorView === 'DUE_DAY_CALENDAR' && (
-        <DayPicker
-            selectedDate={startDate}
-            onChange={(d) => {
-                setStartDate(d);
-                setSelectorView('NONE');
-            }}
-            onClose={() => setSelectorView('NONE')}
-        />
-    )}
-    {selectorView === 'TRIAL_END_DATE_CALENDAR' && (
-        <DayPicker
-            selectedDate={trialEndDate || new Date()}
-            onChange={handleTrialEndDateChange}
-            onClose={() => setSelectorView('NONE')}
-        />
-    )}
-    {selectorView === 'TRIAL_DURATION_UNIT' && (
-        <div>
-            <h3 className="font-bold text-lg text-text-primary mb-4">Select Unit</h3>
-            <div className="space-y-2">
-                {(['DAYS', 'WEEKS', 'MONTHS']).map(o => (
-                    <button key={o} onClick={() => { setTrialDurationUnit(o as any); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${trialDurationUnit === o ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                        {o}
-                    </button>
-                ))}
-            </div>
         </div>
-    )}
-    {selectorView === 'OCCURRENCE' && (
-        <div>
-            <h3 className="font-bold text-lg text-text-primary mb-4">Select Occurrence</h3>
-            <div className="space-y-2">
-                {(['ONE_TIME', 'WEEKLY', 'MONTHLY', 'YEARLY'] as RecurrenceFrequency[]).map(o => (
-                    <button key={o} onClick={() => { setOccurrence(o); setSelectorView('NONE'); }} className={`w-full p-3 rounded-lg text-left font-bold ${occurrence === o ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'}`}>
-                        {o.replace('_', ' ')}
-                    </button>
-                ))}
-            </div>
-        </div>
-    )}
-    {selectorView === 'DUE_DAY_PICKER' && (
-        <div>
-            <h3 className="font-bold text-lg text-text-primary mb-4">Select Due Day</h3>
-            <div className="grid grid-cols-7 gap-2">
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                    <button key={day} onClick={() => handleDueDayChange(day)} className={`w-10 h-10 rounded-full text-sm font-bold ${dueDay === day ? 'bg-primary text-white' : 'hover:bg-slate-100'}`}>
-                        {day}
-                    </button>
-                ))}
-            </div>
-        </div>
-    )}
-    {selectorView === 'WALLET' && (
-        <div>
-            <h3 className="font-bold text-lg text-text-primary mb-4">Select Wallet</h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-                {wallets.map(w => (
-                    <WalletSelectItem
-                        key={w.id}
-                        wallet={w}
-                        currencySymbol={currencySymbol}
-                        isSelected={selectedWalletId === w.id}
-                        onClick={() => { setSelectedWalletId(w.id); setSelectorView('NONE'); }}
-                    />
-                ))}
-            </div>
-        </div>
-    )}
-</div>
-</div>
-)}
+      )}
     </>
   );
 };

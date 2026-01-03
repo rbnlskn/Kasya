@@ -275,14 +275,15 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             </div>
 
             {/* Note & Offset Logic */}
-            <div className="space-y-4 py-2">
+            {/* Note & Offset Logic */}
+            <div className="space-y-4">
               {title === 'Lending Payment' ? (
                 <>
                   <ToggleSwitch
                     isChecked={isOffset}
                     onChange={(checked) => { setIsOffset(checked); setShowNote(checked); }}
                     label="Mark as Non-Monetary / Offset"
-                    description="Debt will decrease, but no wallet balance will be affected."
+                    description="Toggle to mark as offset."
                   />
                   {isOffset && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-200">
@@ -290,7 +291,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                       <textarea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
                         placeholder="Enter note..."
                         rows={1}
                       />
@@ -299,39 +300,24 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 </>
               ) : (
                 <>
-                  {type === TransactionType.REFUND ? (
-                    <div>
-                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Refund Reason</label>
+                  <ToggleSwitch
+                    isChecked={showNote}
+                    onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
+                    label="Add Note"
+                    description="Toggle to add a note."
+                  />
+                  {showNote && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
                       <textarea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
-                        placeholder="Enter reason..."
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        placeholder={type === TransactionType.REFUND ? "e.g. Returned defective item" : "Enter note..."}
                         rows={1}
+                        autoFocus
                       />
                     </div>
-                  ) : (
-                    <>
-                      <ToggleSwitch
-                        isChecked={showNote}
-                        onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
-                        label="Add Note"
-                        description="Add extra context (e.g. Invoice #, Dinner with Client)"
-                      />
-                      {showNote && (
-                        <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                          <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
-                          <textarea
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
-                            placeholder="Enter note..."
-                            rows={1}
-                            autoFocus
-                          />
-                        </div>
-                      )}
-                    </>
                   )}
                 </>
               )}

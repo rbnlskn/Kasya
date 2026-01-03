@@ -68,6 +68,18 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
       mainDesc = transaction.description || '';
     }
 
+    if (transaction.type === TransactionType.REFUND) {
+      return transaction.note
+        ? `${mainDesc} • Refund: ${transaction.note}`
+        : `${mainDesc} • Refund`;
+    }
+
+    if (transaction.exclude_from_cashflow) {
+      return transaction.note
+        ? `${mainDesc} • Offset: ${transaction.note}`
+        : `${mainDesc} • Offset`;
+    }
+
     if (transaction.note) {
       return mainDesc ? `${mainDesc} • ${transaction.note}` : transaction.note;
     }
@@ -94,12 +106,6 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
           <div className="flex flex-col min-w-0">
             <h4 className="text-gray-900 font-bold text-sm truncate flex items-center gap-2">
               {getMainText()}
-              {transaction.type === TransactionType.REFUND && (
-                <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wide">Refund</span>
-              )}
-              {transaction.exclude_from_cashflow && (
-                <span className="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wide">Offset</span>
-              )}
             </h4>
             <p className="text-gray-400 text-xs truncate">{getSubText()}</p>
           </div>
