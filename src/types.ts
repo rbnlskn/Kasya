@@ -2,7 +2,8 @@
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
-  TRANSFER = 'TRANSFER'
+  TRANSFER = 'TRANSFER',
+  REFUND = 'REFUND'
 }
 
 export enum WalletType {
@@ -54,6 +55,8 @@ export interface Transaction {
   description?: string;
   billId?: string;
   commitmentId?: string;
+  note?: string;
+  exclude_from_cashflow?: boolean;
 }
 
 export interface Category {
