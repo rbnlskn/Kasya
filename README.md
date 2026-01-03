@@ -20,6 +20,30 @@ Kasya (formerly Moneyfest) helps you master your finances with a focus on privac
   - **Native Dark Mode**: Fully supported high-contrast palette.
   - **Modern UI**: Consistent "squircle" geometry and custom analog/digital time pickers for intuitive input.
 
+## ⚡ Getting Started
+
+### Prerequisites
+- Node.js (LTS)
+- Git
+- Android Studio (for Mobile)
+
+### Installation
+```powershell
+# 1. Install Dependencies
+npm install
+
+# 2. Sync Native Container (Required)
+npx cap sync
+```
+
+### Running the App
+- **Web**: `npm run dev`
+- **Mobile**: `npx cap open android`
+
+## 📚 Documentation
+- **[Workflow Guide](docs/WORKFLOW_GUIDE.md)**: How to work with Antigravity, Versioning rules, and PR process.
+- **[Architecture](docs/ARCHITECTURE.md)**: Codebase map and tech stack details.
+
 ## 🛠️ Tech & Design
 
 Kasya is built to be lightweight and fast. It prioritizes a "native feel" with custom-built selectors (dates, times, categories) to avoid the clunkiness of standard HTML inputs.
