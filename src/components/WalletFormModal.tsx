@@ -286,11 +286,11 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
                 </div>
                 <div className="space-y-2">
                     {Object.values(WalletType).map(t => (
-                        <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${type === t ? 'bg-primary/5 border border-primary/20' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                        <button key={t} onClick={() => { setType(t); setIsSelectingType(false); }} className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${type === t ? 'bg-primary/10 ring-2 ring-primary' : 'hover:bg-slate-100'}`}>
                             <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <div className="opacity-50">
-                                      {getWalletIcon(t, "w-5 h-5 text-text-secondary")}
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100`}>
+                                    <div className="opacity-40">
+                                      {getWalletIcon(t, "w-5 h-5 text-slate-500")}
                                     </div>
                                 </div>
                                 <span className="font-medium text-text-primary">{t}</span>

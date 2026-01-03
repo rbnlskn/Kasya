@@ -305,8 +305,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                             {wallets.map(w => (
                                 <button key={w.id} onClick={() => { if(selectorView==='WALLET_FROM') setSelectedWallet(w.id); else setSelectedToWallet(w.id); setSelectorView('NONE'); }} className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-colors border-2 border-transparent ${(selectorView==='WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id ? 'bg-primary/10 border-primary/20' : 'bg-slate-100 hover:bg-slate-200'}`}>
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-10 h-10 ${w.color} ${w.textColor} shadow-sm`} style={{borderRadius: '0.75rem'}}>
-                                          <div className="icon-container">{getWalletIcon(w.type)}</div>
+                                        <div className={`w-10 h-10 ${w.color} shadow-sm flex items-center justify-center`} style={{borderRadius: '0.75rem'}}>
+                                          <div className={`icon-container opacity-50 ${w.textColor}`}>{getWalletIcon(w.type)}</div>
                                         </div>
                                         <div className="text-left">
                                             <div className="font-bold text-sm text-text-primary">{w.name}</div>

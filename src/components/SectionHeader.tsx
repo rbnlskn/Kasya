@@ -6,11 +6,10 @@ interface SectionHeaderProps {
   title: string;
   count?: number;
   onViewAll?: () => void;
-  onAdd?: () => void;
   className?: string;
 }
 
-const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, onAdd, className = '' }) => {
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, className = '' }) => {
   return (
     <div className={`flex justify-between items-center ${className}`}>
       <h2 className="text-sm font-extrabold text-gray-800 uppercase tracking-widest flex items-center">
@@ -21,11 +20,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, 
         {onViewAll && (
           <button onClick={onViewAll} className="text-[11px] text-primary font-bold uppercase tracking-wider hover:text-primary-hover transition-colors">
             VIEW ALL
-          </button>
-        )}
-        {onAdd && (
-          <button data-testid={`add-${title.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}-button`} onClick={onAdd} className="text-primary hover:text-primary-hover transition-colors">
-            <Plus className="w-5 h-5" />
           </button>
         )}
       </div>
