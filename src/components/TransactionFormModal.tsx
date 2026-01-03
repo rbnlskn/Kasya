@@ -139,7 +139,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="flex bg-slate-100 p-1 rounded-2xl overflow-x-auto no-scrollbar">
               <button type="button" onClick={() => setType(TransactionType.EXPENSE)} className={`flex-1 py-2.5 px-2 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${type === TransactionType.EXPENSE ? 'bg-surface shadow-sm text-red-500 scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>Expense</button>
               <button type="button" onClick={() => setType(TransactionType.INCOME)} className={`flex-1 py-2.5 px-2 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${type === TransactionType.INCOME ? 'bg-surface shadow-sm text-emerald-500 scale-[1.02]' : 'text-text-secondary hover:text-text-primary'}`}>Income</button>
@@ -154,7 +154,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 <input
                   type="text"
                   {...amountInput}
-                  className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
+                  className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
                   placeholder="0.00"
                   inputMode="decimal"
                   autoFocus={false}
@@ -170,7 +170,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                   <input
                     type="text"
                     {...feeInput}
-                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
                     placeholder="0.00"
                     inputMode="decimal"
                   />
@@ -181,13 +181,13 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Date & Time</label>
               <div className="flex space-x-2">
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('DATE_PICKER'); }} className="flex-1 bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-200 h-12">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('DATE_PICKER'); }} className="flex-1 bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer transition-all hover:bg-slate-200 h-11">
                   <div className="flex items-center space-x-3">
                     <Calendar className="w-5 h-5 text-text-secondary" />
                     <span className="text-sm font-bold text-text-primary">{formattedDate}</span>
                   </div>
                 </div>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('TIME_PICKER'); }} className="bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-200 h-12">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('TIME_PICKER'); }} className="bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-center cursor-pointer transition-all hover:bg-slate-200 h-11">
                   <span className="text-sm font-bold text-primary-hover">
                     {dateVal.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                   </span>
@@ -198,7 +198,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             {type !== TransactionType.TRANSFER && (
               <div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Category <span className="text-red-500">*</span></label>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('CATEGORY'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('CATEGORY'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-11 transition-all">
                   <div className="flex items-center space-x-3">
                     {selectedCategory ? (
                       <>
@@ -219,7 +219,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             {!isOffset && (
               <div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{type === TransactionType.TRANSFER ? 'From Wallet' : 'Wallet'} <span className="text-red-500">*</span></label>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_FROM'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_FROM'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-11 transition-all">
                   <div className="flex items-center space-x-3">
                     {selectedWallet ? (
                       <>
@@ -243,7 +243,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
               <div>
                 <div className="flex justify-center -my-2.5 relative z-10"><div className="bg-slate-200 p-1.5 rounded-full ring-4 ring-surface"><ArrowRightLeft className="w-4 h-4 text-gray-500" /></div></div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">To Wallet <span className="text-red-500">*</span></label>
-                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-12 transition-all">
+                <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-11 transition-all">
                   <div className="flex items-center space-x-3">
                     {selectedToWallet ? (
                       <>
@@ -269,29 +269,35 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12"
+                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
                 placeholder="What was this for?"
               />
             </div>
 
             {/* Note & Offset Logic */}
             {/* Note & Offset Logic */}
-            <div className="space-y-4">
+            {/* Note & Offset Logic */}
+            <div className="space-y-3">
               {title === 'Lending Payment' ? (
                 <>
                   <ToggleSwitch
                     isChecked={isOffset}
                     onChange={(checked) => { setIsOffset(checked); setShowNote(checked); }}
                     label="Mark as Non-Monetary / Offset"
-                    description="Toggle to mark as offset."
+                    description="Toggle to mark as offset (and add note)."
                   />
+                  {/* Also show standard add note if user wants, but currently we bind offset to note. 
+                      User requested: 'add note toggle should also be available to loan lending'. 
+                      For PAYMENT (this modal), offset usually implies a note. 
+                      Let's stick to simple logic for now but ensure text matches feedback.
+                  */}
                   {isOffset && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                       <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
                       <textarea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-11 min-h-[2.75rem]"
                         placeholder="Enter note..."
                         rows={1}
                       />
@@ -303,19 +309,19 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                   <ToggleSwitch
                     isChecked={showNote}
                     onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
-                    label="Add Note"
-                    description="Toggle to add a note."
+                    label={type === TransactionType.REFUND ? "Add Reason" : "Add Note"}
+                    description={type === TransactionType.REFUND ? "Toggle to add return details." : "Toggle to add extra details."}
                   />
                   {showNote && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+                      <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{type === TransactionType.REFUND ? "Refund Reason" : "Note"}</label>
                       <textarea
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
-                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-12 min-h-[3rem]"
+                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-11 min-h-[2.75rem]"
                         placeholder={type === TransactionType.REFUND ? "e.g. Returned defective item" : "Enter note..."}
                         rows={1}
-                        autoFocus
+                        autoFocus={false}
                       />
                     </div>
                   )}

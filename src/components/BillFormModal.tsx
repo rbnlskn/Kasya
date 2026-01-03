@@ -35,6 +35,8 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
   const [trialDuration, setTrialDuration] = useState<number | ''>(7);
   const [trialDurationUnit, setTrialDurationUnit] = useState<'DAYS' | 'WEEKS' | 'MONTHS'>('DAYS');
   const [dueDayManuallySet, setDueDayManuallySet] = useState(false);
+  const [note, setNote] = useState('');
+  const [showNote, setShowNote] = useState(false);
 
   const isResubscribeFlow = initialBill && initialBill.status === 'INACTIVE';
 
@@ -51,14 +53,20 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
         if (initialBill.status === 'ACTIVE') {
           setIsTrial(initialBill.isTrialActive || false);
           setTrialEndDate(initialBill.trialEndDate ? new Date(initialBill.trialEndDate) : null);
+          setNote(initialBill.note || '');
+          setShowNote(!!initialBill.note);
         } else {
           setIsTrial(false);
           setRecordInitialPayment(false);
+          setNote(initialBill.note || '');
+          setShowNote(!!initialBill.note);
         }
       } else {
         // Reset for new bill form
         setType('BILL');
         setName('');
+        setNote('');
+        setShowNote(false);
         amountInput.setValue('');
         const today = new Date();
         setStartDate(today);
@@ -180,6 +188,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       trialEndDate: (isTrial && trialEndDate) ? trialEndDate.toISOString() : undefined,
       billingStartDate: billingStartDate,
       remindTrialEnd: isTrial,
+      note: note || undefined,
     }, initialBill?.id, (recordInitialPayment && !isTrial) ? { walletId: selectedWalletId } : undefined);
     onClose();
   };
@@ -225,7 +234,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="flex bg-slate-100 p-1 rounded-2xl">
               <button type="button" onClick={() => setType('BILL')} className={`flex-1 py-2.5 text-sm font-bold rounded-xl flex items-center justify-center gap-2 transition-all ${type === 'BILL' ? 'bg-surface shadow text-amber-500 scale-[1.02]' : 'text-text-secondary'}`}>
                 <FileText className="w-4 h-4" /> Bill
@@ -237,20 +246,20 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
 
             <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Name</label>
-              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="e.g., Netflix, Rent" required />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11" placeholder="e.g., Netflix, Rent" required />
             </div>
 
             <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Amount</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
-                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-12" placeholder="0.00" required inputMode="decimal" />
+                <input type="text" {...amountInput} className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 pl-9 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11" placeholder="0.00" required inputMode="decimal" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Start Date</label>
-              <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200">
+              <button type="button" onClick={() => setSelectorView('DUE_DAY_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-11 transition-all hover:bg-slate-200">
                 <span className="text-sm font-bold text-text-primary">{format(startDate, 'MMMM d, yyyy')}</span>
               </button>
             </div>
@@ -258,14 +267,14 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
             <div className="flex space-x-2">
               <div className="flex-1">
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Due Day</label>
-                <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                <button type="button" onClick={() => setSelectorView('DUE_DAY_PICKER')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-11 transition-all hover:bg-slate-200 text-left">
                   <span className={`text-sm font-bold ${dueDay ? 'text-text-primary' : 'text-text-secondary/80'}`}>{dueDay || 'Select...'}</span>
                   <ChevronDown className="w-4 h-4 text-text-secondary" />
                 </button>
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Occurrence</label>
-                <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                <button type="button" onClick={() => setSelectorView('OCCURRENCE')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-11 transition-all hover:bg-slate-200 text-left">
                   <span className={`text-sm font-bold ${occurrence ? 'text-text-primary' : 'text-text-secondary/80'}`}>{occurrence ? occurrence.replace('_', ' ') : 'Select...'}</span>
                   <ChevronDown className="w-4 h-4 text-text-secondary" />
                 </button>
@@ -280,7 +289,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                     <div className="flex space-x-2">
                       <div className="flex-1">
                         <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Trial Duration</label>
-                        <div className="flex items-center bg-slate-100 rounded-xl h-12 border-2 border-transparent focus-within:border-primary focus-within:bg-surface transition-all">
+                        <div className="flex items-center bg-slate-100 rounded-xl h-11 border-2 border-transparent focus-within:border-primary focus-within:bg-surface transition-all">
                           <input type="number" value={trialDuration} onChange={handleTrialDurationChange} className="w-full bg-transparent px-4 text-base font-medium text-text-primary outline-none" placeholder="e.g., 7" />
                           <button type="button" onClick={() => setSelectorView('TRIAL_DURATION_UNIT')} className="pr-3 text-sm font-bold text-text-secondary flex items-center gap-1">
                             {trialDurationUnit}
@@ -290,7 +299,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Ends On</label>
-                        <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-12 transition-all hover:bg-slate-200 text-left">
+                        <button type="button" onClick={() => setSelectorView('TRIAL_END_DATE_CALENDAR')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center h-11 transition-all hover:bg-slate-200 text-left">
                           <span className={`text-sm font-bold ${trialEndDate ? 'text-text-primary' : 'text-text-secondary/80'}`}>{trialEndDate ? format(trialEndDate, 'MMM d, yyyy') : 'Select...'}</span>
                         </button>
                       </div>
@@ -306,7 +315,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                 {recordInitialPayment && (
                   <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <label className="text-xs font-extrabold text-text-secondary uppercase mb-1.5 block">From Wallet</label>
-                    <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-12 transition-all hover:bg-slate-200 text-left">
+                    <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-xl px-4 flex items-center justify-between h-11 transition-all hover:bg-slate-200 text-left">
                       <span className={`text-base font-medium ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
                         {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
                       </span>
@@ -316,6 +325,27 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                 )}
               </div>
             )}
+
+            <div>
+              <ToggleSwitch
+                isChecked={showNote}
+                onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
+                label="Add Note"
+                description="Toggle to add extra details."
+              />
+              {showNote && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-3">
+                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-11 min-h-[2.75rem]"
+                    placeholder="Enter note..."
+                    rows={1}
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="pt-2">
               <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>

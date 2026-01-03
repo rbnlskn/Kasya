@@ -87,6 +87,7 @@ export interface Bill {
   trialEndDate?: string;
   billingStartDate?: string;
   remindTrialEnd?: boolean;
+  note?: string;
 }
 
 export enum CommitmentType {
@@ -108,6 +109,7 @@ export interface Commitment {
   startDate: string;
   duration: number;
   durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS';
+  note?: string;
 }
 
 export interface AppState {
