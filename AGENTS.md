@@ -18,10 +18,22 @@ When working on this repo, please follow these steps:
 - **Type Safety**: Run `npm run type-check` to catch errors early.
 - **Testing**: Run `npm test` if you affect critical logic.
 
-### C. Versioning (Important!)
-- This project uses semantic versioning in `package.json`.
-- Users may run `npm run bump:patch` to increment versions, or you can do it manually if instructed.
-- Update `src/constants.ts` Changelog if adding significant features.
+### C. Versioning Strategy
+- **X (Major)**: Significant overhaul (Manual trigger).
+- **Y (Minor)**: **Starts a new Issue/Feature**.
+    - When you start working on a GitHub Issue (e.g., #100), running `npm run bump:minor` is often the first step.
+- **Z (Patch)**: **Commits**.
+    - Handled automatically by pre-commit hooks on feature branches.
+
+### D. Pull Requests (GitHub CLI)
+- **High Quality Descriptions**: When creating a PR (`gh pr create`), you **MUST** provide:
+    - **Title**: Descriptive and Conventional (e.g., `feat: implement credit card cycles`).
+    - **Body**: A summary of changes and linked issues (e.g., "Fixes #100").
+    - **Never** use generic or empty descriptions.
+- **Checklist**:
+    1.  Ensure branch `feature/xyz` is pushed.
+    2.  Run `gh pr create --title "..." --body "..."`
+    3.  Wait for user approval if needed, then `gh pr merge`.
 
 ## 3. Tech Stack Hints
 - **Dates**: Use `date-fns`.
