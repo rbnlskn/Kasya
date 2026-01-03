@@ -274,12 +274,24 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
             )}
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider">Description</label>
-                <button type="button" onClick={() => setShowNote(!showNote)} className="text-xs font-bold text-primary hover:text-primary-hover transition-colors">
-                  {showNote ? '- Remove Note' : '+ Add Note'}
-                </button>
+              <div className="flex items-center justify-between mb-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-text-primary">Add Note</span>
+                  <span className="text-[10px] text-text-secondary">Add extra context (e.g. Invoice #, Dinner with Client)</span>
+                </div>
+                <div
+                  onClick={() => {
+                    const newState = !showNote;
+                    setShowNote(newState);
+                    if (!newState) setNote('');
+                  }}
+                  className={`w-12 h-7 rounded-full p-1 transition-colors cursor-pointer ${showNote ? 'bg-primary' : 'bg-slate-200'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showNote ? 'translate-x-5' : 'translate-x-0'}`} />
+                </div>
               </div>
+
+              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
               <input
                 type="text"
                 value={description}
@@ -288,14 +300,17 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                 placeholder="What was this for?"
               />
               {showNote && (
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className="w-full mt-2 bg-slate-50 border-2 border-slate-100 focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none"
-                  placeholder="Add details (e.g. Invoice #, Dinner with Client)..."
-                  rows={2}
-                  autoFocus
-                />
+                <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-sm font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none"
+                    placeholder="Enter note..."
+                    rows={2}
+                    autoFocus
+                  />
+                </div>
               )}
             </div>
 

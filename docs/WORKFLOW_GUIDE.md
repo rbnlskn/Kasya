@@ -25,11 +25,20 @@ This guide details your daily workflow for developing Kasya using the Antigravit
 3.  **I code**: Every subsequent commit bumps the Z (Patch) version automatically.
     - `1.21.1` -> `1.21.2` -> etc.
 
-### Step 4: Review & Merge
-1.  **I open PR**: With title `feat: ...`.
-    - *Status*: Moves to `in review`.
-2.  **You Review**: Check quality.
-3.  **You Merge**: Squash & Merge.
+### Step 4: Validation & Iteration
+1.  **I Open PR**: Status `in review`.
+2.  **I Auto-Run Android Build**:
+    - `npm run build`
+    - `npx cap sync`
+    - `npx cap open android`
+3.  **You Test**: Build APK in Android Studio and test on device.
+4.  **Feedback Loop**:
+    - If issues found: You report, I fix, commmit, and I **re-run Android Build**.
+    - Repeat until stable.
+
+### Step 5: Final Merge
+1.  **You Approve**: When satisfied with the APK.
+2.  **You Merge**: Squash & Merge.
     - *Status*: Issue closes automatically.
 
 ---

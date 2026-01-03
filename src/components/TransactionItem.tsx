@@ -53,30 +53,26 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const getSubText = () => {
-    const parts = [];
+    let mainDesc = '';
 
-    if (transaction.type === TransactionType.REFUND) {
-      parts.push("Refund");
-    } else if (transaction.exclude_from_cashflow) {
-      parts.push("Offset");
-    } else if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
-      parts.push(walletMap[transaction.transferToWalletId]?.name);
+    if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
+      mainDesc = walletMap[transaction.transferToWalletId]?.name || '';
     } else if (transaction.commitmentId) {
-      if (transaction.description) parts.push(transaction.description);
-      else if (commitment?.name) parts.push(commitment.name);
+      // Priority: Description (e.g. "Kiel") -> Commitment Name (e.g. "Lending")
+      mainDesc = transaction.description || commitment?.name || '';
     } else if (isTransfer && walletMap) {
       const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
       const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
-      parts.push(`${fromName} → ${toName}`);
-    } else if (transaction.description) {
-      parts.push(transaction.description);
+      mainDesc = `${fromName} → ${toName}`;
+    } else {
+      mainDesc = transaction.description || '';
     }
 
     if (transaction.note) {
-      parts.push(transaction.note);
+      return mainDesc ? `${mainDesc} - ${transaction.note}` : transaction.note;
     }
 
-    return parts.filter(Boolean).join(' • ');
+    return mainDesc;
   }
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -96,7 +92,15 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
             {renderIcon()}
           </div>
           <div className="flex flex-col min-w-0">
-            <h4 className="text-gray-900 font-bold text-sm truncate">{getMainText()}</h4>
+            <h4 className="text-gray-900 font-bold text-sm truncate flex items-center gap-2">
+              {getMainText()}
+              {transaction.type === TransactionType.REFUND && (
+                <span className="bg-purple-100 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wide">Refund</span>
+              )}
+              {transaction.exclude_from_cashflow && (
+                <span className="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-extrabold uppercase tracking-wide">Offset</span>
+              )}
+            </h4>
             <p className="text-gray-400 text-xs truncate">{getSubText()}</p>
           </div>
         </div>
