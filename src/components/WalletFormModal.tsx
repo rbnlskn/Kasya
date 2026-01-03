@@ -271,7 +271,13 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
               </div>
           )}
 
-          <button type="submit"  disabled={!name || !type} className="w-full bg-primary text-white font-bold py-3.5 rounded-lg shadow-lg shadow-primary/30 mt-2 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-500">{initialWallet ? 'Save Changes' : 'Create Wallet'}</button>
+          <button
+            type="submit"
+            disabled={!name || !type}
+            className="w-full bg-primary text-brand-black font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 transition-all active:scale-[0.98] mt-4 disabled:bg-surface disabled:text-text-secondary disabled:shadow-none disabled:ring-2 disabled:ring-inset disabled:ring-border"
+          >
+            {initialWallet ? 'Save Changes' : 'Create Wallet'}
+          </button>
         </form>
       </div>
     </div>

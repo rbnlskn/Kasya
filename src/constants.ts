@@ -12,33 +12,37 @@ export const CURRENCY_SYMBOL = '₱';
 export const WALLET_COLORS = WALLET_TEMPLATES;
 
 export const CATEGORY_COLORS = [
-  '#DBEAFE',
-  '#D1FAE5',
-  '#F3F4F6',
-  '#F3E8FF',
-  '#FEE2E2',
-  '#FEF3C7',
-  '#FFEDD5',
-  '#FCE7F3',
+  '#3D5AFE', // Indigo
+  '#FF6D00', // Zest Orange
+  '#00E5FF', // Cyan
+  '#D500F9', // Neon Purple
+  '#F50057', // Hot Pink
+  '#00C853', // Flash Green
+  '#78909C', // Blue Grey
 ];
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'cat_inc_adj', name: 'Income', icon: '🟢', color: '#D1FAE5' },
-  { id: 'cat_exp_adj', name: 'Expense', icon: '🔴', color: '#FEE2E2' },
-  { id: 'cat_1', name: 'Food', icon: '🍎', color: '#FEE2E2' },
-  { id: 'cat_2', name: 'Commute', icon: '🚘', color: '#DBEAFE' },
-  { id: 'cat_3', name: 'Shopping', icon: '🛍️', color: '#F3E8FF' },
-  { id: 'cat_4', name: 'Salary', icon: '💰', color: '#D1FAE5' },
-  { id: 'cat_5', name: 'Eat Out', icon: '🍽️', color: '#FFEDD5' },
-  { id: 'cat_6', name: 'Bills', icon: '⚡', color: '#FEF3C7' },
-  { id: 'cat_7', name: 'Entertainment', icon: '🎮', color: '#F3E8FF' },
-  { id: 'cat_loans', name: 'Loans', icon: '💷', color: '#FCE7F3' },
-  { id: 'cat_lending', name: 'Lending', icon: '💴', color: '#D1FAE5' },
-  { id: 'cat_subs', name: 'Subscriptions', icon: '💬', color: '#DBEAFE' },
+  // Income & Expense
+  { id: 'cat_inc_adj', name: 'Income', icon: '🟢', color: '#00C853' },
+  { id: 'cat_exp_adj', name: 'Expense', icon: '🔴', color: '#FF3D00' },
+
+  // Custom Categories
+  { id: 'cat_food', name: 'Food', icon: '🍎', color: '#FF6D00' }, // Zest Orange
+  { id: 'cat_transport', name: 'Transport', icon: '🚘', color: '#00E5FF' }, // Cyan
+  { id: 'cat_utilities', name: 'Utilities', icon: '⚡', color: '#3D5AFE' }, // Indigo
+  { id: 'cat_subscriptions', name: 'Subscriptions', icon: '💬', color: '#D500F9' }, // Neon Purple
+  { id: 'cat_shopping', name: 'Shopping', icon: '🛍️', color: '#F50057' }, // Hot Pink
+  { id: 'cat_health', name: 'Health', icon: '❤️', color: '#00C853' }, // Flash Green
+  { id: 'cat_others', name: 'Others', icon: '📝', color: '#78909C' }, // Blue Grey
+
+  // System Categories (Do not edit)
+  { id: 'cat_salary', name: 'Salary', icon: '💰', color: '#00C853' },
+  { id: 'cat_loans', name: 'Loans', icon: '💷', color: '#FF9100' },
+  { id: 'cat_lending', name: 'Lending', icon: '💴', color: '#00B0FF' },
 ];
 
 export const INITIAL_WALLETS: Wallet[] = [
-  { id: 'w1', name: 'Cash', type: WalletType.CASH, balance: 0.00, color: '#3B82F6', textColor: 'text-white', currency: 'PHP' },
+  { id: 'w1', name: 'Cash', type: WalletType.CASH, balance: 0.00, color: '#64748B', textColor: '#FFFFFF', currency: 'PHP' },
 ];
 
 export const INITIAL_BUDGETS: Budget[] = [];

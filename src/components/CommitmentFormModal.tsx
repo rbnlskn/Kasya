@@ -234,7 +234,12 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                             </div>
                         )}
 
-                        <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialCommitment ? 'Save Changes' : `Create ${type === CommitmentType.LOAN ? 'Loan' : 'Lending'}`}</button>
+                        <button
+                          type="submit"
+                          className="w-full bg-primary text-brand-black font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 transition-all active:scale-[0.98] mt-4 disabled:bg-surface disabled:text-text-secondary disabled:shadow-none disabled:ring-2 disabled:ring-inset disabled:ring-border"
+                        >
+                          {initialCommitment ? 'Save Changes' : `Create ${type === CommitmentType.LOAN ? 'Loan' : 'Lending'}`}
+                        </button>
                     </form>
                 </div>
             </div>

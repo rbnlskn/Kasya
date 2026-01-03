@@ -1,28 +1,24 @@
-
-import { COLORS } from './src/styles/theme.js';
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        primary: COLORS.primary.DEFAULT,
-        'primary-hover': COLORS.primary.hover,
-        'app-bg': COLORS.background.light,
-        surface: COLORS.surface.light,
-        'text-primary': COLORS.text.primary,
-        'text-secondary': COLORS.text.secondary,
-        border: COLORS.border.light,
-        income: COLORS.success.DEFAULT,
-        'income-bg': COLORS.success.bg,
-        expense: COLORS.danger.DEFAULT,
-        'expense-bg': COLORS.danger.bg,
-        transfer: COLORS.info.DEFAULT,
-        warning: COLORS.warning.DEFAULT,
+        primary: 'var(--color-primary)',
+        'brand-black': 'var(--color-brand-black)',
+        'app-bg': 'var(--color-app-bg)',
+        surface: 'var(--color-surface)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        border: 'var(--color-border)',
+        income: 'var(--color-income)',
+        expense: 'var(--color-expense)',
+        warning: 'var(--color-warning)',
+        info: 'var(--color-info)',
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],

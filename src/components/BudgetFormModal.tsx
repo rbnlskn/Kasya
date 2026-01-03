@@ -106,7 +106,13 @@ const BudgetFormModal: React.FC<BudgetFormModalProps> = ({ isOpen, onClose, onSa
             </div>
           </div>
           
-          <button type="submit" disabled={!name || amountInput.rawValue <= 0 || !categoryId} className="w-full bg-primary text-white font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] mt-4 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{initialBudget ? 'Save Changes' : 'Create Budget'}</button>
+          <button
+            type="submit"
+            disabled={!name || amountInput.rawValue <= 0 || !categoryId}
+            className="w-full bg-primary text-brand-black font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 transition-all active:scale-[0.98] mt-4 disabled:bg-surface disabled:text-text-secondary disabled:shadow-none disabled:ring-2 disabled:ring-inset disabled:ring-border"
+          >
+            {initialBudget ? 'Save Changes' : 'Create Budget'}
+          </button>
         </form>
       </div>
     </div>

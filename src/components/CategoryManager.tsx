@@ -109,8 +109,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
                     </div>
                 ))}
                 
-                <button 
-                    onClick={() => setEditingCategory({ id: `cat_${Date.now()}`, name: '', icon: '😊', color: CATEGORY_COLORS[0] })} 
+                <button
+                    onClick={() => setEditingCategory({ id: `cat_${Date.now()}`, name: '', icon: '😊', color: CATEGORY_COLORS[0] })}
                     className="flex flex-col items-center justify-center p-2 border-2 border-dashed border-border rounded-lg text-text-secondary hover:border-primary/60 hover:text-primary/60 transition-colors active:scale-95 h-24"
                 >
                    <Plus className="w-6 h-6 mb-1" />
@@ -165,7 +165,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onSave, o
 
                   <div className="flex items-center space-x-3 pt-2 border-t border-border mt-4">
                     <button type="button" onClick={handleDelete} className="p-3 bg-red-50 text-red-500 rounded-lg hover:bg-red-100"><Trash2 className="w-5 h-5" /></button>
-                    <button type="submit" className="flex-1 py-3 bg-primary text-white font-bold rounded-lg shadow-lg hover:bg-primary-hover">Save</button>
+                    <button type="submit" className="flex-1 py-3 bg-primary text-brand-black font-bold rounded-lg shadow-lg">Save</button>
                   </div>
                 </form>
             </div>

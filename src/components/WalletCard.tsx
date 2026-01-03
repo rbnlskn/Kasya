@@ -48,14 +48,14 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   const finalBgColor = !isHexBg ? (wallet.color || 'bg-black') : '';
   const finalTextColor = !isHexText ? (wallet.textColor || 'text-white') : '';
   const isDarkBg = isHexBg ? !isColorLight(wallet.color) : true;
-  const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-black/10';
+  const watermarkBg = 'bg-black/10 dark:bg-white/10';
   const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
   const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
 
   return (
     <div
       onClick={() => onClick && onClick(wallet)}
-      className={`relative ${finalBgColor} ${finalTextColor} transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-md hover:shadow-lg rounded-2xl w-full h-full`}
+      className={`relative bg-surface transition-all active:scale-[0.98] duration-200 cursor-pointer group overflow-hidden flex flex-col justify-between shadow-md hover:shadow-lg rounded-2xl w-full h-full`}
       style={cardStyle}
     >
       {/* Background Decorations */}
@@ -106,11 +106,7 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
         {onPay && isCreditCard && currentBalance > 0 && (
             <button
               onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
-              className={`rounded-xl transition-all active:scale-90 font-bold ${
-                isDarkBg
-                  ? 'bg-white/20 hover:bg-white/30 text-white'
-                  : 'bg-black/10 hover:bg-black/20 text-slate-800'
-              }`}
+              className="rounded-xl transition-all active:scale-90 font-bold bg-black/10 hover:bg-black/20 text-text-primary dark:bg-white/20 dark:hover:bg-white/30 dark:text-text-primary"
               style={{
                 padding: `${scale(8)}px ${scale(16)}px`,
                 fontSize: fontScale(12),

@@ -318,7 +318,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
           )}
 
           <div className="pt-2">
-            <button type="submit" className="w-full bg-primary text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/30 hover:bg-primary-hover transition-all active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none">{buttonText}</button>
+            <button
+              type="submit"
+              className="w-full bg-primary text-brand-black font-bold text-lg py-4 rounded-lg shadow-lg shadow-primary/30 transition-all active:scale-[0.98] mt-4 disabled:bg-surface disabled:text-text-secondary disabled:shadow-none disabled:ring-2 disabled:ring-inset disabled:ring-border"
+            >
+              {buttonText}
+            </button>
             {initialBill && initialBill.status === 'ACTIVE' && (
               <button type="button" onClick={handleStopSubscription} className="w-full text-center text-red-600 font-bold text-sm py-3 mt-2 rounded-xl hover:bg-red-50 active:bg-red-100 transition-colors">
                 {initialBill.isTrialActive ? "Cancel Trial" : "Stop Subscription"}

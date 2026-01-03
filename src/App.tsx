@@ -85,10 +85,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isLoading) return;
-    if (Capacitor.isNativePlatform()) {
-      StatusBar.setStyle({ style: Style.Light });
-      StatusBar.setBackgroundColor({ color: '#f8fafc' });
-    }
+
+    const applyTheme = (isDark: boolean) => {
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      if (Capacitor.isNativePlatform()) {
+        StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+        const backgroundColor = isDark ? '#121212' : '#F8F9FA';
+        StatusBar.setBackgroundColor({ color: backgroundColor });
+      }
+    };
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    applyTheme(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => applyTheme(e.matches);
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [isLoading]);
 
   useEffect(() => {
@@ -516,7 +529,7 @@ const App: React.FC = () => {
   const PageHeader = ({ title, rightAction }: { title: string, rightAction?: React.ReactNode }) => (
     <div className="h-[60px] flex items-center px-6 z-20 sticky top-0 bg-app-bg">
        <div className="flex justify-between items-center w-full">
-          <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-black text-text-primary tracking-tight">{title}</h1>
           {rightAction}
        </div>
     </div>
@@ -524,14 +537,14 @@ const App: React.FC = () => {
 
   if (isLoading) {
       return (
-          <div className="h-screen w-full bg-slate-50 flex items-center justify-center">
+          <div className="h-screen w-full bg-app-bg flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-primary animate-spin" />
           </div>
       );
   }
 
   return (
-    <div className="h-screen w-full bg-slate-50 flex flex-col font-sans overflow-hidden text-gray-900">
+    <div className="h-screen w-full bg-app-bg flex flex-col font-sans overflow-hidden text-text-primary">
       <div className="flex-1 overflow-hidden relative flex flex-col">
         {activeTab === 'HOME' && (
            <div className={`flex-1 flex flex-col h-full ${getTabAnimationClass()}`}>
@@ -571,7 +584,7 @@ const App: React.FC = () => {
                         <SectionHeader title="RECENT TRANSACTIONS" onViewAll={() => handleOpenOverlay('ALL_TRANSACTIONS')} />
                         <div className="mt-2">
                             {data.transactions.length === 0 ? (
-                                <div className="text-center py-12 opacity-40 text-sm bg-white rounded-3xl border border-dashed border-gray-200">No recent transactions</div>
+                                <div className="text-center py-12 text-sm bg-surface rounded-3xl border border-dashed border-border"><span className="opacity-40">No recent transactions</span></div>
                             ) : (
                                 <div className="grid gap-0">
                                     {recentTransactionsWithHeaders.map((item) => (
@@ -589,7 +602,7 @@ const App: React.FC = () => {
         {activeTab === 'ANALYTICS' && (
             <div className={`flex-1 flex flex-col ${getTabAnimationClass()}`}>
                 <PageHeader title="Statistics" />
-                <div className="flex-1 flex items-center justify-center text-gray-300 flex-col pb-20">
+                <div className="flex-1 flex items-center justify-center text-text-secondary/50 flex-col pb-20">
                     <BarChart3 className="w-20 h-20 mb-6 opacity-20" />
                     <p className="font-bold">Analytics Coming Soon</p>
                 </div>

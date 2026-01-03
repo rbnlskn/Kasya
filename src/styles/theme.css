@@ -1,0 +1,49 @@
+/*
+  KASYA DESIGN SYSTEM
+  -------------------
+  - High-contrast, dark mode-first color palette.
+  - Brand identity centered around "Kasya Bolt" yellow.
+  - Clear, functional colors for financial actions.
+*/
+
+:root {
+  /* 1. Core Brand Identity */
+  --color-primary: #FFC800; /* Kasya Bolt Yellow */
+  --color-brand-black: #121212;
+
+  /* 2. UI Surfaces & Backgrounds */
+  --color-app-bg: #F8F9FA; /* Off-White */
+  --color-surface: #FFFFFF; /* Pure White */
+
+  /* 3. Typography */
+  --color-text-primary: #121212; /* Deep Black */
+  --color-text-secondary: #686868; /* Grey */
+
+  /* 4. Functional & Status Indicators */
+  --color-income: #00C853; /* Emerald */
+  --color-expense: #FF3D00; /* Red-Orange */
+  --color-warning: #FF9100; /* Deep Orange */
+  --color-info: #00B0FF; /* Electric Blue */
+  --color-border: #E5E7EB; /* Gray 200 */
+}
+
+[data-theme='dark'] {
+  /* 1. Core Brand Identity (Remains Consistent) */
+  --color-primary: #FFC800;
+  --color-brand-black: #121212;
+
+  /* 2. UI Surfaces & Backgrounds */
+  --color-app-bg: #121212; /* Deep Black */
+  --color-surface: #1E1E1E; /* Dark Grey */
+
+  /* 3. Typography */
+  --color-text-primary: #F5F5F5; /* Off-White */
+  --color-text-secondary: #A0A0A0; /* Light Grey */
+
+  /* 4. Functional & Status Indicators (Remains Consistent) */
+  --color-income: #00C853;
+  --color-expense: #FF3D00;
+  --color-warning: #FF9100;
+  --color-info: #00B0FF;
+  --color-border: #374151; /* Gray 700 */
+}

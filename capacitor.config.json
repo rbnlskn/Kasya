@@ -1,6 +1,6 @@
 
 {
-  "appId": "com.moneyfest.app",
+  "appId": "com.kasya.app",
   "appName": "Kasya",
   "webDir": "dist",
   "server": {

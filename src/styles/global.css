@@ -1,11 +1,12 @@
+@import './theme.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
   font-family: 'Outfit', sans-serif;
-  background-color: #ffffff;
-  color: #1f2937;
+  background-color: var(--color-app-bg);
+  color: var(--color-text-primary);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

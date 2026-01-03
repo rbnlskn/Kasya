@@ -3,12 +3,11 @@ import React from 'react';
 const Logo = ({ size = '4rem' }: { size?: string }) => {
   return (
     <h1
-      className="kasya-logo"
+      className="kasya-logo text-text-primary"
       style={{
         fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
         fontWeight: 900,
         fontSize: size,
-        color: '#000',
         display: 'inline-flex',
         alignItems: 'center',
         lineHeight: 1,
