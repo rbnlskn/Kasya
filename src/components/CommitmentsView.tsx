@@ -102,8 +102,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     - Commitments Tab: Show CURRENT DEBT (Wallet Balance).
   */
   const renderCreditCardItem = (cc: Wallet) => {
-    // In Commitments View, we want to see the DEBT, which is just the balance.
-    const currentBalance = cc.balance;
+    // In Commitments View, we want to see the DEBT, which is the absolute value of the negative balance.
+    const currentBalance = Math.abs(cc.balance);
     return (
       <div key={cc.id} onClick={() => onWalletClick && onWalletClick(cc)} className="p-2 flex justify-between items-center cursor-pointer">
         <div className="flex items-center flex-1 mr-4">

@@ -64,7 +64,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   */
   const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
   // Default to Available Limit for Home View
-  const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
+  // Credit Card Balance is negative (Debt). Available = Limit + Balance (e.g., 1000 + (-100) = 900)
+  const currentBalance = isCreditCard ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance;
 
   return (
     <div

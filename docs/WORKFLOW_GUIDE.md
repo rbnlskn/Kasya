@@ -26,10 +26,10 @@ This guide details your daily workflow for developing Kasya using the Antigravit
     -   Starts Development (Step 2).
 
 ### Step 2: Development (Local)
-**Command**: `/start_new_feature` (Turbo-enabled)
+**Script**: `.\scripts\start_new_feature.ps1 -IssueId <ID>`
 *Automates: Checkout Main -> Pull -> New Branch -> **Bump Minor** -> Push.*
 
-1.  **Agent**: Runs `/start_new_feature`.
+1.  **Agent**: Runs script.
 2.  **Agent**: Implements code changes.
 
 ### Step 3: Iteration & Verification Loop
@@ -42,17 +42,17 @@ This guide details your daily workflow for developing Kasya using the Antigravit
 2.  **Agent**: Implements fixes & Commits.
 
 #### B. Push & Sync (Turbo-enabled)
-**Command**: `/push_and_build`
+**Script**: `.\scripts\push_and_build.ps1`
 *Automates: Type Check -> Build -> Sync -> Push -> Update PR.*
 
-1.  **Agent**: Runs `/push_and_build`.
+1.  **Agent**: Runs script.
 2.  **Agent**: Opens/Updates PR with descriptive Title & Body.
 
 #### C. Android Verification (Turbo-enabled)
-**Command**: `/build_apk`
+**Script**: `.\scripts\build_apk.ps1`
 *Automates: Open Android Studio.*
 
-1.  **Agent/User**: Runs `/build_apk`.
+1.  **Agent/User**: Runs script.
 2.  **User**: Builds & Tests on Device (using Green Arrow in Studio).
 3.  **Loop**:
     -   *Issues found?* -> **Go to A**.
@@ -63,7 +63,7 @@ This guide details your daily workflow for developing Kasya using the Antigravit
 
 1.  **User (GitHub)**: Squashes & Merges PR.
     -   *Closes Issue automatically.*
-2.  **User (Local)**: Runs `/merge_and_close`.
+2.  **User (Local)**: Runs `.\scripts\merge_and_close.ps1`.
     -   *Deletes local branch & Pulls main.*
 
 ---
