@@ -2,44 +2,69 @@
 
 This guide details your daily workflow for developing Kasya using the Antigravity agent.
 
+> [!IMPORTANT]
+> **STRICT COMPLIANCE REQUIRED**
+> deviations from this workflow cause frustration and broken states. **Follow these steps exactly.**
+> - **Always** post the **FULL** plan.
+> - **Always** wait for **explicit** chat approval.
+> - **Always** bump the **Minor** version at the START.
+> - **Always** bump the **Patch** version iteratively during fixes.
+
 ## 1. The Interaction Cycle
 
-### Step 1: Start a Task
-1.  **Create an Issue** on GitHub.
-2.  **Add Label**: `ready`.
-3.  **Assign Me**: Antigravity (or just tell me in chat).
-    - *Automation*: I plan, and if your issue title has `[BATCH]`, I'll gather context.
+### Step 1: Initialization
+1.  **User**: Creates Issue on GitHub & adds label `ready`.
+2.  **User (Chat)**: "Work on issue #123".
+3.  **Agent**:
+    -   Comments on formatted GitHub Issue: "I am working on this".
+    -   Analyzes codebase.
+    -   **Posts DRAFT of `implementation_plan.md` to the Issue.**
+4.  **User (Chat)**: "Approved" (or requests changes).
+5.  **Agent**:
+    -   Comments "Plan Approved".
+    -   **Posts FINAL `implementation_plan.md` to the Issue.**
+    -   Starts Development (Step 2).
 
-### Step 2: Planning
-1.  **I will comment**: "I am working on this".
-    - *Status*: Moves to `planning`.
-    - *Label*: `antigravity`.
-2.  **I will post**: An Implementation Plan.
-3.  **You Review**: If it looks good, reply **"Approved"** or **"LGTM"**.
-    - *Status*: Moves to `in progress`.
+### Step 2: Development (Local)
+**Command**: `/start_new_feature` (Turbo-enabled)
+*Automates: Checkout Main -> Pull -> New Branch -> **Bump Minor** -> Push.*
 
-### Step 3: Execution (Versioning)
-1.  **I create branch**: `feature/issue-123`.
-2.  **I run**: `npm run bump:minor` (**Because this is a new Issue/Feature**).
-    - Version: `1.20.1` -> `1.21.0`.
-3.  **I code**: Every subsequent commit bumps the Z (Patch) version automatically.
-    - `1.21.1` -> `1.21.2` -> etc.
+1.  **Agent**: Runs `/start_new_feature`.
+2.  **Agent**: Implements code changes.
 
-### Step 4: Validation & Iteration
-1.  **I Open PR**: Status `in review`.
-2.  **I Auto-Run Android Build**:
-    - `npm run build`
-    - `npx cap sync`
-    - `npx cap open android`
-3.  **You Test**: Build APK in Android Studio and test on device.
-4.  **Feedback Loop**:
-    - If issues found: You report, I fix, commmit, and I **re-run Android Build**.
-    - Repeat until stable.
+### Step 3: Iteration & Verification Loop
+**Goal**: Rapid cycle of Fix -> Patch Bump -> Push -> Test.
 
-### Step 5: Final Merge
-1.  **You Approve**: When satisfied with the APK.
-2.  **You Merge**: Squash & Merge.
-    - *Status*: Issue closes automatically.
+#### A. The "Fix" Cycle (Manual)
+**When**: User finds bugs/issues during testing.
+1.  **Agent**: Runs `npm run bump:patch` (**Before coding**).
+    -   `1.3.0` -> `1.3.1`
+2.  **Agent**: Implements fixes & Commits.
+
+#### B. Push & Sync (Turbo-enabled)
+**Command**: `/push_and_build`
+*Automates: Type Check -> Build -> Sync -> Push -> Update PR.*
+
+1.  **Agent**: Runs `/push_and_build`.
+2.  **Agent**: Opens/Updates PR with descriptive Title & Body.
+
+#### C. Android Verification (Turbo-enabled)
+**Command**: `/build_apk`
+*Automates: Open Android Studio.*
+
+1.  **Agent/User**: Runs `/build_apk`.
+2.  **User**: Builds & Tests on Device (using Green Arrow in Studio).
+3.  **Loop**:
+    -   *Issues found?* -> **Go to A**.
+    -   *Satisfied?* -> **Proceed to Step 4**.
+
+### Step 4: Merge & Close
+**Constraint**: ONLY proceeds when User explicitly says **"All goods"** or **"Clear to squash and merge"**.
+
+1.  **User (GitHub)**: Squashes & Merges PR.
+    -   *Closes Issue automatically.*
+2.  **User (Local)**: Runs `/merge_and_close`.
+    -   *Deletes local branch & Pulls main.*
 
 ---
 
