@@ -3,6 +3,7 @@ import React from 'react';
 import { Wallet, WalletType } from '../types';
 import { getWalletIcon } from './WalletCard';
 import { formatCurrency } from '../utils/number';
+import { isCreditCard, getAvailableLimit } from '../utils/walletUtils';
 
 interface WalletSelectItemProps {
   wallet: Wallet;
@@ -32,7 +33,7 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
       <div className="text-right ml-2">
         <span className="block font-bold text-sm">
           {currencySymbol}
-          {formatCurrency(((wallet.type === WalletType.CREDIT_CARD) || (wallet.creditLimit !== undefined && wallet.creditLimit > 0)) ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
+          {formatCurrency(isCreditCard(wallet) ? getAvailableLimit(wallet) : wallet.balance)}
         </span>
       </div>
     </button>
@@ -40,3 +41,4 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
 };
 
 export default WalletSelectItem;
+

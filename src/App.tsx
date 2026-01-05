@@ -32,6 +32,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { requestInitialPermissions } from './services/permissionService';
 import { calculateNetProceeds, calculateInstallment, calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade } from './utils/math';
+import { isCreditCard } from './utils/walletUtils';
 
 type Tab = 'HOME' | 'ANALYTICS' | 'COMMITMENTS' | 'SETTINGS';
 type Overlay = 'NONE' | 'WALLET_DETAIL' | 'ALL_TRANSACTIONS' | 'ALL_WALLETS' | 'ALL_BUDGETS' | 'BUDGET_DETAIL';
@@ -503,7 +504,7 @@ const App: React.FC = () => {
     };
 
     const handlePayCC = (wallet: Wallet) => {
-        if (!wallet.creditLimit) return;
+        if (!isCreditCard(wallet)) return;
         // Debt is properly stored as negative balance.
         // If balance is positive, there is no debt to pay.
         const debt = wallet.balance < 0 ? Math.abs(wallet.balance) : 0;

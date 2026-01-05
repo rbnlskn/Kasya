@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Check, Trash2, ChevronDown, CreditCard, Calendar, Wallet as WalletIcon } from 'lucide-react';
 import { Wallet, WalletType } from '../types';
+import { isCreditCard } from '../utils/walletUtils';
 import { WALLET_TEMPLATES } from '../data/templates';
 import DayPicker from './DayPicker';
 import WalletCard, { getWalletIcon } from './WalletCard';
@@ -63,7 +64,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       if (initialWallet) {
         setName(initialWallet.name);
         setType(initialWallet.type);
-        if (initialWallet.type === WalletType.CREDIT_CARD) {
+        if (isCreditCard(initialWallet)) {
           balanceInput.setValue(initialWallet.creditLimit || 0);
         } else {
           balanceInput.setValue(initialWallet.balance);
@@ -100,14 +101,14 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     const finalText = customText.startsWith('#') ? `text-[${customText}]` : customText;
 
     let adjustment: { amount: number, isExpense: boolean, description?: string } | undefined = undefined;
-    const isCreditCard = type === WalletType.CREDIT_CARD;
+    const isCC = isCreditCard({ type, creditLimit: initialWallet?.creditLimit });
 
     if (initialWallet && isAdjustment) {
       const oldBalance = initialWallet.balance;
       const diff = currentBalance - oldBalance;
 
       if (Math.abs(diff) > 0.01) {
-        if (isCreditCard) {
+        if (isCC) {
           adjustment = {
             amount: Math.abs(diff),
             isExpense: diff < 0,
@@ -126,12 +127,12 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       // - If New: Start at 0.
       // - If Edit: Keep existing balance.
       // For Others: Balance is the Amount Input.
-      balance: isCreditCard ? (initialWallet?.balance || 0) : currentBalance,
+      balance: isCC ? (initialWallet?.balance || 0) : currentBalance,
       color: finalBg,
       textColor: finalText,
       currency: 'PHP',
-      creditLimit: isCreditCard ? currentBalance : undefined,
-      statementDay: isCreditCard ? statementDay : undefined
+      creditLimit: isCC ? currentBalance : undefined,
+      statementDay: isCC ? statementDay : undefined
     }, initialWallet?.id, adjustment);
     onClose();
   };
@@ -166,7 +167,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
 
   const balanceDiff = (balanceInput.rawValue) - (initialWallet ? initialWallet.balance : 0);
   const hasBalanceChanged = initialWallet && Math.abs(balanceDiff) > 0.01;
-  const isCreditCard = type === WalletType.CREDIT_CARD;
+  const isCC = type === WalletType.CREDIT_CARD;
 
   const { scale } = useResponsive();
   const previewWallet = useMemo<Wallet>(() => ({
@@ -259,7 +260,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
             </div>
 
             <div>
-              <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCreditCard ? 'Credit Limit' : 'Current Balance'} <span className="text-red-500">*</span></label>
+              <label className="text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">{isCC ? 'Credit Limit' : 'Current Balance'} <span className="text-red-500">*</span></label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary font-bold text-base group-focus-within:text-primary transition-colors">{currencySymbol}</span>
                 <input
@@ -281,7 +282,7 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
               </div>
             )}
 
-            {isCreditCard && (
+            {isCC && (
               <div className="flex items-center space-x-4 bg-slate-100 dark:bg-slate-800 p-2.5 rounded-lg">
                 <div className="flex items-center space-x-2 flex-1">
                   <Calendar className="w-4 h-4 text-text-secondary" />
