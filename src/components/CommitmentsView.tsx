@@ -15,6 +15,7 @@ import BillHistoryModal from './BillHistoryModal';
 import { getCommitmentInstances, generateDueDateText, CommitmentInstance, findLastPayment, sortUnified, getDisplayPeriod, getActiveBillInstance, BillInstance } from '../utils/commitment';
 import { calculateTotalPaid, calculatePaymentsMade, calculateInstallment } from '../utils/math';
 import WalletCard, { getWalletIcon } from './WalletCard';
+import CreditCardCommitmentCard from './CreditCardCommitmentCard';
 
 interface CommitmentsViewProps {
   wallets: Wallet[];
@@ -221,8 +222,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                       key={cc.id}
                       className={`w-[65%] aspect-[340/200] flex-shrink-0 ${index === 0 ? 'ml-6' : 'ml-3'} ${index === creditCards.length - 1 ? 'mr-6' : ''}`}
                     >
-                      <WalletCard
-                        wallet={{ ...cc, label: 'Balance' }}
+                      <CreditCardCommitmentCard
+                        wallet={cc}
                         onClick={() => onWalletClick && onWalletClick(cc)}
                         currencySymbol={currencySymbol}
                         onPay={onPayCC}
