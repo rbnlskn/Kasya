@@ -5,6 +5,7 @@ import { Commitment, Transaction, Wallet, Category } from '../types';
 import TransactionItem from './TransactionItem';
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation } from '../utils/math';
+import { getPaymentStatus, getRelevantDueDate } from '../utils/commitment';
 
 interface CommitmentDetailsModalProps {
   isOpen: boolean;
@@ -76,17 +77,22 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
               {transactionsWithHeaders.map(group => (
                 <div key={group.header}>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group.header}</h4>
-                  {group.transactions.map(tx => (
-                    <TransactionItem
-                      key={tx.id}
-                      transaction={tx}
-                      category={categories.find(c => c.id === tx.categoryId)}
-                      commitment={commitment}
-                      walletMap={walletMap}
-                      currencySymbol={currencySymbol}
-                      onClick={onTransactionClick}
-                    />
-                  ))}
+                  {group.transactions.map(tx => {
+                    const dueDate = getRelevantDueDate(commitment, new Date(tx.date));
+                    const status = dueDate ? getPaymentStatus(new Date(tx.date), dueDate, tx.amount, tx.amount) : undefined;
+                    return (
+                      <TransactionItem
+                        key={tx.id}
+                        transaction={tx}
+                        category={categories.find(c => c.id === tx.categoryId)}
+                        commitment={commitment}
+                        walletMap={walletMap}
+                        currencySymbol={currencySymbol}
+                        onClick={onTransactionClick}
+                        status={status}
+                      />
+                    );
+                  })}
                 </div>
               ))}
             </div>

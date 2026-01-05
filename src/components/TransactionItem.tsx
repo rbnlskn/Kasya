@@ -14,9 +14,10 @@ interface TransactionItemProps {
   dateHeader?: string;
   currencySymbol: string;
   isCreditCardPayment?: boolean;
+  status?: 'LATE' | 'EARLY' | 'ON_TIME' | 'PARTIAL' | 'PENDING';
 }
 
-const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol, isCreditCardPayment }) => {
+const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol, isCreditCardPayment, status }) => {
   const isTransfer = transaction.type === TransactionType.TRANSFER;
   let isPositive = transaction.type === TransactionType.INCOME;
 
@@ -106,6 +107,16 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
           <div className="flex flex-col min-w-0">
             <h4 className="text-gray-900 font-bold text-sm truncate flex items-center gap-2">
               {getMainText()}
+              {status === 'LATE' && (
+                <span className="px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wide">
+                  Late
+                </span>
+              )}
+              {status === 'EARLY' && (
+                <span className="px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-700 text-[10px] font-bold uppercase tracking-wide">
+                  Early
+                </span>
+              )}
             </h4>
             <p className="text-gray-400 text-xs truncate">{getSubText()}</p>
           </div>

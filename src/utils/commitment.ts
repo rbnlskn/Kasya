@@ -157,7 +157,8 @@ export const getCommitmentInstances = (
         // Visibility Logic
         // 1. If PAID, usually hidden unless we want to show history.
         //    Requirement: "should be gone for the meantime" -> Hide PAID.
-        if (status === 'PAID') return;
+        //    RE-UPDATE: For Monthly View Redesign, we WANT to see PAID items if they match the viewing month.
+        // if (status === 'PAID') return;
 
         // 2. If OVERDUE, always show (regardless of viewing date).
         // 3. If UPCOMING/DUE, show if it falls in the viewing month.
@@ -543,8 +544,9 @@ export const getActiveBillInstance = (
 
     // CHANGE: Keep PAID items visible for the current month.
     // UPDATE: User requests that PAID items (esp Initial Payment) should NOT show up ("wait for next cycle").
+    // RE-UPDATE: For Monthly View, we WANT to see paid items.
     if (standardInstanceValid) {
-        if (status === 'PAID') return null;
+        // if (status === 'PAID') return null; // Logic removed to support Monthly View
         return { bill, dueDate, status, id: bill.id };
     }
 
@@ -575,4 +577,64 @@ export const getActiveBillInstance = (
 
     // If no valid current instance and no valid lookahead instance was found, return null.
     return null;
+};
+
+export type PaymentStatus = 'LATE' | 'EARLY' | 'ON_TIME' | 'PARTIAL' | 'PENDING';
+
+export const getPaymentStatus = (paidDate: Date, dueDate: Date, amountPaid: number, amountDue: number): PaymentStatus => {
+    if (amountPaid < amountDue - 0.01) return 'PARTIAL';
+
+    const paid = new Date(paidDate);
+    paid.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+
+    const diffTime = due.getTime() - paid.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < -1) return 'LATE'; // Paid more than 1 day AFTER due date
+    if (diffDays > 7) return 'EARLY'; // Paid more than 7 days BEFORE due date
+    return 'ON_TIME';
+};
+
+export const getRelevantDueDate = (item: Bill | Commitment, transactionDate: Date): Date | null => {
+    if (item.recurrence === 'NO_DUE_DATE') return null;
+
+    const txDate = new Date(transactionDate);
+    // Both Bill and Commitment have dueDay and startDate
+    const day = item.dueDay > 0 ? item.dueDay : new Date(item.startDate).getDate();
+
+    // Default: Assume payment is for the month it was paid in.
+    let dueDate = new Date(txDate.getFullYear(), txDate.getMonth(), day);
+
+    // adjustment for short months
+    if (dueDate.getMonth() !== txDate.getMonth()) {
+        dueDate = new Date(txDate.getFullYear(), txDate.getMonth() + 1, 0);
+    }
+
+    // Heuristic: If paid very late in the month (e.g. 28th) but due date is early (e.g. 2nd),
+    // AND it's "Early" for next month? Or "Late" for this month?
+    // Usually, consistent payments align with the month.
+    // If I pay Jan 30 for Feb 2. It is Early for Feb.
+    // My previous logic: getPaymentStatus(Jan 30, Jan 2) -> Late?
+    // Wait. Jan 30 vs Jan 2. Late by 28 days.
+    // Jan 30 vs Feb 2. Early by 3 days.
+    // We should pick the closest due date?
+
+    // Let's try checking Previous, Current, Next month due dates and pick the closest one?
+    const candidates = [-1, 0, 1].map(offset => {
+        const d = new Date(txDate.getFullYear(), txDate.getMonth() + offset, day);
+        // fix month overflow
+        if (d.getMonth() !== (txDate.getMonth() + offset + 12) % 12) {
+            return new Date(txDate.getFullYear(), txDate.getMonth() + offset + 1, 0);
+        }
+        return d;
+    });
+
+    // Find closest
+    const closest = candidates.reduce((prev, curr) =>
+        Math.abs(curr.getTime() - txDate.getTime()) < Math.abs(prev.getTime() - txDate.getTime()) ? curr : prev
+    );
+
+    return closest;
 };

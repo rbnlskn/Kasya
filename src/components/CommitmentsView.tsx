@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import AddCard from './AddCard';
@@ -40,11 +40,18 @@ interface CommitmentsViewProps {
 const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymbol, bills, commitments, transactions, categories, onAddBill, onEditBill, onPayBill, onAddCommitment, onEditCommitment, onPayCommitment, onPayCC, onWalletClick, onAddCreditCard, onTransactionClick, onResubscribe }) => {
   const [overlay, setOverlay] = useState<'NONE' | 'ALL_BILLS' | 'ALL_COMMITMENTS' | 'ALL_CREDIT_CARDS'>('NONE');
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
-  const [commitmentFilter, setCommitmentFilter] = useState<'ACTIVE' | 'SETTLED'>('ACTIVE');
-  const [billFilter, setBillFilter] = useState<'ACTIVE' | 'HISTORY'>('ACTIVE');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [overlayMonth, setOverlayMonth] = useState(new Date()); // Independent date state for overlays
 
   const COMMITMENT_CARD_HEIGHT = 161;
+
+  // Sync overlay month with main view when opening overlay
+  useEffect(() => {
+    if (overlay !== 'NONE') {
+      setOverlayMonth(new Date(currentDate));
+    }
+  }, [overlay]); // Only reset when overlay opens/changes? Or maybe careful not to reset on every render.
+  // Actually better: just init with new Date() and let user nav.
 
   const creditCards = useMemo(() => {
     const cards = wallets.filter(w => w.type === WalletType.CREDIT_CARD);
@@ -59,36 +66,62 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     setCurrentDate(newDate);
   };
 
+  const handleOverlayDateNav = (direction: 'PREV' | 'NEXT') => {
+    const newDate = new Date(overlayMonth);
+    newDate.setMonth(newDate.getMonth() + (direction === 'PREV' ? -1 : 1));
+    setOverlayMonth(newDate);
+  };
+
+  // Main View Instances (Limit to Active/Due for dashboard feel)
   const activeBillInstances = useMemo(() => {
     const currentMonthInstances = bills
       .map(b => getActiveBillInstance(b, transactions, currentDate))
       .filter((b): b is BillInstance => b !== null);
 
-    const nextMonthDate = new Date(currentDate);
-    nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+    // Filter out PAID for the main dashboard view to keep it clean (User's original preference)
+    // But for the OVERLAY, we show everything.
+    // Wait, reusing getActiveBillInstance might show PAID now.
+    // We should filter here if we want to hide them on the main dashboard.
+    // "Commitments that were paid during the selected month must remain visible on the overview page" -> This refers to the OVERLAY.
+    // For the main dashboard ("Commitments Tab"), let's keep showing everything or maybe hide paid?
+    // Let's hide PAID on the main small stack view to reduce clutter, but show in "View All".
+    // Actually, `getActiveBillInstance` now returns PAID items.
+    // Let's filter them out for the *Stack View* if desired, OR keep them.
+    // Usually Stack View shows "What's coming up".
+    return currentMonthInstances.filter(b => b.status !== 'PAID').sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  }, [bills, transactions, currentDate]);
 
-    const nextMonthInstances = bills
-      .map(b => getActiveBillInstance(b, transactions, nextMonthDate))
+  // Overlay Bill Instances (Show ALL for selected month)
+  const overlayBillInstances = useMemo(() => {
+    const instances = bills
+      .map(b => getActiveBillInstance(b, transactions, overlayMonth))
       .filter((b): b is BillInstance => b !== null);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Sort: Overdue -> Due -> Paid
+    return instances.sort((a, b) => {
+      if (a.status === 'OVERDUE' && b.status !== 'OVERDUE') return -1;
+      if (a.status !== 'OVERDUE' && b.status === 'OVERDUE') return 1;
+      if (a.status !== 'PAID' && b.status === 'PAID') return -1;
+      if (a.status === 'PAID' && b.status !== 'PAID') return 1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+  }, [bills, transactions, overlayMonth]);
 
-    const isViewingCurrentRealMonth = currentDate.getMonth() === today.getMonth() && currentDate.getFullYear() === today.getFullYear();
+  // Calculate Monthly Summary for Bills
+  const billsSummary = useMemo(() => {
+    let totalDue = 0;
+    let totalPaid = 0;
 
-    const lookaheadBills = isViewingCurrentRealMonth ? nextMonthInstances.filter(instance => {
-      const lookaheadDate = new Date(instance.dueDate);
-      lookaheadDate.setDate(lookaheadDate.getDate() - 7);
-      return today >= lookaheadDate;
-    }) : [];
+    overlayBillInstances.forEach(inst => {
+      const amount = inst.bill.amount; // Approximate
+      totalDue += amount;
+      if (inst.status === 'PAID') totalPaid += amount;
+    });
 
-    const combined = [...currentMonthInstances, ...lookaheadBills];
-    const uniqueInstances = Array.from(new Map(combined.map(item => [item.bill.id, item])).values());
-    const filteredByStatus = uniqueInstances.filter(b => b.bill.status === 'ACTIVE');
-    const sortedInstances = sortUnified(filteredByStatus);
-
-    return sortedInstances.map(instance => ({ ...instance, id: `${instance.bill.id}_${instance.dueDate.toISOString()}` }));
-  }, [bills, transactions, currentDate]);
+    // Check partial logic? getActiveBillInstance doesn't return partial info easily yet.
+    // For now simple sum.
+    return { totalDue, totalPaid };
+  }, [overlayBillInstances]);
 
   const getCCDueText = (day?: number, viewingDate: Date = currentDate) => {
     if (!day) return 'No Due Date';
@@ -131,20 +164,37 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const activeCommitmentInstances = useMemo(() => {
     const instances = commitments
       .flatMap(c => getCommitmentInstances(c, transactions, currentDate));
-    const sortedInstances = sortUnified(instances);
-    return sortedInstances.map(instance => ({ ...instance, id: instance.instanceId }));
+    // Filter PAID for Main Stack View and Map Check
+    return instances
+      .filter(i => i.status !== 'PAID')
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .map(instance => ({ ...instance, id: instance.instanceId }));
   }, [commitments, transactions, currentDate]);
 
-  const settledCommitments = useMemo(() => {
-    const settled = commitments.filter(c => {
-      const totalPaid = calculateTotalPaid(c.id, transactions);
-      const totalObligation = c.principal + c.interest;
-      return totalPaid >= totalObligation - 0.01;
-    });
-    return sortUnified(settled);
-  }, [commitments, transactions]);
+  const overlayCommitmentInstances = useMemo(() => {
+    const instances = commitments
+      .flatMap(c => getCommitmentInstances(c, transactions, overlayMonth));
 
-  const inactiveBills = useMemo(() => bills.filter(b => b.status === 'INACTIVE'), [bills]);
+    // Sort: Overdue -> Due -> Paid
+    const sorted = instances.sort((a, b) => {
+      if (a.status === 'OVERDUE' && b.status !== 'OVERDUE') return -1;
+      if (a.status !== 'OVERDUE' && b.status === 'OVERDUE') return 1;
+      if (a.status !== 'PAID' && b.status === 'PAID') return -1;
+      if (a.status === 'PAID' && b.status !== 'PAID') return 1;
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    });
+    return sorted.map(instance => ({ ...instance, id: instance.instanceId }));
+  }, [commitments, transactions, overlayMonth]);
+
+  const loansSummary = useMemo(() => {
+    let totalDue = 0;
+    let totalPaid = 0;
+    overlayCommitmentInstances.forEach(inst => {
+      totalDue += inst.amount;
+      if (inst.status === 'PAID') totalPaid += inst.amount;
+    });
+    return { totalDue, totalPaid };
+  }, [overlayCommitmentInstances]);
 
   const renderCommitmentItem = (item: (CommitmentInstance & { id: string }) | Commitment) => {
     const isInstance = 'commitment' in item;
@@ -156,8 +206,16 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
     const displayAmount = isInstance ? (item as CommitmentInstance).amount : calculateInstallment(commitment);
 
+    // Instance-specific paid amount (only if instance)
+    const instancePaid = isInstance ? (item as CommitmentInstance).paidAmount : 0;
+
+    // Helper to format Date: "Paid Jan 5"
+    // We need to find the payment date for this instance to be precise, 
+    // but `paidAmount` logic in `getCommitmentInstances` doesn't return the exact date of payment easily.
+    // Robustness: Just show "Paid" or stats.
+
     return (
-      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className="p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100">
+      <div key={isInstance ? (item as any).instanceId : commitment.id} onClick={() => setDetailsModal({ type: 'COMMITMENT', item: commitment })} className={`p-4 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 ${status === 'PAID' || status === 'SETTLED' ? 'opacity-70' : ''}`}>
         <div className="flex items-center">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center text-xl flex-shrink-0 mr-4"
@@ -166,12 +224,16 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             {category?.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' ? 'line-through' : ''}`}>{commitment.name}</h4>
-            <p className="text-xs text-gray-400">{status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` : generateDueDateText(dueDate, status, commitment.recurrence)}</p>
+            <h4 className={`font-bold text-gray-800 text-sm leading-tight truncate ${status === 'SETTLED' || status === 'PAID' ? 'line-through' : ''}`}>{commitment.name}</h4>
+            <p className={`text-xs ${status === 'OVERDUE' ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+              {status === 'SETTLED' ? `Settled. Total Paid: ${currencySymbol}${formatCurrency(totalPaid)}` :
+                status === 'PAID' ? 'Paid / Settled' :
+                  generateDueDateText(dueDate, status, commitment.recurrence)}
+            </p>
           </div>
           <div className="flex flex-col items-end ml-2">
-            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' ? 'line-through' : ''}`}>{currencySymbol}{formatCurrency(displayAmount || 0)}</span>
-            {status !== 'SETTLED' && (
+            <span className={`block font-bold text-sm text-gray-800 ${status === 'SETTLED' || status === 'PAID' ? 'line-through text-gray-400' : ''}`}>{currencySymbol}{formatCurrency(displayAmount || 0)}</span>
+            {status !== 'SETTLED' && status !== 'PAID' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onPayCommitment(commitment); }}
                 className={`text-xs font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform mt-1 ${isLending ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}
@@ -179,15 +241,67 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 {isLending ? 'Collect' : 'Pay'}
               </button>
             )}
+            {status === 'PAID' && (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1">
+                Paid
+              </span>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
+  const renderMonthSelector = (date: Date, setDate: (d: Date) => void) => (
+    <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
+      <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-full mb-4">
+        <button onClick={() => handleOverlayDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
+        <div className="flex flex-col items-center">
+          <span className="text-sm font-bold text-gray-800 uppercase tracking-wide">{overlayMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+        </div>
+        <button onClick={() => handleOverlayDateNav('NEXT')} className="p-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-5 h-5" /></button>
+      </div>
+    </div>
+  );
+
+  const renderSummaryCard = (totalDue: number, totalPaid: number, type: 'BILLS' | 'LOANS') => {
+    const progress = totalDue > 0 ? Math.min(100, (totalPaid / totalDue) * 100) : (totalPaid > 0 ? 100 : 0);
+    const remaining = Math.max(0, totalDue - totalPaid);
+
+    return (
+      <div className="px-6 mb-4">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 text-white shadow-lg">
+          <div className="flex justify-between items-end mb-2">
+            <div>
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Total {type === 'BILLS' ? 'Due' : 'Obligation'}</p>
+              <p className="text-2xl font-bold">{currencySymbol}{formatCurrency(totalDue)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Paid</p>
+              <p className="text-xl font-bold text-emerald-400">{currencySymbol}{formatCurrency(totalPaid)}</p>
+            </div>
+          </div>
+
+          <div className="w-full bg-slate-700/50 rounded-full h-2 mb-2 overflow-hidden">
+            <div
+              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+
+          <div className="flex justify-between text-xs text-slate-400">
+            <span>{Math.round(progress)}% Paid</span>
+            <span>{currencySymbol}{formatCurrency(remaining)} Remaining</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div data-testid="commitments-view" className="flex-1 flex flex-col h-full pb-[80px]">
+        {/* Main Dashboard Month Selector */}
         <div className="px-6 mt-4">
           <div className="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-full">
             <button onClick={() => handleDateNav('PREV')} className="p-2 rounded-full hover:bg-gray-50"><ChevronLeft className="w-5 h-5" /></button>
@@ -241,7 +355,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               className="px-6 flex-shrink-0"
               title="BILLS & SUBSCRIPTIONS"
               count={activeBillInstances.length}
-              onViewAll={() => setOverlay('ALL_BILLS')}
+              onViewAll={() => { setOverlay('ALL_BILLS'); setOverlayMonth(new Date(currentDate)); }}
             />
             <div data-testid="commitment-stack-bills" className="w-full px-6 mt-2">
               <CommitmentStack
@@ -252,7 +366,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   const { bill, status } = instance;
                   const category = categories.find(c => c.id === (bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'));
                   const paidAmount = calculateTotalPaid(bill.id, transactions);
-                  const paymentsMade = calculatePaymentsMade(bill.id, transactions);
                   const lastPayment = findLastPayment(bill.id, transactions);
 
                   return (
@@ -285,7 +398,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               className="px-6 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
-              onViewAll={() => setOverlay('ALL_COMMITMENTS')}
+              onViewAll={() => { setOverlay('ALL_COMMITMENTS'); setOverlayMonth(new Date(currentDate)); }}
             />
             <div data-testid="commitment-stack-loans" className="w-full px-6 mt-2">
               <CommitmentStack
@@ -296,7 +409,6 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                   const { commitment, status } = instance as (CommitmentInstance & { id: string });
                   const category = categories.find(c => c.id === commitment.categoryId);
                   const paidAmount = calculateTotalPaid(commitment.id, transactions);
-                  const paymentsMade = calculatePaymentsMade(commitment.id, transactions);
                   const lastPayment = findLastPayment(commitment.id, transactions);
 
                   return (
@@ -405,81 +517,23 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6" /></button>
           </div>
 
-          <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
-            <div className="flex space-x-2 mb-4">
-              <button onClick={() => setBillFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
-              <button onClick={() => setBillFilter('HISTORY')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${billFilter === 'HISTORY' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>History</button>
-            </div>
-          </div>
+          {renderMonthSelector(overlayMonth, setOverlayMonth)}
+          {renderSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS')}
 
           <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-2">
-            {billFilter === 'ACTIVE' ? (
-              <>
-                <SectionHeader title="Free Trials" count={activeBillInstances.filter(b => b.bill.isTrialActive).length} />
-                <CommitmentList
-                  items={activeBillInstances.filter(b => b.bill.isTrialActive)}
-                  renderItem={(instance) => (
-                    <CommitmentListItem
-                      instance={instance}
-                      category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
-                      currencySymbol={currencySymbol}
-                      onPay={() => onPayBill(instance.bill)}
-                      onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
-                    />
-                  )}
-                  placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active trials</div>}
+            <CommitmentList
+              items={overlayBillInstances}
+              renderItem={(instance) => (
+                <CommitmentListItem
+                  instance={instance}
+                  category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
+                  currencySymbol={currencySymbol}
+                  onPay={() => onPayBill(instance.bill)}
+                  onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
                 />
-                <SectionHeader title="Active Subscriptions" count={activeBillInstances.filter(b => !b.bill.isTrialActive).length} />
-                <CommitmentList
-                  items={activeBillInstances.filter(b => !b.bill.isTrialActive)}
-                  renderItem={(instance) => (
-                    <CommitmentListItem
-                      instance={instance}
-                      category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
-                      currencySymbol={currencySymbol}
-                      onPay={() => onPayBill(instance.bill)}
-                      onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
-                    />
-                  )}
-                  placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active subscriptions</div>}
-                />
-              </>
-            ) : (
-              inactiveBills.length === 0
-                ? <div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions</div>
-                : Object.entries(
-                  inactiveBills.reduce((acc, bill) => {
-                    const year = new Date(bill.endDate!).getFullYear();
-                    if (!acc[year]) acc[year] = [];
-                    acc[year].push(bill);
-                    return acc;
-                  }, {} as Record<string, Bill[]>)
-                ).map(([year, yearBills]) => (
-                  <div key={year}>
-                    <SectionHeader title={year} />
-                    <CommitmentList
-                      items={yearBills}
-                      renderItem={(bill) => (
-                        <div key={bill.id} className="p-2 cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 opacity-70">
-                          <div className="flex items-center">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-gray-800 text-sm leading-tight truncate line-through">{bill.name}</h4>
-                              <p className="text-xs text-gray-400">Canceled on {new Date(bill.endDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                            </div>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); onResubscribe(bill); }}
-                              className="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-lg active:scale-95 transition-transform hover:bg-green-200"
-                            >
-                              Restart
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No inactive subscriptions this year</div>}
-                    />
-                  </div>
-                ))
-            )}
+              )}
+              placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No bills found for this month</div>}
+            />
           </div>
         </div>
       )}
@@ -494,27 +548,15 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6" /></button>
           </div>
 
-          <div className="px-6 py-2 bg-app-bg z-10 sticky top-[73px]">
-            <div className="flex space-x-2 mb-4">
-              <button onClick={() => setCommitmentFilter('ACTIVE')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'ACTIVE' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Active</button>
-              <button onClick={() => setCommitmentFilter('SETTLED')} className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-colors ${commitmentFilter === 'SETTLED' ? 'bg-primary/10 text-primary-hover' : 'bg-white text-gray-400 border border-gray-100'}`}>Settled</button>
-            </div>
-          </div>
+          {renderMonthSelector(overlayMonth, setOverlayMonth)}
+          {renderSummaryCard(loansSummary.totalDue, loansSummary.totalPaid, 'LOANS')}
 
           <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-            {commitmentFilter === 'ACTIVE' ? (
-              <CommitmentList
-                items={activeCommitmentInstances}
-                renderItem={renderCommitmentItem}
-                placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No active commitments</div>}
-              />
-            ) : (
-              <CommitmentList
-                items={settledCommitments}
-                renderItem={renderCommitmentItem}
-                placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No settled commitments</div>}
-              />
-            )}
+            <CommitmentList
+              items={overlayCommitmentInstances}
+              renderItem={renderCommitmentItem}
+              placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No commitments found for this month</div>}
+            />
           </div>
         </div>
       )}

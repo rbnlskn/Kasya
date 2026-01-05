@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { Bill, Transaction, Category, Wallet } from '../types';
 import { formatCurrency } from '../utils/number';
 import TransactionItem from './TransactionItem';
+import { getPaymentStatus, getRelevantDueDate } from '../utils/commitment';
 
 interface BillHistoryModalProps {
   isOpen: boolean;
@@ -72,16 +73,21 @@ const BillHistoryModal: React.FC<BillHistoryModalProps> = ({
               {transactionsWithHeaders.map(group => (
                 <div key={group.header}>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{group.header}</h4>
-                  {group.transactions.map(tx => (
-                    <TransactionItem
-                      key={tx.id}
-                      transaction={tx}
-                      category={categories.find(c => c.id === tx.categoryId)}
-                      walletMap={walletMap}
-                      currencySymbol={currencySymbol}
-                      onClick={onTransactionClick}
-                    />
-                  ))}
+                  {group.transactions.map(tx => {
+                    const dueDate = getRelevantDueDate(bill, new Date(tx.date));
+                    const status = dueDate ? getPaymentStatus(new Date(tx.date), dueDate, tx.amount, tx.amount) : undefined;
+                    return (
+                      <TransactionItem
+                        key={tx.id}
+                        transaction={tx}
+                        category={categories.find(c => c.id === tx.categoryId)}
+                        walletMap={walletMap}
+                        currencySymbol={currencySymbol}
+                        onClick={onTransactionClick}
+                        status={status}
+                      />
+                    );
+                  })}
                 </div>
               ))}
             </div>
