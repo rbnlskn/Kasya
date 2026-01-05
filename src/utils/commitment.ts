@@ -399,10 +399,11 @@ export const getDisplayPeriod = (
         };
     }
 
-    // Handle Standard Recurring Bill/Commitment
-    const periodEnd = new Date(dueDate);
+    // Handle Standard Recurring Bill/Commitment (User Request: Start Date -> Next Month)
+    // Period = Due Date to (Due Date + 1 Interval - 1 Day)
+    const periodStart = new Date(dueDate);
+    const periodEnd = addInterval(new Date(dueDate), item.recurrence, 1);
     periodEnd.setDate(periodEnd.getDate() - 1);
-    const periodStart = subtractInterval(new Date(dueDate), item.recurrence, 1);
 
     const formattedStart = periodStart.toLocaleDateString('en-US', options);
     const formattedEnd = periodEnd.toLocaleDateString('en-US', options);

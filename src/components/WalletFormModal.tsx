@@ -118,14 +118,15 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
     onSave({
       name,
       type,
-      // For new Credit Cards, initial balance (debt) should be 0 unless it's an adjustment or existing.
-      // But the form uses 'balanceInput' for Credit Limit if isCreditCard.
-      // So if isCreditCard, use 0 (or initialWallet.balance).
+      // For Credit Cards: Balance is the DEBT (calculated).
+      // - If New: Start at 0.
+      // - If Edit: Keep existing balance.
+      // For Others: Balance is the Amount Input.
       balance: isCreditCard ? (initialWallet?.balance || 0) : currentBalance,
       color: finalBg,
       textColor: finalText,
       currency: 'PHP',
-      creditLimit: isCreditCard ? currentBalance : (initialWallet?.creditLimit),
+      creditLimit: isCreditCard ? currentBalance : undefined,
       statementDay: isCreditCard ? statementDay : undefined
     }, initialWallet?.id, adjustment);
     onClose();
