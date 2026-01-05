@@ -246,7 +246,7 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                 isChecked={showNote}
                                 onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
                                 label="Add Note"
-                                description="Toggle to add extra details."
+                                description={type === CommitmentType.LOAN ? "Terms or repayment notes." : "Terms or borrower notes."}
                             />
                             {showNote && (
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-3">

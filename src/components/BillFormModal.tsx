@@ -331,7 +331,7 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
                 isChecked={showNote}
                 onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
                 label="Add Note"
-                description="Toggle to add extra details."
+                description={type === 'BILL' ? "Reference number or notes." : "Plan details or notes."}
               />
               {showNote && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-3">

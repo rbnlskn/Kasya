@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Calendar, ChevronDown, Check, ArrowRightLeft } from 'lucide-react';
 import { Category, Wallet, TransactionType, Transaction } from '../types';
@@ -94,7 +95,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
       transferToWalletId: type === TransactionType.TRANSFER ? selectedToWallet : undefined,
       date: dateVal.toISOString(),
       title: transactionTitle,
-      description,
+      description: type === TransactionType.TRANSFER ? '' : description,
       note: note || undefined,
       exclude_from_cashflow: isOffset,
       commitmentId,
@@ -241,7 +242,6 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
 
             {type === TransactionType.TRANSFER && (
               <div>
-                <div className="flex justify-center -my-2.5 relative z-10"><div className="bg-slate-200 p-1.5 rounded-full ring-4 ring-surface"><ArrowRightLeft className="w-4 h-4 text-gray-500" /></div></div>
                 <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">To Wallet <span className="text-red-500">*</span></label>
                 <div onClick={(e) => { e.stopPropagation(); setSelectorView('WALLET_TO'); }} className="w-full bg-slate-100 border-2 border-transparent active:border-primary active:bg-surface rounded-lg px-4 flex items-center justify-between cursor-pointer h-11 transition-all">
                   <div className="flex items-center space-x-3">
@@ -263,19 +263,19 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
-                placeholder="What was this for?"
-              />
-            </div>
+            {type !== TransactionType.TRANSFER && (
+              <div>
+                <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
+                <input
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
+                  placeholder="What was this for?"
+                />
+              </div>
+            )}
 
-            {/* Note & Offset Logic */}
-            {/* Note & Offset Logic */}
             {/* Note & Offset Logic */}
             <div className="space-y-3">
               {title === 'Lending Payment' ? (
@@ -286,11 +286,6 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     label="Mark as Non-Monetary / Offset"
                     description="Toggle to mark as offset (and add note)."
                   />
-                  {/* Also show standard add note if user wants, but currently we bind offset to note. 
-                      User requested: 'add note toggle should also be available to loan lending'. 
-                      For PAYMENT (this modal), offset usually implies a note. 
-                      Let's stick to simple logic for now but ensure text matches feedback.
-                  */}
                   {isOffset && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                       <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
@@ -310,7 +305,13 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                     isChecked={showNote}
                     onChange={(checked) => { setShowNote(checked); if (!checked) setNote(''); }}
                     label={type === TransactionType.REFUND ? "Add Reason" : "Add Note"}
-                    description={type === TransactionType.REFUND ? "Toggle to add return details." : "Toggle to add extra details."}
+                    description={
+                      type === TransactionType.EXPENSE ? "Details about this purchase." :
+                        type === TransactionType.INCOME ? "Details about this earning." :
+                          type === TransactionType.TRANSFER ? "Reason for this transfer." :
+                            type === TransactionType.REFUND ? "Reason for this refund." :
+                              "Add extra details."
+                    }
                   />
                   {showNote && (
                     <div className="animate-in fade-in slide-in-from-top-2 duration-200">
@@ -423,3 +424,4 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
   );
 };
 export default TransactionFormModal;
+
