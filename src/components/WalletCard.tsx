@@ -47,7 +47,12 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
 
   const finalBgColor = !isHexBg ? (wallet.color || 'bg-primary') : '';
   const finalTextColor = !isHexText ? (wallet.textColor || 'text-white') : '';
-  const isDarkBg = isHexBg ? !isColorLight(wallet.color) : true;
+
+  // Extract hex from JIT class if present (e.g. bg-[#FBBF24]) 
+  const jitHexMatch = wallet.color?.match(/bg-\[(#[0-9A-Fa-f]{6})\]/);
+  const effectiveBgColor = isHexBg ? wallet.color : (jitHexMatch ? jitHexMatch[1] : null);
+
+  const isDarkBg = effectiveBgColor ? !isColorLight(effectiveBgColor) : true;
   const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-primary/10';
   const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
   const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
@@ -107,8 +112,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
           <button
             onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
             className={`rounded-xl transition-all active:scale-90 font-bold ${isDarkBg
-                ? 'bg-white/20 hover:bg-white/30 text-white'
-                : 'bg-black/10 hover:bg-black/20 text-slate-800'
+              ? 'bg-white/20 hover:bg-white/30 text-white'
+              : 'bg-black/10 hover:bg-black/20 text-slate-800'
               }`}
             style={{
               padding: `${scale(8)}px ${scale(16)}px`,

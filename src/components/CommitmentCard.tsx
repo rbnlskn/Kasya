@@ -69,21 +69,30 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
   const getButtonConfig = () => {
     if (isTrial) {
-      return { text: 'Cancel', className: 'bg-expense-bg text-expense', action: onEdit ? () => onEdit(item) : () => { } };
+      return { text: 'Cancel', className: 'bg-danger/10 text-expense hover:bg-danger/20', action: onEdit ? () => onEdit(item) : () => { } };
     }
     if (isOverdue) {
-      return { text: isLending ? 'Collect' : 'Pay', className: 'bg-expense-bg text-expense', action: onPay };
+      return { text: isLending ? 'Collect' : 'Pay', className: 'bg-danger/10 text-expense hover:bg-danger/20', action: onPay };
     }
     if (isLending) {
-      return { text: 'Collect', className: 'bg-lending-bg text-lending', action: onPay };
+      return { text: 'Collect', className: 'bg-lending/15 text-lending hover:bg-lending/25', action: onPay };
     }
-    return { text: 'Pay', className: 'bg-loans-bg text-loans', action: onPay };
+    if (category?.name === 'Bills') {
+      return { text: 'Pay', className: 'bg-amber-100 text-amber-700 hover:bg-amber-200', action: onPay };
+    }
+    if (category?.name === 'Subscriptions') {
+      return { text: 'Pay', className: 'bg-blue-100 text-blue-700 hover:bg-blue-200', action: onPay };
+    }
+    return { text: 'Pay', className: 'bg-loans/15 text-loans hover:bg-loans/25', action: onPay };
   };
   const buttonConfig = getButtonConfig();
 
   const headerAmountColor = () => {
     if (isTrial) return 'text-info';
     if (isLending) return 'text-lending';
+    if (isCommitment) return 'text-loans';
+    if (category?.name === 'Bills') return 'text-amber-600';
+    if (category?.name === 'Subscriptions') return 'text-blue-600';
     return 'text-info';
   };
 
@@ -146,7 +155,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-expense' : 'text-text-secondary'}`}>
               {isCommitment ? `${currencySymbol}${formatCurrency(paidAmount)}` : period}
               {isCommitment && (
-                <span className={`text-[10px] font-bold px-1 py-0.5 rounded-md ${isLending ? 'bg-lending-bg text-lending' : 'bg-loans-bg text-loans'}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isLending ? 'bg-lending/15 text-lending' : 'bg-loans/15 text-loans'}`}>
                   {Math.round(progress)}%
                 </span>
               )}

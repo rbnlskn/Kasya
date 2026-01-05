@@ -68,14 +68,14 @@ export const COLORS = {
   },
 
   // 3. Category Palette (Level 200 Pastels)
-  categories: {
-    food: { light: '#FECDD3', dark: '#FECDD3' },     // Rose 200
-    transport: { light: '#BFDBFE', dark: '#BFDBFE' }, // Blue 200
-    utilities: { light: '#FEF08A', dark: '#FEF08A' }, // Yellow 200
-    subscriptions: { light: '#99F6E4', dark: '#99F6E4' }, // Teal 200
-    shopping: { light: '#E9D5FF', dark: '#E9D5FF' },  // Purple 200
-    health: { light: '#BBF7D0', dark: '#BBF7D0' },    // Green 200
-    others: { light: '#FED7AA', dark: '#FED7AA' },    // Orange 200
-    entertainment: { light: '#FBCFE8', dark: '#FBCFE8' }, // Pink 200
+  pastels: {
+    rose: '#FECDD3',     // Rose 200
+    blue: '#BFDBFE',     // Blue 200
+    yellow: '#FEF08A',   // Yellow 200
+    teal: '#99F6E4',     // Teal 200
+    purple: '#E9D5FF',   // Purple 200
+    green: '#BBF7D0',    // Green 200
+    orange: '#FED7AA',   // Orange 200
+    pink: '#FBCFE8',     // Pink 200
   }
 };

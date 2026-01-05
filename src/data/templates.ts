@@ -8,7 +8,7 @@ export interface WalletTemplate {
 
 export const WALLET_TEMPLATES: WalletTemplate[] = [
     // E-Wallets
-    { name: 'Cash', bg: 'bg-accent', text: 'text-gray-900', type: 'Cash' },
+    { name: 'Cash', bg: '#FBBF24', text: '#111827', type: 'Cash' },
     { name: 'GCash', bg: 'bg-[#007CFF]', text: 'text-[#FFFFFF]', type: 'E-Wallet' },
     { name: 'Maya', bg: 'bg-[#000000]', text: 'text-[#75EEA5]', type: 'E-Wallet' },
     { name: 'GrabPay', bg: 'bg-[#00B14F]', text: 'text-[#FFFFFF]', type: 'E-Wallet' },

@@ -3,7 +3,7 @@ import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment, Re
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme';
 
-export const APP_VERSION = '1.0.1';
+export const APP_VERSION = '1.0.2';
 export const CHANGELOG = [
   { version: '1.0.0', date: '2024-05-24', changes: ['Initial Release'] },
 ];
@@ -14,29 +14,29 @@ export const WALLET_COLORS = WALLET_TEMPLATES;
 
 // 3. Category Pastels (Level 200)
 export const CATEGORY_COLORS = [
-  COLORS.categories.food.light,
-  COLORS.categories.others.light,
-  COLORS.categories.utilities.light,
-  COLORS.categories.health.light,
-  COLORS.categories.subscriptions.light,
-  COLORS.categories.transport.light,
-  COLORS.categories.shopping.light,
-  COLORS.categories.entertainment.light,
+  COLORS.pastels.rose,
+  COLORS.pastels.orange,
+  COLORS.pastels.yellow,
+  COLORS.pastels.green,
+  COLORS.pastels.teal,
+  COLORS.pastels.blue,
+  COLORS.pastels.purple,
+  COLORS.pastels.pink,
 ];
 
 export const DEFAULT_CATEGORIES: Category[] = [
-  { id: 'cat_inc_adj', name: 'Income', icon: '🟢', color: COLORS.lending.DEFAULT },
-  { id: 'cat_exp_adj', name: 'Expense', icon: '🔴', color: COLORS.categories.food.light },
-  { id: 'cat_1', name: 'Food', icon: '🍎', color: COLORS.categories.food.light },
-  { id: 'cat_2', name: 'Commute', icon: '🚘', color: COLORS.categories.transport.light },
-  { id: 'cat_3', name: 'Shopping', icon: '🛍️', color: COLORS.categories.shopping.light },
-  { id: 'cat_4', name: 'Salary', icon: '💰', color: COLORS.lending.DEFAULT },
-  { id: 'cat_5', name: 'Eat Out', icon: '🍽️', color: COLORS.categories.others.light },
-  { id: 'cat_6', name: 'Bills', icon: '⚡', color: COLORS.categories.utilities.light },
-  { id: 'cat_7', name: 'Entertainment', icon: '🎮', color: COLORS.categories.entertainment.light },
-  { id: 'cat_loans', name: 'Loans', icon: '💷', color: COLORS.categories.entertainment.light },
-  { id: 'cat_lending', name: 'Lending', icon: '💴', color: COLORS.lending.DEFAULT },
-  { id: 'cat_subs', name: 'Subscriptions', icon: '💬', color: COLORS.categories.subscriptions.light },
+  { id: 'cat_inc_adj', name: 'Income', icon: '🟢', color: COLORS.pastels.green },
+  { id: 'cat_exp_adj', name: 'Expense', icon: '🔴', color: COLORS.pastels.rose },
+  { id: 'cat_1', name: 'Food', icon: '🍎', color: COLORS.pastels.rose },
+  { id: 'cat_2', name: 'Commute', icon: '🚘', color: COLORS.pastels.blue },
+  { id: 'cat_3', name: 'Shopping', icon: '🛍️', color: COLORS.pastels.purple },
+  { id: 'cat_4', name: 'Salary', icon: '💰', color: COLORS.pastels.green },
+  { id: 'cat_5', name: 'Eat Out', icon: '🍽️', color: COLORS.pastels.orange },
+  { id: 'cat_6', name: 'Bills', icon: '⚡', color: COLORS.pastels.yellow },
+  { id: 'cat_7', name: 'Entertainment', icon: '🎮', color: COLORS.pastels.pink },
+  { id: 'cat_loans', name: 'Loans', icon: '💷', color: COLORS.pastels.purple },
+  { id: 'cat_lending', name: 'Lending', icon: '💴', color: COLORS.pastels.green },
+  { id: 'cat_subs', name: 'Subscriptions', icon: '💬', color: COLORS.pastels.blue },
 ];
 
 export const INITIAL_WALLETS: Wallet[] = [
