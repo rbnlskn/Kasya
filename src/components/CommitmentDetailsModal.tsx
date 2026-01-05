@@ -56,7 +56,7 @@ const CommitmentDetailsModal: React.FC<CommitmentDetailsModalProps> = ({
       <div className={`bg-surface w-full max-w-md p-6 rounded-3xl shadow-2xl relative z-10 max-h-[90vh] flex flex-col pointer-events-auto ${isExiting ? 'animate-out zoom-out-95 duration-200 fill-mode-forwards' : 'animate-in zoom-in-95 duration-200'}`}>
         <div className="flex justify-between items-center mb-4 flex-shrink-0">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mr-3" style={{ backgroundColor: category?.color }}>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mr-3 drop-shadow-sm" style={{ backgroundColor: category?.color }}>
               {category?.icon}
             </div>
             <div>

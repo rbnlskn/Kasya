@@ -91,7 +91,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
     if (isTrial) return 'text-info';
     if (isLending) return 'text-lending';
     if (isCommitment) return 'text-loans';
-    if (category?.name === 'Bills') return 'text-amber-600';
+    if (category?.name === 'Bills') return 'text-amber-500';
     if (category?.name === 'Subscriptions') return 'text-blue-600';
     return 'text-info';
   };
@@ -127,7 +127,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">
         <div className="flex gap-2.5 items-center">
           <div
-            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0 drop-shadow-sm"
             style={iconTheme()}
           >
             {category?.icon}

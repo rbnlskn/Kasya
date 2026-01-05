@@ -98,7 +98,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
       >
         <div className="flex items-center space-x-4 overflow-hidden">
           <div
-            className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+            className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0 drop-shadow-sm"
             style={getIconStyle()}
           >
             {renderIcon()}

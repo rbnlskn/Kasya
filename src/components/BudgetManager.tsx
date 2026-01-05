@@ -32,12 +32,12 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
   const onDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    
+
     const newBudgets = [...localBudgets];
     const draggedItem = newBudgets[draggedIndex];
     newBudgets.splice(draggedIndex, 1);
     newBudgets.splice(index, 0, draggedItem);
-    
+
     setLocalBudgets(newBudgets);
     setDraggedIndex(index);
   };
@@ -57,12 +57,12 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
           <h1 className="text-xl font-bold text-gray-800">My Budgets</h1>
         </div>
         <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95">
-          <Plus className="w-6 h-6"/>
+          <Plus className="w-6 h-6" />
         </button>
       </div>
 
       <div className="px-6 py-2">
-         <p className="text-xs text-center text-gray-400 font-medium">Tap to View • Hold & Drag to Reorder</p>
+        <p className="text-xs text-center text-gray-400 font-medium">Tap to View • Hold & Drag to Reorder</p>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 pt-2 space-y-3 pb-20">
@@ -73,32 +73,32 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
           const category = categories.find(c => c.id === budget.categoryId);
           return (
             <div
-                key={budget.id} 
-                draggable={!!onReorder}
-                onDragStart={(e) => onDragStart(e, index)}
-                onDragOver={(e) => onDragOver(e, index)}
-                onDrop={onDrop}
-                onDragEnd={onDrop}
-                onClick={() => onView(budget)}
-                className={`bg-white p-4 rounded-xl shadow-lg border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
+              key={budget.id}
+              draggable={!!onReorder}
+              onDragStart={(e) => onDragStart(e, index)}
+              onDragOver={(e) => onDragOver(e, index)}
+              onDrop={onDrop}
+              onDragEnd={onDrop}
+              onClick={() => onView(budget)}
+              className={`bg-white p-4 rounded-xl shadow-lg border border-gray-100 cursor-pointer active:scale-[0.98] transition-transform ${draggedIndex === index ? 'opacity-50' : ''}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-lg">
-                        {category?.icon || budget.icon}
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-gray-800 text-sm">{budget.name}</h3>
-                        <p className="text-[10px] text-gray-400 uppercase font-semibold">{budget.period}</p>
-                    </div>
+                  <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-lg drop-shadow-sm">
+                    {category?.icon || budget.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-800 text-sm">{budget.name}</h3>
+                    <p className="text-[10px] text-gray-400 uppercase font-semibold">{budget.period}</p>
+                  </div>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm font-bold text-gray-800">{currencySymbol}{remaining.toLocaleString()} left</p>
+                  <p className="text-sm font-bold text-gray-800">{currencySymbol}{remaining.toLocaleString()} left</p>
                 </div>
               </div>
-              
+
               <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                  <div className={`h-full rounded-full ${percent > 90 ? 'bg-red-500' : (percent > 70 ? 'bg-orange-400' : 'bg-primary')}`} style={{ width: `${percent}%` }}></div>
+                <div className={`h-full rounded-full ${percent > 90 ? 'bg-red-500' : (percent > 70 ? 'bg-orange-400' : 'bg-primary')}`} style={{ width: `${percent}%` }}></div>
               </div>
             </div>
           );
