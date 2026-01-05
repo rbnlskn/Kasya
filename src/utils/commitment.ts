@@ -4,12 +4,12 @@ import { calculateTotalPaid, calculateTotalObligation, calculatePaymentsMade, ca
 export type CommitmentInstanceStatus = 'DUE' | 'UPCOMING' | 'OVERDUE' | 'PAID';
 
 export interface CommitmentInstance {
-  commitment: Commitment;
-  dueDate: Date;
-  status: CommitmentInstanceStatus;
-  instanceId: string; // Unique ID for this specific installment (e.g., loanId_1)
-  amount: number; // Amount due for this specific instance
-  paidAmount: number; // Amount paid towards this specific instance
+    commitment: Commitment;
+    dueDate: Date;
+    status: CommitmentInstanceStatus;
+    instanceId: string; // Unique ID for this specific installment (e.g., loanId_1)
+    amount: number; // Amount due for this specific instance
+    paidAmount: number; // Amount paid towards this specific instance
 }
 
 export interface BillInstance {
@@ -75,9 +75,9 @@ const generateSchedule = (commitment: Commitment): Date[] => {
 };
 
 export const getCommitmentInstances = (
-  commitment: Commitment,
-  transactions: Transaction[],
-  viewingDate: Date,
+    commitment: Commitment,
+    transactions: Transaction[],
+    viewingDate: Date,
 ): CommitmentInstance[] => {
     const totalObligation = calculateTotalObligation(commitment);
     const totalPaid = calculateTotalPaid(commitment.id, transactions);
@@ -101,27 +101,27 @@ export const getCommitmentInstances = (
 
     // Special handling for NO_DUE_DATE
     if (commitment.recurrence === 'NO_DUE_DATE') {
-         // Strict Visibility Check: Only visible if viewing date is ON or AFTER the start month/year
-         const start = new Date(commitment.startDate);
-         start.setHours(0,0,0,0);
+        // Strict Visibility Check: Only visible if viewing date is ON or AFTER the start month/year
+        const start = new Date(commitment.startDate);
+        start.setHours(0, 0, 0, 0);
 
-         const viewingYear = viewingDateClean.getFullYear();
-         const viewingMonth = viewingDateClean.getMonth();
-         const startYear = start.getFullYear();
-         const startMonth = start.getMonth();
+        const viewingYear = viewingDateClean.getFullYear();
+        const viewingMonth = viewingDateClean.getMonth();
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth();
 
-         if (viewingYear < startYear || (viewingYear === startYear && viewingMonth < startMonth)) {
-             return [];
-         }
+        if (viewingYear < startYear || (viewingYear === startYear && viewingMonth < startMonth)) {
+            return [];
+        }
 
-         return [{
-             commitment,
-             dueDate: viewingDateClean,
-             status: 'UPCOMING',
-             instanceId: `${commitment.id}_nodue`,
-             amount: totalObligation,
-             paidAmount: totalPaid
-         }];
+        return [{
+            commitment,
+            dueDate: viewingDateClean,
+            status: 'UPCOMING',
+            instanceId: `${commitment.id}_nodue`,
+            amount: totalObligation,
+            paidAmount: totalPaid
+        }];
     }
 
     schedule.forEach((dueDate, index) => {
@@ -130,8 +130,8 @@ export const getCommitmentInstances = (
 
         // Adjust last installment for rounding differences
         if (index === schedule.length - 1) {
-             const previousInstallmentsTotal = installmentAmount * (schedule.length - 1);
-             amountDue = totalObligation - previousInstallmentsTotal;
+            const previousInstallmentsTotal = installmentAmount * (schedule.length - 1);
+            amountDue = totalObligation - previousInstallmentsTotal;
         }
 
         // Apply payments to this installment
@@ -194,17 +194,17 @@ export const getCommitmentInstances = (
                 paidAmount: paidForThis
             });
         } else if (isNextMonth) {
-             // Optional: Lookahead logic.
-             // If today is Aug 30, and due Sept 2. Viewing Aug. Should I see Sept 2?
-             // Yes, typically.
-             // We check if viewingDate is "Current Month" relative to real time.
-             const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
+            // Optional: Lookahead logic.
+            // If today is Aug 30, and due Sept 2. Viewing Aug. Should I see Sept 2?
+            // Yes, typically.
+            // We check if viewingDate is "Current Month" relative to real time.
+            const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
 
-             if (isViewingCurrentRealMonth) {
-                 const diffTime = dueDate.getTime() - today.getTime();
-                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                 if (diffDays <= 7 && diffDays > 0) {
-                     instances.push({
+            if (isViewingCurrentRealMonth) {
+                const diffTime = dueDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays <= 7 && diffDays > 0) {
+                    instances.push({
                         commitment,
                         dueDate,
                         status,
@@ -212,8 +212,8 @@ export const getCommitmentInstances = (
                         amount: amountDue,
                         paidAmount: paidForThis
                     });
-                 }
-             }
+                }
+            }
         }
     });
 
@@ -224,9 +224,9 @@ export const getCommitmentInstances = (
 // or mostly unused now for Loans.
 // We will deprecate this for Loans but keep for API shape if needed.
 export const getActiveCommitmentInstance = (
-  commitment: Commitment,
-  transactions: Transaction[],
-  viewingDate: Date,
+    commitment: Commitment,
+    transactions: Transaction[],
+    viewingDate: Date,
 ): CommitmentInstance | null => {
     const instances = getCommitmentInstances(commitment, transactions, viewingDate);
     // Return the most urgent one (first one) if any
@@ -266,7 +266,7 @@ export const generateDueDateText = (
         relativeText = `Due in ${Math.round(diffDays / 7)} weeks`;
     }
 
-    const specificDate = cleanDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const specificDate = cleanDueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
     if (relativeText && includeDate) {
         return `${relativeText} • ${specificDate}`;
@@ -278,69 +278,69 @@ export const generateDueDateText = (
 };
 
 export const findLastPayment = (billId: string, transactions: Transaction[]): Transaction | null => {
-  const billPayments = transactions
-    .filter(t => t.billId === billId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const billPayments = transactions
+        .filter(t => t.billId === billId)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  return billPayments.length > 0 ? billPayments[0] : null;
+    return billPayments.length > 0 ? billPayments[0] : null;
 };
 
 const getSortableDueDate = (item: any, currentDate: Date = new Date()): Date | null => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  // Bill or Subscription
-  if ('dueDay' in item && typeof item.dueDay === 'number') {
-    if (item.dueDay === 0) return null;
-    // We use the month from the component's state, not today's month
-    return new Date(currentDate.getFullYear(), currentDate.getMonth(), item.dueDay);
-  }
-
-  // Credit Card (Wallet)
-  if ('statementDay' in item && typeof item.statementDay === 'number') {
-    if (!item.statementDay) return null;
-    const dueDay = item.statementDay;
-    const currentDay = today.getDate();
-    let dueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
-    // If statement day has passed this month, the next due date is next month
-    if (dueDay < currentDay) {
-      dueDate.setMonth(today.getMonth() + 1);
+    // Bill or Subscription
+    if ('dueDay' in item && typeof item.dueDay === 'number') {
+        if (item.dueDay === 0) return null;
+        // We use the month from the component's state, not today's month
+        return new Date(currentDate.getFullYear(), currentDate.getMonth(), item.dueDay);
     }
-    return dueDate;
-  }
 
-  // Active Commitment Instance
-  if ('commitment' in item && 'dueDate' in item) {
-    return new Date(item.dueDate);
-  }
+    // Credit Card (Wallet)
+    if ('statementDay' in item && typeof item.statementDay === 'number') {
+        if (!item.statementDay) return null;
+        const dueDay = item.statementDay;
+        const currentDay = today.getDate();
+        let dueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+        // If statement day has passed this month, the next due date is next month
+        if (dueDay < currentDay) {
+            dueDate.setMonth(today.getMonth() + 1);
+        }
+        return dueDate;
+    }
 
-  // Raw Commitment (usually for settled list)
-  if ('principal' in item && 'recurrence' in item) {
-    if (item.recurrence === 'NO_DUE_DATE') return null;
-    // For settled items, we might not have a next due date, so treat as null to sort at the end.
+    // Active Commitment Instance
+    if ('commitment' in item && 'dueDate' in item) {
+        return new Date(item.dueDate);
+    }
+
+    // Raw Commitment (usually for settled list)
+    if ('principal' in item && 'recurrence' in item) {
+        if (item.recurrence === 'NO_DUE_DATE') return null;
+        // For settled items, we might not have a next due date, so treat as null to sort at the end.
+        return null;
+    }
+
     return null;
-  }
-
-  return null;
 };
 
 
 export const sortUnified = <T>(items: T[], currentDate: Date = new Date()): T[] => {
-  return [...items].sort((a, b) => {
-    const dateA = getSortableDueDate(a, currentDate);
-    const dateB = getSortableDueDate(b, currentDate);
+    return [...items].sort((a, b) => {
+        const dateA = getSortableDueDate(a, currentDate);
+        const dateB = getSortableDueDate(b, currentDate);
 
-    if (!dateA && !dateB) {
-      // Fallback for items with no dates - sort by name if available
-      const nameA = (a as any).name || '';
-      const nameB = (b as any).name || '';
-      return nameA.localeCompare(nameB);
-    }
-    if (!dateA) return 1;
-    if (!dateB) return -1;
+        if (!dateA && !dateB) {
+            // Fallback for items with no dates - sort by name if available
+            const nameA = (a as any).name || '';
+            const nameB = (b as any).name || '';
+            return nameA.localeCompare(nameB);
+        }
+        if (!dateA) return 1;
+        if (!dateB) return -1;
 
-    return dateA.getTime() - dateB.getTime();
-  });
+        return dateA.getTime() - dateB.getTime();
+    });
 };
 
 const subtractInterval = (
@@ -370,7 +370,7 @@ export const getDisplayPeriod = (
     item: Bill | Commitment,
     dueDate: Date,
 ): { period: string; endDate: string } => {
-    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
     const formattedDueDate = new Date(dueDate).toLocaleDateString('en-US', options);
 
     // Handle Trial Bill
@@ -448,8 +448,8 @@ export const getActiveBillInstance = (
         const endOfViewingMonth = new Date(viewingYear, viewingMonth + 1, 0);
 
         if (trialStartDate <= endOfViewingMonth && trialEndDate >= startOfViewingMonth) {
-             // This ensures the trial is visible if any part of it overlaps with the viewing month.
-             return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id };
+            // This ensures the trial is visible if any part of it overlaps with the viewing month.
+            return { bill, dueDate: trialEndDate, status: 'UPCOMING', id: bill.id };
         }
 
         // If the trial has ended, proceed to treat it as a normal bill.
@@ -470,7 +470,7 @@ export const getActiveBillInstance = (
     // Then a manually set firstPaymentDate.
     // Finally, the original startDate.
     const effectiveFirstDate = bill.billingStartDate ? new Date(bill.billingStartDate) :
-                               bill.firstPaymentDate ? new Date(bill.firstPaymentDate) : startDate;
+        bill.firstPaymentDate ? new Date(bill.firstPaymentDate) : startDate;
     effectiveFirstDate.setHours(0, 0, 0, 0);
 
     // We must FIRST determine if the standard instance for this viewing month is valid.
@@ -497,7 +497,7 @@ export const getActiveBillInstance = (
     let isPaidThisMonth = false;
 
     if (standardInstanceValid) {
-         isPaidThisMonth = transactions.some(t =>
+        isPaidThisMonth = transactions.some(t =>
             t.billId === bill.id &&
             new Date(t.date).getMonth() === viewingMonth &&
             new Date(t.date).getFullYear() === viewingYear

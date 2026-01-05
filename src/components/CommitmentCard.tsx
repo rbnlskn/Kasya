@@ -69,7 +69,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
   const getButtonConfig = () => {
     if (isTrial) {
-      return { text: 'Cancel', className: 'bg-danger/10 text-expense hover:bg-danger/20', action: onEdit ? () => onEdit(item) : () => { } };
+      return { text: 'Cancel', className: 'bg-info/10 text-info hover:bg-info/20', action: onEdit ? () => onEdit(item) : () => { } };
     }
     if (isOverdue) {
       return { text: isLending ? 'Collect' : 'Pay', className: 'bg-danger/10 text-expense hover:bg-danger/20', action: onPay };
@@ -156,7 +156,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
             <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-expense' : 'text-text-secondary'}`}>
               {isCommitment ? `${currencySymbol}${formatCurrency(paidAmount)}` : period}
               {isCommitment && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isLending ? 'bg-lending/15 text-lending' : 'bg-loans/15 text-loans'}`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isOverdue ? 'bg-expense/15 text-expense' : (isLending ? 'bg-lending/15 text-lending' : 'bg-loans/15 text-loans')}`}>
                   {Math.round(progress)}%
                 </span>
               )}
@@ -172,7 +172,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       {/* --- SEPARATOR --- */}
       {isCommitment ? (
         <div className="w-full h-[6px] bg-border relative">
-          <div className={`h-full rounded-r-md ${isLending ? 'bg-lending' : 'bg-loans'}`} style={{ width: `${progress}%` }}></div>
+          <div className={`h-full rounded-r-md ${isOverdue ? 'bg-expense' : (isLending ? 'bg-lending' : 'bg-loans')}`} style={{ width: `${progress}%` }}></div>
         </div>
       ) : (
         <div className="h-px w-full bg-border"></div>
