@@ -63,7 +63,11 @@ const WalletFormModal: React.FC<WalletFormModalProps> = ({ isOpen, onClose, onSa
       if (initialWallet) {
         setName(initialWallet.name);
         setType(initialWallet.type);
-        balanceInput.setValue(initialWallet.balance);
+        if (initialWallet.type === WalletType.CREDIT_CARD) {
+          balanceInput.setValue(initialWallet.creditLimit || 0);
+        } else {
+          balanceInput.setValue(initialWallet.balance);
+        }
         setStatementDay(initialWallet.statementDay || 1);
 
         const bgMatch = initialWallet.color.match(/bg-\[(#[0-9A-Fa-f]{6})\]/);
