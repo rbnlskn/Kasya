@@ -88,6 +88,7 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   const buttonConfig = getButtonConfig();
 
   const headerAmountColor = () => {
+    if (isOverdue) return 'text-expense'; // Overdue takes priority
     if (isTrial) return 'text-info';
     if (isLending) return 'text-lending';
     if (isCommitment) return 'text-loans';

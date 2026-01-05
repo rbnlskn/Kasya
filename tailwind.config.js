@@ -25,6 +25,9 @@ export default {
         expense: COLORS.danger.DEFAULT,
         'expense-bg': COLORS.danger.bg,
         transfer: COLORS.info.DEFAULT,
+        // Direct aliases for clearer code usage
+        info: COLORS.info.DEFAULT,
+        danger: COLORS.danger.DEFAULT,
         warning: COLORS.warning.DEFAULT,
         loans: COLORS.loans.DEFAULT,
         lending: COLORS.lending.DEFAULT,
