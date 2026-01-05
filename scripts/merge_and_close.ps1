@@ -1,12 +1,18 @@
+param(
+    [switch]$Force
+)
+
 $ErrorActionPreference = "Stop"
 
 Write-Host "Checking PR status..."
 gh pr status
 
-$confirmation = Read-Host "Are you sure you want to merge this PR (Squash & Delete)? (y/n)"
-if ($confirmation -ne 'y') {
-    Write-Host "Aborting."
-    exit
+if (-not $Force) {
+    $confirmation = Read-Host "Are you sure you want to merge this PR (Squash & Delete)? (y/n)"
+    if ($confirmation -ne 'y') {
+        Write-Host "Aborting."
+        exit
+    }
 }
 
 Write-Host "Merging PR..."

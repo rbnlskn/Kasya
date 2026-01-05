@@ -63,7 +63,7 @@ This guide details your daily workflow for developing Kasya using the Antigravit
 
 1.  **User (GitHub)**: Squashes & Merges PR.
     -   *Closes Issue automatically.*
-2.  **User (Local)**: Runs `.\scripts\merge_and_close.ps1`.
+4.  **Agent**: Runs `.\scripts\merge_and_close.ps1 -Force`.
     -   *Deletes local branch & Pulls main.*
 
 ---
