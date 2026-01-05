@@ -2,7 +2,8 @@
 export enum TransactionType {
   INCOME = 'INCOME',
   EXPENSE = 'EXPENSE',
-  TRANSFER = 'TRANSFER'
+  TRANSFER = 'TRANSFER',
+  REFUND = 'REFUND'
 }
 
 export enum WalletType {
@@ -54,6 +55,8 @@ export interface Transaction {
   description?: string;
   billId?: string;
   commitmentId?: string;
+  note?: string;
+  exclude_from_cashflow?: boolean;
 }
 
 export interface Category {
@@ -84,6 +87,7 @@ export interface Bill {
   trialEndDate?: string;
   billingStartDate?: string;
   remindTrialEnd?: boolean;
+  note?: string;
 }
 
 export enum CommitmentType {
@@ -105,6 +109,7 @@ export interface Commitment {
   startDate: string;
   duration: number;
   durationUnit?: 'WEEKS' | 'MONTHS' | 'YEARS';
+  note?: string;
 }
 
 export interface AppState {

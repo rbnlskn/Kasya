@@ -19,13 +19,15 @@ interface TransactionItemProps {
 const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category, commitment, onClick, currentWalletId, walletMap, dateHeader, currencySymbol, isCreditCardPayment }) => {
   const isTransfer = transaction.type === TransactionType.TRANSFER;
   let isPositive = transaction.type === TransactionType.INCOME;
-  
+
   if (isTransfer && currentWalletId) {
     if (currentWalletId === transaction.walletId) isPositive = false;
     else if (currentWalletId === transaction.transferToWalletId) isPositive = true;
   }
 
   const getAmountColor = () => {
+    if (transaction.exclude_from_cashflow) return 'text-gray-400';
+    if (transaction.type === TransactionType.REFUND) return 'text-purple-600';
     if (isTransfer) {
       return 'text-blue-600';
     }
@@ -42,7 +44,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
     if (isTransfer) return { backgroundColor: '#F3F4F6' };
     return { backgroundColor: category?.color || '#F3F4F6' };
   };
-  
+
   const getMainText = () => {
     if (isCreditCardPayment) return "Payment";
     if (transaction.title) return transaction.title;
@@ -51,16 +53,38 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   };
 
   const getSubText = () => {
+    let mainDesc = '';
+
     if (isCreditCardPayment && walletMap && transaction.transferToWalletId) {
-      return walletMap[transaction.transferToWalletId]?.name;
+      mainDesc = walletMap[transaction.transferToWalletId]?.name || '';
+    } else if (transaction.commitmentId) {
+      // Priority: Description (e.g. "Kiel") -> Commitment Name (e.g. "Lending")
+      mainDesc = transaction.description || commitment?.name || '';
+    } else if (isTransfer && walletMap) {
+      const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
+      const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
+      mainDesc = `${fromName} → ${toName}`;
+    } else {
+      mainDesc = transaction.description || '';
     }
-    if (transaction.commitmentId) return transaction.description || commitment?.name;
-    if (isTransfer && walletMap) {
-        const fromName = walletMap[transaction.walletId]?.name || 'Unknown';
-        const toName = transaction.transferToWalletId ? walletMap[transaction.transferToWalletId]?.name : 'Unknown';
-        return `${fromName} → ${toName}`;
+
+    if (transaction.type === TransactionType.REFUND) {
+      return transaction.note
+        ? `${mainDesc} • Refund: ${transaction.note}`
+        : `${mainDesc} • Refund`;
     }
-    return transaction.description || '';
+
+    if (transaction.exclude_from_cashflow) {
+      return transaction.note
+        ? `${mainDesc} • Offset: ${transaction.note}`
+        : `${mainDesc} • Offset`;
+    }
+
+    if (transaction.note) {
+      return mainDesc ? `${mainDesc} • ${transaction.note}` : transaction.note;
+    }
+
+    return mainDesc;
   }
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -68,39 +92,41 @@ const TransactionItem: React.FC<TransactionItemProps> = ({ transaction, category
   return (
     <div className="w-full">
       {dateHeader && <h3 className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-2 mt-4 pl-2">{dateHeader}</h3>}
-      <div 
-        onClick={() => onClick && onClick(transaction)} 
+      <div
+        onClick={() => onClick && onClick(transaction)}
         className="flex items-center justify-between py-3 px-3 cursor-pointer hover:bg-slate-50 rounded-2xl"
       >
         <div className="flex items-center space-x-4 overflow-hidden">
-          <div 
-             className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
-             style={getIconStyle()}
+          <div
+            className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm flex-shrink-0"
+            style={getIconStyle()}
           >
             {renderIcon()}
           </div>
           <div className="flex flex-col min-w-0">
-            <h4 className="text-gray-900 font-bold text-sm truncate">{getMainText()}</h4>
+            <h4 className="text-gray-900 font-bold text-sm truncate flex items-center gap-2">
+              {getMainText()}
+            </h4>
             <p className="text-gray-400 text-xs truncate">{getSubText()}</p>
           </div>
         </div>
-        
+
         <div className="text-right flex-shrink-0 pl-2">
-            {transaction.fee && transaction.fee > 0 ? (
-                <div className="flex items-baseline justify-end gap-1">
-                    <span className={`font-bold text-sm ${getAmountColor()}`}>
-                        {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
-                    </span>
-                    <span className="font-bold text-xs text-red-500">
-                        &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
-                    </span>
-                </div>
-            ) : (
-                <p className={`font-bold text-sm ${getAmountColor()}`}>
-                    {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
-                </p>
-            )}
-             <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
+          {transaction.fee && transaction.fee > 0 ? (
+            <div className="flex items-baseline justify-end gap-1">
+              <span className={`font-bold text-sm ${getAmountColor()}`}>
+                {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
+              </span>
+              <span className="font-bold text-xs text-red-500">
+                &amp; -{currencySymbol}{formatCurrency(transaction.fee)}
+              </span>
+            </div>
+          ) : (
+            <p className={`font-bold text-sm ${getAmountColor()}`}>
+              {isTransfer ? '' : (isPositive ? '+' : '-')}{currencySymbol}{formatCurrency(transaction.amount)}
+            </p>
+          )}
+          <p className="text-gray-400 text-[10px] font-medium mt-0.5">{formatTime(transaction.date)}</p>
         </div>
       </div>
     </div>
