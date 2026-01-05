@@ -1,1 +1,4 @@
-npm run bump:patch
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# npm run bump:patch  <-- Disabled to prevent auto-bumping on every commit

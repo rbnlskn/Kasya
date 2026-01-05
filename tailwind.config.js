@@ -10,6 +10,9 @@ export default {
   theme: {
     extend: {
       colors: {
+        accent: COLORS.accent.DEFAULT,
+        'accent-hover': COLORS.accent.hover,
+        secondary: COLORS.accent.DEFAULT, // Map secondary (if used) to accent
         primary: COLORS.primary.DEFAULT,
         'primary-hover': COLORS.primary.hover,
         'app-bg': COLORS.background.light,
@@ -22,12 +25,18 @@ export default {
         expense: COLORS.danger.DEFAULT,
         'expense-bg': COLORS.danger.bg,
         transfer: COLORS.info.DEFAULT,
+        // Direct aliases for clearer code usage
+        info: COLORS.info.DEFAULT,
+        danger: COLORS.danger.DEFAULT,
         warning: COLORS.warning.DEFAULT,
+        loans: COLORS.loans.DEFAULT,
+        lending: COLORS.lending.DEFAULT,
+        offset: COLORS.offset.DEFAULT,
       },
       fontFamily: {
         sans: ['Outfit', 'sans-serif'],
       },
-       animation: {
+      animation: {
         in: 'animate-in .5s ease-out',
       },
       keyframes: {
@@ -39,6 +48,6 @@ export default {
     },
   },
   plugins: [
-     require('tailwindcss-animate')
+    require('tailwindcss-animate')
   ],
 }

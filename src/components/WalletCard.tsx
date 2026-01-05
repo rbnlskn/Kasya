@@ -17,15 +17,15 @@ interface WalletCardProps {
 // Helper to get details based on wallet type
 const getWalletTypeDetails = (type: string) => {
   switch (type) {
-    case WalletType.CASH:        return { emoji: '💵', label: 'Balance', scale: 1 };
-    case WalletType.E_WALLET:    return { emoji: '📱', label: 'Balance', scale: 1 };
-    case WalletType.BANK:        return { emoji: '🏦', label: 'Balance', scale: 1 };
-    case 'Digital Bank':         return { emoji: '🏦', label: 'Balance', scale: 1 };
+    case WalletType.CASH: return { emoji: '💵', label: 'Balance', scale: 1 };
+    case WalletType.E_WALLET: return { emoji: '📱', label: 'Balance', scale: 1 };
+    case WalletType.BANK: return { emoji: '🏦', label: 'Balance', scale: 1 };
+    case 'Digital Bank': return { emoji: '🏦', label: 'Balance', scale: 1 };
     case WalletType.CREDIT_CARD: return { emoji: '💳', label: 'Limit', scale: 1 };
-    case WalletType.INVESTMENT:  return { emoji: '📈', label: 'Portfolio', scale: 1.25 };
-    case WalletType.CRYPTO:      return { emoji: '🪙', label: 'Value', scale: 1.25 };
-    case 'Savings':              return { emoji: '🐷', label: 'Total Saved', scale: 1 };
-    default:                     return { emoji: '💰', label: 'Balance', scale: 1 };
+    case WalletType.INVESTMENT: return { emoji: '📈', label: 'Portfolio', scale: 1.25 };
+    case WalletType.CRYPTO: return { emoji: '🪙', label: 'Value', scale: 1.25 };
+    case 'Savings': return { emoji: '🐷', label: 'Total Saved', scale: 1 };
+    default: return { emoji: '💰', label: 'Balance', scale: 1 };
   }
 };
 
@@ -45,10 +45,15 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
   if (isHexBg) cardStyle.backgroundColor = wallet.color;
   if (isHexText) cardStyle.color = wallet.textColor;
 
-  const finalBgColor = !isHexBg ? (wallet.color || 'bg-black') : '';
+  const finalBgColor = !isHexBg ? (wallet.color || 'bg-primary') : '';
   const finalTextColor = !isHexText ? (wallet.textColor || 'text-white') : '';
-  const isDarkBg = isHexBg ? !isColorLight(wallet.color) : true;
-  const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-black/10';
+
+  // Extract hex from JIT class if present (e.g. bg-[#FBBF24]) 
+  const jitHexMatch = wallet.color?.match(/bg-\[(#[0-9A-Fa-f]{6})\]/);
+  const effectiveBgColor = isHexBg ? wallet.color : (jitHexMatch ? jitHexMatch[1] : null);
+
+  const isDarkBg = effectiveBgColor ? !isColorLight(effectiveBgColor) : true;
+  const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-primary/10';
   const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
   const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
 
@@ -104,20 +109,19 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
           {currencySymbol}{formatCurrency(currentBalance)}
         </p>
         {onPay && isCreditCard && currentBalance > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
-              className={`rounded-xl transition-all active:scale-90 font-bold ${
-                isDarkBg
-                  ? 'bg-white/20 hover:bg-white/30 text-white'
-                  : 'bg-black/10 hover:bg-black/20 text-slate-800'
+          <button
+            onClick={(e) => { e.stopPropagation(); onPay(wallet); }}
+            className={`rounded-xl transition-all active:scale-90 font-bold ${isDarkBg
+              ? 'bg-white/20 hover:bg-white/30 text-white'
+              : 'bg-black/10 hover:bg-black/20 text-slate-800'
               }`}
-              style={{
-                padding: `${scale(8)}px ${scale(16)}px`,
-                fontSize: fontScale(12),
-              }}
-            >
-              Pay
-            </button>
+            style={{
+              padding: `${scale(8)}px ${scale(16)}px`,
+              fontSize: fontScale(12),
+            }}
+          >
+            Pay
+          </button>
         )}
       </div>
     </div>
@@ -125,8 +129,8 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
 };
 
 export const getWalletIcon = (type: string, className: string = "") => {
-    const { emoji } = getWalletTypeDetails(type);
-    return <div className={`icon-container filter grayscale ${className}`}>{emoji}</div>;
+  const { emoji } = getWalletTypeDetails(type);
+  return <div className={`icon-container filter grayscale ${className}`}>{emoji}</div>;
 };
 
 export default WalletCard;

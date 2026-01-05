@@ -4,6 +4,7 @@ import { CommitmentInstanceStatus, getDisplayPeriod } from '../utils/commitment'
 import { formatCurrency } from '../utils/number';
 import { calculateTotalObligation, calculateInstallment } from '../utils/math';
 import { isColorLight } from '../utils/color';
+import { COLORS } from '../styles/theme';
 
 // --- PROPS ---
 interface CommitmentCardProps {
@@ -55,11 +56,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   `;
 
   if (isTrial) {
-    cardClasses += ' border-blue-500';
+    cardClasses += ' border-info';
   } else if (isOverdue) {
-    cardClasses += ' border-red-500';
+    cardClasses += ' border-expense';
   } else {
-    cardClasses += ' border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
+    cardClasses += ' border-border shadow-[0_2px_10px_rgba(0,0,0,0.04)]';
   }
 
   if (isBill && (item as Bill).status === 'INACTIVE') {
@@ -68,22 +69,32 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
   const getButtonConfig = () => {
     if (isTrial) {
-      return { text: 'Cancel', className: 'bg-red-50 text-red-700', action: onEdit ? () => onEdit(item) : () => {} };
+      return { text: 'Cancel', className: 'bg-info/10 text-info hover:bg-info/20', action: onEdit ? () => onEdit(item) : () => { } };
     }
     if (isOverdue) {
-      return { text: isLending ? 'Collect' : 'Pay', className: 'bg-red-100 text-red-700', action: onPay };
+      return { text: isLending ? 'Collect' : 'Pay', className: 'bg-danger/10 text-expense hover:bg-danger/20', action: onPay };
     }
     if (isLending) {
-      return { text: 'Collect', className: 'bg-emerald-100 text-emerald-700', action: onPay };
+      return { text: 'Collect', className: 'bg-lending/15 text-lending hover:bg-lending/25', action: onPay };
     }
-    return { text: 'Pay', className: 'bg-indigo-100 text-indigo-700', action: onPay };
+    if (category?.name === 'Bills') {
+      return { text: 'Pay', className: 'bg-amber-100 text-amber-700 hover:bg-amber-200', action: onPay };
+    }
+    if (category?.name === 'Subscriptions') {
+      return { text: 'Pay', className: 'bg-blue-100 text-blue-700 hover:bg-blue-200', action: onPay };
+    }
+    return { text: 'Pay', className: 'bg-loans/15 text-loans hover:bg-loans/25', action: onPay };
   };
   const buttonConfig = getButtonConfig();
 
   const headerAmountColor = () => {
-    if (isTrial) return 'text-blue-500';
-    if (isLending) return 'text-emerald-600';
-    return 'text-blue-600';
+    if (isOverdue) return 'text-expense'; // Overdue takes priority
+    if (isTrial) return 'text-info';
+    if (isLending) return 'text-lending';
+    if (isCommitment) return 'text-loans';
+    if (category?.name === 'Bills') return 'text-amber-500';
+    if (category?.name === 'Subscriptions') return 'text-blue-600';
+    return 'text-info';
   };
 
   const footerText = () => {
@@ -97,11 +108,11 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
   };
 
   const iconTheme = () => {
-    const defaultTheme = { backgroundColor: '#EFF6FF', color: '#3B82F6' };
+    const defaultTheme = { backgroundColor: COLORS.info.bg || '#EFF6FF', color: COLORS.info.DEFAULT };
     if (!category?.color) return defaultTheme;
 
     const bgColor = category.color;
-    const textColor = isColorLight(bgColor) ? '#000000' : '#FFFFFF';
+    const textColor = isColorLight(bgColor) ? COLORS.text.primary : '#FFFFFF';
 
     return { backgroundColor: bgColor, color: textColor };
   };
@@ -117,14 +128,14 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
       <div className="px-4 pt-[14px] pb-2 flex justify-between items-start">
         <div className="flex gap-2.5 items-center">
           <div
-            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+            className="w-[38px] h-[38px] rounded-lg flex items-center justify-center text-lg flex-shrink-0 drop-shadow-sm"
             style={iconTheme()}
           >
             {category?.icon}
           </div>
           <div className="flex flex-col">
-            <h3 className="text-sm font-bold text-[#1E293B] leading-tight truncate">{item.name}</h3>
-            <p className={`text-xs mt-0.5 ${isOverdue ? 'text-red-500 font-semibold' : 'text-slate-500'}`}>
+            <h3 className="text-sm font-bold text-primary leading-tight truncate">{item.name}</h3>
+            <p className={`text-xs mt-0.5 ${isOverdue ? 'text-expense font-semibold' : 'text-text-secondary'}`}>
               {isTrial ? 'Trial' : headerSubtitle}
             </p>
           </div>
@@ -142,12 +153,12 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
         <div className="flex justify-between w-full items-end">
           <div className="flex flex-col gap-0.5">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.5px]">{isCommitment ? 'AMOUNT PAID' : 'PERIOD'}</span>
-            <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-red-500' : 'text-slate-700'}`}>
+            <span className={`text-xs font-semibold whitespace-nowrap flex items-center gap-1 ${isOverdue ? 'text-expense' : 'text-text-secondary'}`}>
               {isCommitment ? `${currencySymbol}${formatCurrency(paidAmount)}` : period}
               {isCommitment && (
-                 <span className={`text-[10px] font-bold px-1 py-0.5 rounded-md ${isLending ? 'bg-emerald-100 text-emerald-600' : 'bg-purple-100 text-purple-600'}`}>
-                   {Math.round(progress)}%
-                 </span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isOverdue ? 'bg-expense/15 text-expense' : (isLending ? 'bg-lending/15 text-lending' : 'bg-loans/15 text-loans')}`}>
+                  {Math.round(progress)}%
+                </span>
               )}
             </span>
           </div>
@@ -160,15 +171,15 @@ const CommitmentCard: React.FC<CommitmentCardProps> = ({
 
       {/* --- SEPARATOR --- */}
       {isCommitment ? (
-        <div className="w-full h-[6px] bg-slate-100 relative">
-          <div className={`h-full rounded-r-md ${isLending ? 'bg-emerald-500' : 'bg-purple-500'}`} style={{ width: `${progress}%` }}></div>
+        <div className="w-full h-[6px] bg-border relative">
+          <div className={`h-full rounded-r-md ${isOverdue ? 'bg-expense' : (isLending ? 'bg-lending' : 'bg-loans')}`} style={{ width: `${progress}%` }}></div>
         </div>
       ) : (
-        <div className="h-px w-full bg-slate-100"></div>
+        <div className="h-px w-full bg-border"></div>
       )}
 
       {/* --- FOOTER --- */}
-      <div className="bg-[#FAFAFA] px-4 py-2 flex justify-between items-center min-h-[36px]">
+      <div className="bg-surface px-4 py-2 flex justify-between items-center min-h-[36px]">
         <div className="text-xs text-slate-500 font-medium">
           {footerText()}
         </div>

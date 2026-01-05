@@ -8,17 +8,17 @@ export interface WalletTemplate {
 
 export const WALLET_TEMPLATES: WalletTemplate[] = [
     // E-Wallets
-    { name: 'Cash', bg: 'bg-[#2563EB]', text: 'text-[#FFFFFF]', type: 'Cash' },
+    { name: 'Cash', bg: '#FBBF24', text: '#111827', type: 'Cash' },
     { name: 'GCash', bg: 'bg-[#007CFF]', text: 'text-[#FFFFFF]', type: 'E-Wallet' },
     { name: 'Maya', bg: 'bg-[#000000]', text: 'text-[#75EEA5]', type: 'E-Wallet' },
     { name: 'GrabPay', bg: 'bg-[#00B14F]', text: 'text-[#FFFFFF]', type: 'E-Wallet' },
-    
+
     // Digital Banks
     { name: 'GoTyme', bg: 'bg-[#2D2D3A]', text: 'text-[#00E5FF]', type: 'Digital Bank' },
     { name: 'CIMB', bg: 'bg-[#E50019]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
     { name: 'MariBank', bg: 'bg-[#FF5300]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
     { name: 'Maya Business', bg: 'bg-[#5D2E8E]', text: 'text-[#FFFFFF]', type: 'Digital Bank' },
-    
+
     // Traditional Banks
     { name: 'BPI', bg: 'bg-[#B11116]', text: 'text-[#FFFFFF]', type: 'Bank' },
     { name: 'UnionBank', bg: 'bg-[#FF8000]', text: 'text-[#FFFFFF]', type: 'Bank' },

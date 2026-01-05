@@ -3,7 +3,8 @@ import { AppState } from '../types';
 import { INITIAL_WALLETS, INITIAL_BUDGETS, INITIAL_TRANSACTIONS, DEFAULT_CATEGORIES, INITIAL_BILLS, INITIAL_COMMITMENTS } from '../constants';
 import { Preferences } from '@capacitor/preferences';
 
-const STORAGE_KEY = 'moneyfest_lite_v2';
+const STORAGE_KEY = 'kasya_lite_v1';
+
 
 export const DEFAULT_APP_STATE: AppState = {
   wallets: INITIAL_WALLETS,
@@ -46,11 +47,16 @@ const parseAndMigrate = (serializedData: string): AppState => {
 
 export const loadData = async (): Promise<AppState> => {
   try {
+    // 1. Try loading from new Kasya key
     const { value } = await Preferences.get({ key: STORAGE_KEY });
     if (value) {
       return parseAndMigrate(value);
     }
 
+    // 2. Migration: removed as per Clean Slate
+    // Old data must be manually imported via JSON export/import.
+
+    // 3. Fallback: LocalStorage (Old Web behavior)
     const localData = localStorage.getItem(STORAGE_KEY);
     if (localData) {
       const migratedData = parseAndMigrate(localData);

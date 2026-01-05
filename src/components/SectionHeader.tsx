@@ -18,8 +18,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, count, onViewAll, 
       </h2>
       <div className="flex items-center space-x-4">
         {onViewAll && (
-          <button onClick={onViewAll} className="text-[11px] text-primary font-bold uppercase tracking-wider hover:text-primary-hover transition-colors">
-            VIEW ALL
+          <button onClick={onViewAll} className="text-[11px] text-amber-500 font-bold hover:text-amber-600 transition-colors">
+            View All
           </button>
         )}
       </div>
