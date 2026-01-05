@@ -394,7 +394,7 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                             <div className="font-bold text-sm text-text-primary">{w.name}</div>
                             <div className="text-xs text-text-secondary font-medium">
                               {currencySymbol}
-                              {w.type === WalletType.CREDIT_CARD
+                              {((w.type === WalletType.CREDIT_CARD) || (w.creditLimit !== undefined && w.creditLimit > 0))
                                 ? ((w.creditLimit || 0) + w.balance).toLocaleString()
                                 : w.balance.toLocaleString()}
                             </div>

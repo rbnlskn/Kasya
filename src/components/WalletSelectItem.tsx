@@ -32,7 +32,7 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
       <div className="text-right ml-2">
         <span className="block font-bold text-sm">
           {currencySymbol}
-          {formatCurrency(wallet.type === WalletType.CREDIT_CARD ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
+          {formatCurrency(((wallet.type === WalletType.CREDIT_CARD) || (wallet.creditLimit !== undefined && wallet.creditLimit > 0)) ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
         </span>
       </div>
     </button>
