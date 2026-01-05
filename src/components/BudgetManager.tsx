@@ -56,7 +56,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({ budgets, categories, spen
           </button>
           <h1 className="text-xl font-bold text-gray-800">My Budgets</h1>
         </div>
-        <button onClick={onAdd} className="w-10 h-10 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95">
+        <button onClick={onAdd} data-testid="add-budget-button" className="w-10 h-10 bg-primary text-white rounded-2xl shadow-xl flex items-center justify-center hover:bg-primary-hover transition-colors active:scale-95">
           <Plus className="w-6 h-6" />
         </button>
       </div>
