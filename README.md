@@ -2,7 +2,7 @@
 
 **A high-voltage, clean, local-first budget tracking application.**
 
-Kasya (formerly Moneyfest) helps you master your finances with a focus on privacy, speed, and a striking visual identity. It features a "High Voltage" theme with Electric Blue and Neon Lime accents, designed for clarity and ease of use.
+Kasya helps you master your finances with a focus on privacy, speed, and a striking visual identity. It features a "Kasya Volt" theme with Onyx Black and Volt Gold accents.
 
 ## 🚀 Key Features
 
@@ -48,7 +48,7 @@ npx cap sync
 
 Kasya is built to be lightweight and fast. It prioritizes a "native feel" with custom-built selectors (dates, times, categories) to avoid the clunkiness of standard HTML inputs.
 
-- **Theme**: High Voltage (Electric Blue / Neon Lime / Hot Pink / Stark White / Pure Black)
+- **Theme**: Kasya Volt (Onyx Black / Volt Gold / Soft Gray)
 - **Storage**: LocalStorage / IndexedDB (No remote servers)
 - **Platform**: Web & Mobile (Capacitor support)
 

@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'moneyfest-cache-v1';
+const CACHE_NAME = 'kasya-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -29,6 +29,6 @@ self.addEventListener('fetch', event => {
         }
         return fetch(event.request);
       }
-    )
+      )
   );
 });
