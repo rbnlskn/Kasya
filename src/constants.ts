@@ -3,7 +3,7 @@ import { Wallet, Budget, Transaction, Category, WalletType, Bill, Commitment, Re
 import { WALLET_TEMPLATES } from './data/templates';
 import { COLORS } from './styles/theme';
 
-export const APP_VERSION = '1.21.11';
+export const APP_VERSION = '1.0.1';
 export const CHANGELOG = [
   { version: '1.0.0', date: '2024-05-24', changes: ['Initial Release'] },
 ];

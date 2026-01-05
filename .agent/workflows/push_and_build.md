@@ -1,7 +1,7 @@
 ---
 description: Push changes, build web assets, and open Android Studio
 ---
-// turbo-all
+
 
 1. Run type check: `npm run type-check`
 2. Stage all files: `git add .`
