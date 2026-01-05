@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Wallet } from '../types';
+import { Wallet, WalletType } from '../types';
 import { getWalletIcon } from './WalletCard';
 import { formatCurrency } from '../utils/number';
 
@@ -32,7 +32,7 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
       <div className="text-right ml-2">
         <span className="block font-bold text-sm">
           {currencySymbol}
-          {formatCurrency(wallet.type === 'CREDIT_CARD' ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
+          {formatCurrency(wallet.type === WalletType.CREDIT_CARD ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
         </span>
       </div>
     </button>
