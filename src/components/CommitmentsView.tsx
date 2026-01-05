@@ -264,39 +264,172 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     </div>
   );
 
-  const renderSummaryCard = (totalDue: number, totalPaid: number, type: 'BILLS' | 'LOANS') => {
+  // --- Reusable Components for New Design ---
+
+  // Enhanced Summary Card
+  const renderEnhancedSummaryCard = (totalDue: number, totalPaid: number, type: 'BILLS' | 'LOANS' | 'LENDING', categoryStats?: Record<string, number>, netPosition?: number) => {
     const progress = totalDue > 0 ? Math.min(100, (totalPaid / totalDue) * 100) : (totalPaid > 0 ? 100 : 0);
     const remaining = Math.max(0, totalDue - totalPaid);
 
     return (
       <div className="px-6 mb-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4 text-white shadow-lg">
-          <div className="flex justify-between items-end mb-2">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
+          {/* Background Decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+
+          <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Total {type === 'BILLS' ? 'Due' : 'Obligation'}</p>
-              <p className="text-2xl font-bold">{currencySymbol}{formatCurrency(totalDue)}</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'BILLS' ? 'Total Due' : type === 'LOANS' ? 'Total Owed' : 'Total Lent'}</p>
+              <p className="text-3xl font-black tracking-tight">{currencySymbol}{formatCurrency(totalDue)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Paid</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'LENDING' ? 'Collected' : 'Paid'}</p>
               <p className="text-xl font-bold text-emerald-400">{currencySymbol}{formatCurrency(totalPaid)}</p>
             </div>
           </div>
 
-          <div className="w-full bg-slate-700/50 rounded-full h-2 mb-2 overflow-hidden">
+          <div className="w-full bg-slate-700/50 rounded-full h-1.5 mb-4 overflow-hidden relative z-10">
             <div
-              className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+              className={`h-full rounded-full transition-all duration-700 ease-out ${type === 'LENDING' ? 'bg-blue-400' : 'bg-emerald-500'}`}
               style={{ width: `${progress}%` }}
             ></div>
           </div>
 
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>{Math.round(progress)}% Paid</span>
+          <div className="flex justify-between text-xs text-slate-400 font-medium relative z-10 mb-0">
+            <span>{Math.round(progress)}% {type === 'LENDING' ? 'Collected' : 'Settled'}</span>
             <span>{currencySymbol}{formatCurrency(remaining)} Remaining</span>
           </div>
+
+          {/* NET POSITION for Loans/Lending Mixed View (if we ever mix them, currently split) 
+              Actually, for Loans and Lending split, we might want different stats.
+          */}
+
+          {type === 'BILLS' && categoryStats && (
+            <div className="mt-4 pt-4 border-t border-slate-700/50 grid grid-cols-2 gap-2">
+              {Object.entries(categoryStats).slice(0, 4).sort(([, a], [, b]) => b - a).map(([catName, amount]) => (
+                <div key={catName} className="flex justify-between text-xs">
+                  <span className="text-slate-400 truncate pr-2">{catName}</span>
+                  <span className="text-white font-bold">{currencySymbol}{formatCurrency(amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Net Position Card (Only show if type is LOANS and we have netPosition passed - or handle outside) */}
+      </div>
+    );
+  };
+
+  // Row Item for View All
+  const renderRowItem = (
+    item: Bill | Commitment | (CommitmentInstance & { id: string }) | BillInstance,
+    type: 'BILL' | 'LOAN' | 'LENDING'
+  ) => {
+    // Discriminate Logic
+    const isInstance = 'status' in item && 'dueDate' in item;
+    // const coreItem = isInstance ? (item as any).bill || (item as any).commitment : item; 
+    let coreItem: Bill | Commitment;
+    if ('bill' in item) coreItem = item.bill;
+    else if ('commitment' in item) coreItem = item.commitment;
+    else coreItem = item as any; // Fallback
+
+    const status = isInstance ? (item as any).status : 'SETTLED'; // or derive
+    const dueDate = isInstance ? (item as any).dueDate : new Date(); // or derive
+    const amount = isInstance ? (item as any).amount : (coreItem as any).amount || 0; // Approx
+
+    // Category & Icon
+    let category = categories.find(c => c.id === (coreItem as any).categoryId);
+    if (!category && 'type' in coreItem && coreItem.type === 'SUBSCRIPTION') category = categories.find(c => c.id === 'cat_subs');
+    if (!category && 'type' in coreItem && coreItem.type === 'BILL') category = categories.find(c => c.id === 'cat_6');
+
+    const isPaid = status === 'PAID';
+    const isOverdue = status === 'OVERDUE';
+
+    // Dynamic Label
+    let label = 'Commitment';
+    if (type === 'BILL') label = coreItem.type === 'SUBSCRIPTION' ? 'Subscription' : 'Bill';
+    if (type === 'LOAN') label = 'Loan';
+    if (type === 'LENDING') label = 'Lending';
+
+    return (
+      <div
+        key={isInstance ? (item as any).id : coreItem.id}
+        onClick={() => setDetailsModal({ type: type === 'BILL' ? 'BILL' : 'COMMITMENT', item: coreItem })}
+        className={`flex items-center p-4 bg-white border-b border-gray-50 last:border-b-0 active:bg-gray-50 transition-colors ${isPaid ? 'opacity-60' : ''}`}
+      >
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0 mr-4 ${isPaid ? 'bg-gray-100 grayscale' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#eee') }}>
+          {category?.icon}
+        </div>
+
+        <div className="flex-1 min-w-0 mr-4">
+          <div className="flex items-center mb-0.5">
+            <h4 className={`font-bold text-gray-900 text-sm truncate ${isPaid ? 'line-through text-gray-500' : ''}`}>{coreItem.name}</h4>
+            {isPaid && <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Paid</span>}
+            {isOverdue && <span className="ml-2 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">Overdue</span>}
+          </div>
+          <div className="flex items-center text-xs text-gray-500">
+            <span className="font-medium mr-1.5">{label}</span>
+            <span className="text-gray-300 mr-1.5">•</span>
+            <span className={`${isOverdue ? 'text-red-500 font-bold' : ''}`}>
+              {status === 'SETTLED' ? 'Settled' : generateDueDateText(dueDate, status as any, coreItem.recurrence)}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-end">
+          <span className={`font-bold text-sm text-gray-900 ${isPaid ? 'line-through text-gray-400' : ''}`}>{currencySymbol}{formatCurrency(amount)}</span>
+
+          {!isPaid && status !== 'SETTLED' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
+              className={`mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${type === 'LENDING'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : 'bg-indigo-50 text-indigo-600'
+                }`}
+            >
+              {type === 'LENDING' ? 'Collect' : 'Pay'}
+            </button>
+          )}
         </div>
       </div>
     );
   };
+
+  const overlayLoansInstances = useMemo(() => {
+    return overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LOAN);
+  }, [overlayCommitmentInstances]);
+
+  const overlayLendingInstances = useMemo(() => {
+    return overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LENDING);
+  }, [overlayCommitmentInstances]);
+
+  // Calculate Stats for Loans / Lending Split
+  const loansStats = useMemo(() => {
+    let due = 0; let paid = 0;
+    overlayLoansInstances.forEach(i => { due += i.amount; if (i.status === 'PAID') paid += i.amount; });
+    return { due, paid };
+  }, [overlayLoansInstances]);
+
+  const lendingStats = useMemo(() => {
+    let due = 0; let paid = 0;
+    overlayLendingInstances.forEach(i => { due += i.amount; if (i.status === 'PAID') paid += i.amount; });
+    return { due, paid };
+  }, [overlayLendingInstances]);
+
+  // Enhanced Bill Stats (Category Breakdown)
+  const billCategoryStats = useMemo(() => {
+    const stats: Record<string, number> = {};
+    overlayBillInstances.forEach(i => {
+      let cat = categories.find(c => c.id === (i.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6')); // Default or specific
+      // If we have manual category override? currently bills hardcode subs/bills logic mostly.
+      // Let's use the type name if category missing
+      const catName = cat ? cat.name : (i.bill.type === 'SUBSCRIPTION' ? 'Subscriptions' : 'Bills');
+      stats[catName] = (stats[catName] || 0) + i.bill.amount;
+    });
+    return stats;
+  }, [overlayBillInstances, categories]);
+
 
   return (
     <>
@@ -508,55 +641,83 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       )}
 
       {overlay === 'ALL_BILLS' && (
-        <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
-          <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
+        <div className="fixed inset-0 z-[60] bg-slate-50 flex flex-col animate-in slide-in-from-right duration-300">
+          <div className="bg-white p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0 shadow-sm">
             <div className="flex items-center">
-              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180" /></button>
+              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-6 h-6 rotate-180" /></button>
               <h2 className="text-xl font-bold ml-2">Bills & Subscriptions</h2>
             </div>
-            <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6" /></button>
+            <button onClick={onAddBill} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"><Plus className="w-6 h-6" /></button>
           </div>
 
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
-          {renderSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS')}
 
-          <div className="flex-1 overflow-y-auto px-6 py-2 pb-24 space-y-2">
-            <CommitmentList
-              items={overlayBillInstances}
-              renderItem={(instance) => (
-                <CommitmentListItem
-                  instance={instance}
-                  category={categories.find(c => c.id === (instance.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6'))}
-                  currencySymbol={currencySymbol}
-                  onPay={() => onPayBill(instance.bill)}
-                  onClick={() => setDetailsModal({ type: 'BILL', item: instance.bill })}
-                />
-              )}
-              placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No bills found for this month</div>}
-            />
+          <div className="flex-1 overflow-y-auto pb-24">
+            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS', billCategoryStats)}
+
+            <div className="bg-white border-t border-b border-gray-100 mt-2">
+              <CommitmentList
+                items={overlayBillInstances}
+                renderItem={(i) => renderRowItem(i, 'BILL')}
+                placeholder={<div className="text-center text-xs text-gray-400 py-12">No bills found for this month</div>}
+              />
+            </div>
           </div>
         </div>
       )}
 
       {overlay === 'ALL_COMMITMENTS' && (
-        <div className="fixed inset-0 z-[60] bg-app-bg flex flex-col animate-in slide-in-from-right duration-300">
-          <div className="bg-app-bg p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0">
+        <div className="fixed inset-0 z-[60] bg-slate-50 flex flex-col animate-in slide-in-from-right duration-300">
+          <div className="bg-white p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0 shadow-sm">
             <div className="flex items-center">
-              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180" /></button>
+              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-6 h-6 rotate-180" /></button>
               <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
             </div>
-            <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg"><Plus className="w-6 h-6" /></button>
+            <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"><Plus className="w-6 h-6" /></button>
           </div>
 
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
-          {renderSummaryCard(loansSummary.totalDue, loansSummary.totalPaid, 'LOANS')}
 
-          <div className="flex-1 overflow-y-auto px-6 py-2 pb-24">
-            <CommitmentList
-              items={overlayCommitmentInstances}
-              renderItem={renderCommitmentItem}
-              placeholder={<div className="text-center text-xs text-gray-400 py-8 bg-white rounded-2xl shadow-sm border p-4">No commitments found for this month</div>}
-            />
+          <div className="flex-1 overflow-y-auto pb-24">
+            {/* Summary Cards */}
+            {/* Net Position? totalLent - totalBorrowed? 
+                 For now, let's just show Split Summaries or Side-by-Side?
+                 Or just one stacked?
+             */}
+
+            {loansStats.due > 0 && renderEnhancedSummaryCard(loansStats.due, loansStats.paid, 'LOANS')}
+            {lendingStats.due > 0 && renderEnhancedSummaryCard(lendingStats.due, lendingStats.paid, 'LENDING')}
+
+            {/* Split Lists */}
+            {overlayLoansInstances.length > 0 && (
+              <div className="mb-6">
+                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Loans (Payable)</h3>
+                <div className="bg-white border-t border-b border-gray-100">
+                  <CommitmentList
+                    items={overlayLoansInstances}
+                    renderItem={(i) => renderRowItem(i, 'LOAN')}
+                    placeholder={<div className="hidden"></div>}
+                  />
+                </div>
+              </div>
+            )}
+
+            {overlayLendingInstances.length > 0 && (
+              <div className="mb-6">
+                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Lending (Receivable)</h3>
+                <div className="bg-white border-t border-b border-gray-100">
+                  <CommitmentList
+                    items={overlayLendingInstances}
+                    renderItem={(i) => renderRowItem(i, 'LENDING')}
+                    placeholder={<div className="hidden"></div>}
+                  />
+                </div>
+              </div>
+            )}
+
+            {overlayLoansInstances.length === 0 && overlayLendingInstances.length === 0 && (
+              <div className="text-center text-xs text-gray-400 py-12">No loans or lending found for this month</div>
+            )}
           </div>
         </div>
       )}

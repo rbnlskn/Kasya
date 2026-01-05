@@ -509,7 +509,15 @@ const App: React.FC = () => {
         // If balance is positive, there is no debt to pay.
         const debt = wallet.balance < 0 ? Math.abs(wallet.balance) : 0;
         if (debt <= 0) return;
-        setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `Payment to ${wallet.name}`, transferToWalletId: wallet.id, date: new Date().toISOString() });
+
+        // Fix: Explicitly set transferToWalletId so it is treated as a transfer TO the credit card
+        setPresetTransaction({
+            amount: debt,
+            type: TransactionType.TRANSFER,
+            description: `Payment to ${wallet.name}`,
+            transferToWalletId: wallet.id,
+            date: new Date().toISOString()
+        });
         setTransactionModalTitle("Make Payment");
         handleOpenModal('TX_FORM');
     };

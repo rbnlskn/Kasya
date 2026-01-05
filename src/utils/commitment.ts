@@ -378,8 +378,16 @@ export const getDisplayPeriod = (
     if ('isTrialActive' in item && item.isTrialActive) {
         const startDate = new Date(item.startDate);
         const endDate = new Date(item.trialEndDate!);
+
+        // Fix: Display as Start to End (where End is inclusive)
+        // Usually trialEndDate is calculated as Start + Duration.
+        // We want to show "Jan 1 - Jan 7" for a 7-day trial (where Jan 8 is the start of billing).
+        // If trialEndDate is Jan 8, we subtract 1 day.
+        const displayEndDate = new Date(endDate);
+        displayEndDate.setDate(displayEndDate.getDate() - 1);
+
         const formattedStart = startDate.toLocaleDateString('en-US', options);
-        const formattedEnd = endDate.toLocaleDateString('en-US', options);
+        const formattedEnd = displayEndDate.toLocaleDateString('en-US', options);
         return {
             period: `${formattedStart} - ${formattedEnd}`,
             endDate: formattedEnd
@@ -480,6 +488,64 @@ export const getActiveBillInstance = (
     if (viewingYear < effectiveFirstDate.getFullYear() || (viewingYear === effectiveFirstDate.getFullYear() && viewingMonth < effectiveFirstDate.getMonth())) {
         standardInstanceValid = false;
     }
+
+    // --- FIX: Check for ANY Overdue Instance (Prioritize Alerting User) ---
+    // User Requirement: "showing the overdue card on the current month would be better"
+    // We check if the LAST payment date + interval is BEFORE today.
+    // If we have missed a payment (previous due date), we should return THAT instance.
+
+    // Logic: Calculate the expected "Previous Due Date" relative to Today.
+    // If it is not paid, show it as OVERDUE.
+    // But we are in `getActiveBillInstance(..., viewingDate)`.
+    // If viewingDate is Current Month, we MUST optionally return the Overdue item instead.
+
+    const isViewingCurrentRealMonth = viewingDateClean.getMonth() === today.getMonth() && viewingDateClean.getFullYear() === today.getFullYear();
+
+    if (isViewingCurrentRealMonth) {
+        // Find the most recent due date that is strictly in the past (before today)
+        // and check if it is paid.
+        // 1. Calculate due date for PREVIOUS month relative to TODAY (or CURRENT month if today > due day)
+
+        // Start with a candidate due date close to today
+        let candidateDate = new Date(today.getFullYear(), today.getMonth(), bill.dueDay);
+        if (candidateDate.getMonth() !== today.getMonth()) candidateDate.setDate(0);
+
+        // If today is past the candidate, check this one. If today is before, check previous month.
+        if (today.getTime() > candidateDate.getTime()) {
+            // Check if this one is Unpaid
+        } else {
+            // Check Previous Month
+            candidateDate.setMonth(candidateDate.getMonth() - 1);
+            // handle month rollover/short months
+            if (candidateDate.getDate() !== bill.dueDay) {
+                // e.g. March 30 -> Feb (28/29)
+                // If original due day was 30, and we are in Feb, adjust to end of Feb.
+                // We can't easily know "original due day" from Date object, we use bill.dueDay.
+                const maxDay = new Date(candidateDate.getFullYear(), candidateDate.getMonth() + 1, 0).getDate();
+                candidateDate.setDate(Math.min(bill.dueDay, maxDay));
+            }
+        }
+
+        // Verify candidate is valid (after start date, before end date)
+        if (candidateDate.getTime() >= effectiveFirstDate.getTime() && (!bill.endDate || candidateDate.getTime() <= new Date(bill.endDate).getTime())) {
+            // Check if paid
+            const isPaid = transactions.some(t =>
+                t.billId === bill.id &&
+                new Date(t.date).getMonth() === candidateDate.getMonth() &&
+                new Date(t.date).getFullYear() === candidateDate.getFullYear()
+            );
+
+            if (!isPaid) {
+                // It is UNPAID. Is it Overdue?
+                // candidateDate < today is true by logic above (or logic in else block)
+                if (candidateDate < today) {
+                    return { bill, dueDate: candidateDate, status: 'OVERDUE', id: bill.id };
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------------
 
     // Calculate Standard Due Date for this Viewing Month
     let dueDate = new Date(viewingYear, viewingMonth, bill.dueDay);
