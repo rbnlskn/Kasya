@@ -16,9 +16,8 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-2 rounded-lg text-left flex justify-between items-center transition-colors ${
-        isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'
-      }`}
+      className={`w-full p-2 rounded-lg text-left flex justify-between items-center transition-colors ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-slate-100'
+        }`}
     >
       <div className="flex items-center flex-1 min-w-0">
         <div className={`w-8 h-8 rounded-lg ${wallet.color} flex items-center justify-center text-white mr-2 shadow-sm flex-shrink-0`}>
@@ -31,7 +30,10 @@ const WalletSelectItem: React.FC<WalletSelectItemProps> = ({ wallet, currencySym
         </div>
       </div>
       <div className="text-right ml-2">
-        <span className="block font-bold text-sm">{currencySymbol}{formatCurrency(wallet.balance)}</span>
+        <span className="block font-bold text-sm">
+          {currencySymbol}
+          {formatCurrency(wallet.type === 'CREDIT_CARD' ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance)}
+        </span>
       </div>
     </button>
   );

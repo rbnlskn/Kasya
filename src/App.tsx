@@ -504,7 +504,9 @@ const App: React.FC = () => {
 
     const handlePayCC = (wallet: Wallet) => {
         if (!wallet.creditLimit) return;
-        const debt = wallet.creditLimit - wallet.balance;
+        // Debt is properly stored as negative balance.
+        // If balance is positive, there is no debt to pay.
+        const debt = wallet.balance < 0 ? Math.abs(wallet.balance) : 0;
         if (debt <= 0) return;
         setPresetTransaction({ amount: debt, type: TransactionType.TRANSFER, description: `Payment to ${wallet.name}`, transferToWalletId: wallet.id, date: new Date().toISOString() });
         setTransactionModalTitle("Make Payment");

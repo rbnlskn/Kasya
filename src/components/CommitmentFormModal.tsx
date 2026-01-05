@@ -232,7 +232,11 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                                         </label>
                                         <button type="button" onClick={() => setSelectorView('WALLET')} className="w-full bg-slate-100 border-2 border-transparent active:border-primary/30 active:bg-surface rounded-lg px-4 flex items-center justify-between h-11 transition-all hover:bg-slate-200 text-left">
                                             <span className={`text-base font-medium ${selectedWalletId ? 'text-text-primary' : 'text-text-secondary/80'}`}>
-                                                {wallets.find(w => w.id === selectedWalletId)?.name || 'Select Wallet...'}
+                                                {(() => {
+                                                    const w = wallets.find(w => w.id === selectedWalletId);
+                                                    if (!w) return 'Select Wallet...';
+                                                    return w.name; // Just show name here, typically amount isn't shown in the summary button
+                                                })()}
                                             </span>
                                             <ChevronDown className="w-4 h-4 text-text-secondary" />
                                         </button>

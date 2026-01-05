@@ -15,7 +15,7 @@ interface CreditCardCommitmentCardProps {
 const CreditCardCommitmentCard: React.FC<CreditCardCommitmentCardProps> = ({ wallet, onClick, onPay, currencySymbol, dueDateText }) => {
     const { scale, fontScale } = useResponsive();
     const emoji = '💳';
-    const label = 'Current Debt';
+    const label = 'Balance';
 
     const isHexBg = wallet.color?.startsWith('#');
     const isHexText = wallet.textColor?.startsWith('#');

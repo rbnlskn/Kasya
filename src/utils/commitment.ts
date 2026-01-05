@@ -542,8 +542,9 @@ export const getActiveBillInstance = (
     // --- Return Logic ---
 
     // CHANGE: Keep PAID items visible for the current month.
-    // If the instance for this month is valid, we return it regardless of paid status.
+    // UPDATE: User requests that PAID items (esp Initial Payment) should NOT show up ("wait for next cycle").
     if (standardInstanceValid) {
+        if (status === 'PAID') return null;
         return { bill, dueDate, status, id: bill.id };
     }
 
