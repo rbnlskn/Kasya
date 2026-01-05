@@ -251,12 +251,12 @@ const CommitmentFormModal: React.FC<CommitmentFormModalProps> = ({ isOpen, onClo
                             {showNote && (
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-3">
                                     <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
-                                    <textarea
+                                    <input
+                                        type="text"
                                         value={note}
                                         onChange={(e) => setNote(e.target.value)}
-                                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-11 min-h-[2.75rem]"
-                                        placeholder="Enter note..."
-                                        rows={1}
+                                        className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-lg px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
+                                        placeholder={type === CommitmentType.LOAN ? "e.g. 5% interest, Pay by Dec" : "e.g. For car repair"}
                                     />
                                 </div>
                             )}

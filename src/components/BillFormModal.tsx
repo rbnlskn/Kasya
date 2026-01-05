@@ -336,12 +336,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
               {showNote && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-200 mt-3">
                   <label className="block text-xs font-extrabold text-text-secondary uppercase tracking-wider mb-1.5">Note</label>
-                  <textarea
+                  <input
+                    type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 py-3 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 no-scrollbar resize-none h-11 min-h-[2.75rem]"
-                    placeholder="Enter note..."
-                    rows={1}
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-primary focus:bg-surface rounded-xl px-4 text-base font-medium text-text-primary outline-none transition-all placeholder-slate-400 h-11"
+                    placeholder={type === 'BILL' ? "e.g. Invoice #12345, Account ID" : "e.g. Premium Plan, Family Bundle"}
                   />
                 </div>
               )}
