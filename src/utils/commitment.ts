@@ -493,6 +493,20 @@ export const getActiveBillInstance = (
         standardInstanceValid = false;
     }
 
+    /* 
+       FIX: Initial Payment Dependency
+       If the user unchecked "Record Initial Payment", the system might have no transactions,
+       and the "standard instance" (based on due day) might be technically "before" the start date
+       if we are in the start month.
+       
+       We need to ensure that if:
+       1. No payments exist.
+       2. We are in the start month (or before the first natural due date).
+       3. The user explicitly wanted to skip the first payment (implied by no "initial payment" tx).
+       
+       Then we should display the NEXT due date as UPCOMING.
+    */
+
     let status: CommitmentInstanceStatus = 'UPCOMING';
     let isPaidThisMonth = false;
 
@@ -512,17 +526,23 @@ export const getActiveBillInstance = (
         } else {
             status = 'UPCOMING';
         }
+    } else {
+        // Special Case: Start Date logic for skipped initial payments or mid-cycle starts
+        // If "Standard Instance" is invalid (e.g. Due Date Feb 15, but Start Date Feb 20),
+        // We usually skip. 
+        // But if we are in Feb, and Start is Feb 20, the due date *should* be Mar 15?
+        // This logic is handled by the "Lookahead" (Next Month) logic below.
+        // However, if we are in Jan, and Start is Jan 1 (and due Jan 1), but user skipped payment...
+        // Then effectively the "First" payment is Feb 1.
+        // So showing nothing for Jan is CORRECT (User skipped it).
+        // The Lookahead will catch Feb 1 when we are near end of Jan.
     }
 
     // --- Return Logic ---
 
-    // If the instance for this month is valid and PAID, we are done. Return null.
-    if (standardInstanceValid && isPaidThisMonth) {
-        return null;
-    }
-
-    // If the instance for this month is valid and NOT paid, it's the one we should show.
-    if (standardInstanceValid && !isPaidThisMonth) {
+    // CHANGE: Keep PAID items visible for the current month.
+    // If the instance for this month is valid, we return it regardless of paid status.
+    if (standardInstanceValid) {
         return { bill, dueDate, status, id: bill.id };
     }
 

@@ -1,0 +1,79 @@
+WORKFLOW ALIGNMENT - REVIEW & ANNOTATION
+=======================================================
+INSTRUCTIONS:
+This file is for you to edit. Please mark "X" inside the brackets [ ] 
+to indicate if a section is correct or needs changes, and write your 
+thoughts under "YOUR NOTES".
+=======================================================
+
+
+TOPIC 1: ISSUE START & PLANNING
+=======================================================
+Current Workflow:
+1. You label an issue "ready".
+2. GitHub Action assigns it to the agent.
+3. Agent plans, you approve -> Label moves to "in progress".
+
+Is this how it SHOULD work?
+[ ] YES - Keep it.
+[ ] NO  - I want to change this.
+
+YOUR NOTES (What do you want to change?):
+- 
+
+
+
+TOPIC 2: VERSIONING STRATEGY
+=======================================================
+Current Workflow:
+1. Feature start: Manually run "npm run bump:minor" (1.20.0 -> 1.21.0).
+2. During dev: "npm run bump:patch" (1.21.0 -> 1.21.1).
+3. Patch bumps are skipped if you are on the 'main' branch.
+
+Is this how it SHOULD work?
+[ ] YES - Keep it.
+[ ] NO  - I want to change this.
+
+YOUR NOTES:
+- 
+
+
+
+TOPIC 3: MOBILE TESTING & PREVIEW
+=======================================================
+Current Workflow:
+1. Run "npx cap sync" to copy web assets.
+2. Run "npx cap open android" to open Android Studio.
+3. You manually build/run the APK from Android Studio.
+
+Is this how it SHOULD work?
+[ ] YES - Keep it.
+[ ] NO  - I want to change this.
+
+YOUR NOTES:
+- 
+
+
+
+TOPIC 4: PR & MERGING
+=======================================================
+Current Workflow:
+1. Agent runs "gh pr create --web".
+2. CI runs Playwright tests.
+3. You approve the PR.
+4. "gh pr merge --squash" is used to merge and close the issue.
+
+Is this how it SHOULD work?
+[ ] YES - Keep it.
+[ ] NO  - I want to change this.
+
+YOUR NOTES:
+- 
+
+
+
+ANY OTHER MISSING PIECES?
+=======================================================
+Please list any other steps or tools you use that I missed:
+- 
+
