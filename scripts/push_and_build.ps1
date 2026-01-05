@@ -1,6 +1,9 @@
 $ErrorActionPreference = "Stop"
 
-Write-Host "1. Running type check..."
+Write-Host "1. Bumping patch version..."
+npm run bump:patch
+
+Write-Host "2. Running type check..."
 npm run type-check
 
 Write-Host "2. Building web app..."
@@ -16,7 +19,8 @@ Write-Host "5. Committing changes..."
 # Check if there are changes to commit to avoid error
 if (git status --porcelain) {
     git commit -m "chore: build and sync"
-} else {
+}
+else {
     Write-Host "No changes to commit."
 }
 
@@ -28,7 +32,8 @@ try {
     # Check if PR exists
     gh pr view --json url 2>$null | Out-Null
     Write-Host "PR already exists."
-} catch {
+}
+catch {
     # If gh pr view fails, it likely means no PR exists
     Write-Host "Creating new PR..."
     gh pr create --fill
