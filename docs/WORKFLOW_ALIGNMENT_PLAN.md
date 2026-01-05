@@ -1,0 +1,58 @@
+# Workflow Alignment Plan
+
+## Goal
+Align the local development steps with GitHub processing to ensure a smooth, automated, and error-free workflow.
+
+## User Review Required
+> [!IMPORTANT]
+> **INSTRUCTIONS**: This file outlines the *Current State*. Please **EDIT** the "Proposed Changes" sections (or the Current State directly) to define how you *want* the workflow to look.
+
+---
+
+## 1. Issue Lifecycle
+### Current State
+- **Trigger**: User adds `ready` label to a GitHub Issue.
+- **Assignment**: Automation assigns the Issue to the actor (Agent/User).
+- **Planning**: Agent posts plan -> User approves -> Label becomes `in progress`.
+
+### Proposed Changes
+> (Edit here: Do you want to remove the 'ready' label? Change how planning works?)
+- [Use current process]
+
+---
+
+## 2. Versioning Strategy
+### Current State
+- **Start of Feature**: Manual `npm run bump:minor` (Increments Y, resets Z).
+- **During Development**: `npm run bump:patch` (Increments Z).
+- **Rules**: Patch bumps are currently skipped if on the `main` branch.
+
+### Proposed Changes
+> (Edit here: Should versioning be fully automated? Should we stop bumping per commit?)
+- [Use current process]
+
+---
+
+## 3. Mobile Verification
+### Current State
+- **Sync**: `npx cap sync` (Copies web assets to Android).
+- **Open**: `npx cap open android` (Opens Android Studio).
+- **Build**: Manual build in Android Studio (Build APK).
+- **Test**: Manual install on emulator/device.
+
+### Proposed Changes
+> (Edit here: Do you want an automated command to build the APK without opening Studio?)
+- [Use current process]
+
+---
+
+## 4. PR & Merge
+### Current State
+- **Creation**: Agent runs `/push_and_build` (Type-check -> Push -> Build Web -> Sync -> Open Studio -> Create PR).
+- **CI**: Runs Playwright tests and Type-check on PRs to `main`.
+- **Merge**: Squash & Merge (`/merge_and_close`).
+- **Closure**: Merging automatically closes the linked Issue.
+
+### Proposed Changes
+> (Edit here: Add more checks? Change merge strategy?)
+- [Use current process]

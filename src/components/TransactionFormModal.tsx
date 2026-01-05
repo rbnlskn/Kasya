@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Calendar, ChevronDown, Check, ArrowRightLeft } from 'lucide-react';
-import { Category, Wallet, TransactionType, Transaction } from '../types';
+import { Category, Wallet, TransactionType, Transaction, WalletType } from '../types';
+import { isCreditCard, getAvailableLimit } from '../utils/walletUtils';
+
+// ... (skipping unchanged lines)
+
+
 import { getWalletIcon } from './WalletCard';
 import TimePickerV2 from './TimePickerV2';
 import DayPicker from './DayPicker';
@@ -383,7 +388,12 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({ isOpen, onC
                           </div>
                           <div className="text-left">
                             <div className="font-bold text-sm text-text-primary">{w.name}</div>
-                            <div className="text-xs text-text-secondary font-medium">{currencySymbol}{w.balance.toLocaleString()}</div>
+                            <div className="text-xs text-text-secondary font-medium">
+                              {currencySymbol}
+                              {isCreditCard(w)
+                                ? getAvailableLimit(w).toLocaleString()
+                                : w.balance.toLocaleString()}
+                            </div>
                           </div>
                         </div>
                         {(selectorView === 'WALLET_FROM' ? selectedWallet : selectedToWallet) === w.id && <Check className="w-5 h-5 text-primary" />}

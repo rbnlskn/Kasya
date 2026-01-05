@@ -11,9 +11,9 @@
       "type": "SINGLE",
       "filters": [],
       "attributes": [],
-      "versionCode": 7,
-      "versionName": "1.0.6",
-      "outputFile": "Kasya-v1.0.6.apk"
+      "versionCode": 19,
+      "versionName": "1.1.10",
+      "outputFile": "Kasya-v1.1.10.apk"
     }
   ],
   "elementType": "File",
@@ -22,14 +22,14 @@
       "minApi": 28,
       "maxApi": 30,
       "baselineProfiles": [
-        "baselineProfiles/1/Kasya-v1.0.6.dm"
+        "baselineProfiles/1/Kasya-v1.1.10.dm"
       ]
     },
     {
       "minApi": 31,
       "maxApi": 2147483647,
       "baselineProfiles": [
-        "baselineProfiles/0/Kasya-v1.0.6.dm"
+        "baselineProfiles/0/Kasya-v1.1.10.dm"
       ]
     }
   ],

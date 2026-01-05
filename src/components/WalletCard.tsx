@@ -54,8 +54,18 @@ const WalletCard: React.FC<WalletCardProps> = ({ wallet, onClick, onPay, currenc
 
   const isDarkBg = effectiveBgColor ? !isColorLight(effectiveBgColor) : true;
   const watermarkBg = isDarkBg ? 'bg-white/10' : 'bg-primary/10';
+  /*
+    CREDIT CARD LOGIC:
+    - Home Tab (WalletCard): Show AVAILABLE LIMIT (Credit Limit - Current Debt).
+    - Commitments Tab (CommitmentList): Show CURRENT DEBT (Wallet Balance).
+    
+    Current implementation of `wallet.balance` for CC typically represents the DEBT (positive number).
+    So Available = Limit - Balance.
+  */
   const isCreditCard = wallet.type === WalletType.CREDIT_CARD;
-  const currentBalance = isCreditCard ? (wallet.creditLimit || 0) - wallet.balance : wallet.balance;
+  // Default to Available Limit for Home View
+  // Credit Card Balance is negative (Debt). Available = Limit + Balance (e.g., 1000 + (-100) = 900)
+  const currentBalance = isCreditCard ? (wallet.creditLimit || 0) + wallet.balance : wallet.balance;
 
   return (
     <div

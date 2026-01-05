@@ -181,12 +181,12 @@ const BillFormModal: React.FC<BillFormModalProps> = ({ isOpen, onClose, onSave, 
       icon,
       type,
       startDate: new Date(startDate).toISOString(),
-      firstPaymentDate,
+      firstPaymentDate: (initialBill && initialBill.firstPaymentDate) ? initialBill.firstPaymentDate : firstPaymentDate,
       status: 'ACTIVE', // When saving, always set to active (for resubscribe)
       endDate: undefined, // Clear end date on resubscribe
       isTrialActive: isTrial,
       trialEndDate: (isTrial && trialEndDate) ? trialEndDate.toISOString() : undefined,
-      billingStartDate: billingStartDate,
+      billingStartDate: (initialBill && initialBill.billingStartDate) ? initialBill.billingStartDate : billingStartDate,
       remindTrialEnd: isTrial,
       note: note || undefined,
     }, initialBill?.id, (recordInitialPayment && !isTrial) ? { walletId: selectedWalletId } : undefined);
