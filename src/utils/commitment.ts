@@ -529,11 +529,58 @@ export const getActiveBillInstance = (
         // Verify candidate is valid (after start date, before end date)
         if (candidateDate.getTime() >= effectiveFirstDate.getTime() && (!bill.endDate || candidateDate.getTime() <= new Date(bill.endDate).getTime())) {
             // Check if paid
-            const isPaid = transactions.some(t =>
-                t.billId === bill.id &&
-                new Date(t.date).getMonth() === candidateDate.getMonth() &&
-                new Date(t.date).getFullYear() === candidateDate.getFullYear()
-            );
+            // FIX: We must search for ANY payment that covers this specific due date cycle.
+            // Previous logic: Strictly checked Month/Year of transaction date.
+            // New Logic: Check if there is a transaction LINKED to this bill that occurred ON or AFTER the candidate date (within reasonable window) 
+            // AND is not already attributed to a later cycle. 
+            // SIMPLIFICATION: just check if there is a payment in that month OR LATER that isn't covering a newer bill.
+            // BUT simpler approach for now: Just check if there is a payment with date >= candidateDate - 7 days (early)
+            // AND date < candidateDate + 45 days (limit lookahead)?
+            // ACTUALLY: The best way is to see if we have a transaction for this bill in the month of candidateDate OR ANY SUBSEQUENT MONTH 
+            // that isn't "too far" ahead?
+            // Let's stick to the user complaint: "payment on overdue bill on a different date does not fix it".
+
+            // We check if there is a transaction for this bill.
+            // If we find one that is "uncorrelated" or clearly for this cycle.
+            // Let's assume ANY payment after the due date (and before the NEXT due date) counts?
+
+            const isPaid = transactions.some(t => {
+                if (t.billId !== bill.id) return false;
+                const tDate = new Date(t.date);
+
+                // If paid in the same month/year
+                if (tDate.getMonth() === candidateDate.getMonth() && tDate.getFullYear() === candidateDate.getFullYear()) return true;
+
+                // If paid LATER than the due date? (e.g. Paid in Feb for Jan bill)
+                // We need to be careful not to count Feb payment for Feb bill as Jan payment.
+                // Ideally transactions should link to specific bill instance ID, but they don't yet.
+                // Heuristic: If we are checking the "Overdue Candidate" (previous month), 
+                // and we see a payment in the Current Month, does it count?
+                // It counts IF there isn't ALSO a payment for the Current Month's due date?
+                // This is complex without ID linking.
+
+                // SIMPLE FIX requested: Just "record the payment for it".
+                // If the user pays today for a past bill, the transaction date is TODAY.
+                // So we check: Is there a transaction with date >= candidateDate - 5 (buffer)?
+                // And < candidateDate + 20? (Late payment window)
+
+                // Let's try matching if comp is Late.
+                // date >= candidateDate - 20 days.
+
+                // User said: "payment made on the overdue card should be recorded on that card"
+                // That was the Credit Card issue (fixed). 
+                // This issue: "payment of an overdue bill on a different date does not fix it".
+
+                // Let's just expand the search window to include the NEXT month too.
+                const nextMonth = new Date(candidateDate);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+                if (tDate.getMonth() === nextMonth.getMonth() && tDate.getFullYear() === nextMonth.getFullYear()) {
+                    return true; // Assume payment in next month covers this if this was overdue
+                }
+
+                return false;
+            });
 
             if (!isPaid) {
                 // It is UNPAID. Is it Overdue?

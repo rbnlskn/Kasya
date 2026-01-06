@@ -266,57 +266,91 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   // --- Reusable Components for New Design ---
 
-  // Enhanced Summary Card
-  const renderEnhancedSummaryCard = (totalDue: number, totalPaid: number, type: 'BILLS' | 'LOANS' | 'LENDING', categoryStats?: Record<string, number>, netPosition?: number) => {
-    const progress = totalDue > 0 ? Math.min(100, (totalPaid / totalDue) * 100) : (totalPaid > 0 ? 100 : 0);
-    const remaining = Math.max(0, totalDue - totalPaid);
+  // Enhanced Summary Card (Light Theme, Combined Logic)
+  const renderEnhancedSummaryCard = (
+    primaryTotal: number,
+    primaryPaid: number,
+    type: 'BILLS' | 'LOANS_LENDING',
+    secondaryTotal?: number, // e.g. Total Lent
+    secondaryPaid?: number,  // e.g. Collected
+    categoryStats?: Record<string, number>
+  ) => {
+
+    // For Bills: Standard calculations
+    const primaryProgress = primaryTotal > 0 ? Math.min(100, (primaryPaid / primaryTotal) * 100) : (primaryPaid > 0 ? 100 : 0);
+    const primaryRemaining = Math.max(0, primaryTotal - primaryPaid);
+
+    // For Combined Loans/Lending
+    // We want to show "Net Position" or just stacks?
+    // User asked to "Combine them".
+    // Let's modify the card to showing two rows if Loans & Lending.
 
     return (
-      <div className="px-6 mb-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-xl relative overflow-hidden">
-          {/* Background Decoration */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
+      <div className="px-6 mb-2 mt-2">
+        <div className="bg-white rounded-2xl p-5 text-gray-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 relative overflow-hidden">
 
+          {/* Header Row */}
           <div className="flex justify-between items-start mb-4 relative z-10">
             <div>
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'BILLS' ? 'Total Due' : type === 'LOANS' ? 'Total Owed' : 'Total Lent'}</p>
-              <p className="text-3xl font-black tracking-tight">{currencySymbol}{formatCurrency(totalDue)}</p>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">
+                {type === 'BILLS' ? 'Total Due' : 'Total Owed (Loans)'}
+              </p>
+              <p className="text-3xl font-black tracking-tight text-gray-900">{currencySymbol}{formatCurrency(primaryTotal)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'LENDING' ? 'Collected' : 'Paid'}</p>
-              <p className="text-xl font-bold text-emerald-400">{currencySymbol}{formatCurrency(totalPaid)}</p>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'LOANS_LENDING' ? 'Paid Back' : 'Paid'}</p>
+              <p className="text-xl font-bold text-emerald-500">{currencySymbol}{formatCurrency(primaryPaid)}</p>
             </div>
           </div>
 
-          <div className="w-full bg-slate-700/50 rounded-full h-1.5 mb-4 overflow-hidden relative z-10">
+          {/* Progress Bar (Primary) */}
+          <div className="w-full bg-gray-100 rounded-full h-2 mb-4 overflow-hidden relative z-10">
             <div
-              className={`h-full rounded-full transition-all duration-700 ease-out ${type === 'LENDING' ? 'bg-blue-400' : 'bg-emerald-500'}`}
-              style={{ width: `${progress}%` }}
+              className={`h-full rounded-full transition-all duration-700 ease-out ${type === 'LOANS_LENDING' ? 'bg-indigo-500' : 'bg-emerald-500'}`}
+              style={{ width: `${primaryProgress}%` }}
             ></div>
           </div>
 
-          <div className="flex justify-between text-xs text-slate-400 font-medium relative z-10 mb-0">
-            <span>{Math.round(progress)}% {type === 'LENDING' ? 'Collected' : 'Settled'}</span>
-            <span>{currencySymbol}{formatCurrency(remaining)} Remaining</span>
+          <div className="flex justify-between text-xs text-gray-400 font-medium relative z-10 mb-0">
+            <span>{Math.round(primaryProgress)}% {type === 'LOANS_LENDING' ? 'Settled' : 'Settled'}</span>
+            <span>{currencySymbol}{formatCurrency(primaryRemaining)} Remaining</span>
           </div>
 
-          {/* NET POSITION for Loans/Lending Mixed View (if we ever mix them, currently split) 
-              Actually, for Loans and Lending split, we might want different stats.
-          */}
+          {/* Secondary Section (Lending) for Loans View */}
+          {type === 'LOANS_LENDING' && typeof secondaryTotal === 'number' && (
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">Total Lent (Receivable)</p>
+                  <p className="text-2xl font-black tracking-tight text-gray-900">{currencySymbol}{formatCurrency(secondaryTotal)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">Collected</p>
+                  <p className="text-lg font-bold text-emerald-500">{currencySymbol}{formatCurrency(secondaryPaid || 0)}</p>
+                </div>
+              </div>
+              {/* Secondary Progress */}
+              <div className="w-full bg-gray-100 rounded-full h-2 mb-1 overflow-hidden relative z-10">
+                <div
+                  className="h-full rounded-full transition-all duration-700 ease-out bg-blue-400"
+                  style={{ width: `${secondaryTotal > 0 ? ((secondaryPaid || 0) / secondaryTotal) * 100 : 0}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
 
+          {/* Categories for Bills */}
           {type === 'BILLS' && categoryStats && (
-            <div className="mt-4 pt-4 border-t border-slate-700/50 grid grid-cols-2 gap-2">
+            <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2">
               {Object.entries(categoryStats).slice(0, 4).sort(([, a], [, b]) => b - a).map(([catName, amount]) => (
                 <div key={catName} className="flex justify-between text-xs">
-                  <span className="text-slate-400 truncate pr-2">{catName}</span>
-                  <span className="text-white font-bold">{currencySymbol}{formatCurrency(amount)}</span>
+                  <span className="text-gray-500 truncate pr-2">{catName}</span>
+                  <span className="text-gray-900 font-bold">{currencySymbol}{formatCurrency(amount)}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        {/* Net Position Card (Only show if type is LOANS and we have netPosition passed - or handle outside) */}
       </div>
     );
   };
@@ -356,9 +390,14 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
       <div
         key={isInstance ? (item as any).id : coreItem.id}
         onClick={() => setDetailsModal({ type: type === 'BILL' ? 'BILL' : 'COMMITMENT', item: coreItem })}
-        className={`flex items-center p-4 bg-white border-b border-gray-50 last:border-b-0 active:bg-gray-50 transition-colors ${isPaid ? 'opacity-60' : ''}`}
+        // Added horizontal margin (mx-4 or px-4 wrapper) and Rounded corners to simulate "floating" if desired, 
+        // OR just maintain full width but with padding. 
+        // User requested "Proper side spacing (not edge-to-edge)".
+        // Let's wrap inner content or add margin to the row container.
+        className={`flex items-center p-4 mb-2 mx-4 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.99] transition-all ${isPaid ? 'opacity-60' : ''}`}
       >
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg flex-shrink-0 mr-4 ${isPaid ? 'bg-gray-100 grayscale' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#eee') }}>
+        {/* Icon: Restore rounded-2xl (Squircle) */}
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0 mr-4 ${isPaid ? 'bg-gray-100 grayscale' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#eee') }}>
           {category?.icon}
         </div>
 
@@ -383,7 +422,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           {!isPaid && status !== 'SETTLED' && (
             <button
               onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
-              className={`mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${type === 'LENDING'
+              className={`mt-1 text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors ${type === 'LENDING'
                   ? 'bg-emerald-100 text-emerald-700'
                   : 'bg-indigo-50 text-indigo-600'
                 }`}
@@ -653,9 +692,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
 
           <div className="flex-1 overflow-y-auto pb-24">
-            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS', billCategoryStats)}
+            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS', undefined, undefined, billCategoryStats)}
 
-            <div className="bg-white border-t border-b border-gray-100 mt-2">
+            <div className="mt-2">
               <CommitmentList
                 items={overlayBillInstances}
                 renderItem={(i) => renderRowItem(i, 'BILL')}
@@ -670,7 +709,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
         <div className="fixed inset-0 z-[60] bg-slate-50 flex flex-col animate-in slide-in-from-right duration-300">
           <div className="bg-white p-6 pb-2 border-b flex justify-between items-center z-10 sticky top-0 shadow-sm">
             <div className="flex items-center">
-              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-50"><ChevronRight className="w-6 h-6 rotate-180" /></button>
+              <button onClick={() => setOverlay('NONE')} className="p-2 -ml-2 rounded-full hover:bg-gray-100"><ChevronRight className="w-6 h-6 rotate-180" /></button>
               <h2 className="text-xl font-bold ml-2">Loans & Lending</h2>
             </div>
             <button onClick={onAddCommitment} className="w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"><Plus className="w-6 h-6" /></button>
@@ -679,20 +718,20 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
 
           <div className="flex-1 overflow-y-auto pb-24">
-            {/* Summary Cards */}
-            {/* Net Position? totalLent - totalBorrowed? 
-                 For now, let's just show Split Summaries or Side-by-Side?
-                 Or just one stacked?
-             */}
-
-            {loansStats.due > 0 && renderEnhancedSummaryCard(loansStats.due, loansStats.paid, 'LOANS')}
-            {lendingStats.due > 0 && renderEnhancedSummaryCard(lendingStats.due, lendingStats.paid, 'LENDING')}
+            {/* Combined Summary Card with all stats */}
+            {renderEnhancedSummaryCard(
+              loansStats.due,
+              loansStats.paid,
+              'LOANS_LENDING',
+              lendingStats.due,
+              lendingStats.paid
+            )}
 
             {/* Split Lists */}
             {overlayLoansInstances.length > 0 && (
-              <div className="mb-6">
+              <div className="mb-6 mt-4">
                 <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Loans (Payable)</h3>
-                <div className="bg-white border-t border-b border-gray-100">
+                <div className="mt-1">
                   <CommitmentList
                     items={overlayLoansInstances}
                     renderItem={(i) => renderRowItem(i, 'LOAN')}
@@ -705,7 +744,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
             {overlayLendingInstances.length > 0 && (
               <div className="mb-6">
                 <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Lending (Receivable)</h3>
-                <div className="bg-white border-t border-b border-gray-100">
+                <div className="mt-1">
                   <CommitmentList
                     items={overlayLendingInstances}
                     renderItem={(i) => renderRowItem(i, 'LENDING')}
