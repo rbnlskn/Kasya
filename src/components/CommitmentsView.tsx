@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Plus, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Plus, ChevronRight, ChevronLeft, AlertTriangle, ArrowDown, ArrowUp } from 'lucide-react';
 import { Wallet, WalletType, Bill, Commitment, Category, Transaction, CommitmentType } from '../types';
 import AddCard from './AddCard';
 import SectionHeader from './SectionHeader';
@@ -42,6 +42,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
   const [detailsModal, setDetailsModal] = useState<{ type: 'BILL' | 'COMMITMENT', item: Bill | Commitment } | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [overlayMonth, setOverlayMonth] = useState(new Date()); // Independent date state for overlays
+  const [filterType, setFilterType] = useState<'ALL' | 'BILLS_ONLY' | 'SUBS_ONLY' | 'UNPAID' | 'OVERDUE'>('ALL');
 
   const COMMITMENT_CARD_HEIGHT = 161;
 
