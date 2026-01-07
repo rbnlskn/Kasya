@@ -266,111 +266,66 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   // --- Reusable Components for New Design ---
 
-  // Enhanced Summary Card (Light Theme, Combined Logic)
+  // Enhanced Summary Card (Clean / Minimal)
   const renderEnhancedSummaryCard = (
     primaryTotal: number,
     primaryPaid: number,
     type: 'BILLS' | 'LOANS_LENDING',
-    secondaryTotal?: number, // e.g. Total Lent
-    secondaryPaid?: number,  // e.g. Collected
-    categoryStats?: Record<string, number>
+    secondaryTotal?: number,
+    secondaryPaid?: number
   ) => {
 
-    // For Bills: Standard calculations
-    const primaryProgress = primaryTotal > 0 ? Math.min(100, (primaryPaid / primaryTotal) * 100) : (primaryPaid > 0 ? 100 : 0);
+    // Logic remains similar, but visuals change to be "Native"
+    const isBills = type === 'BILLS';
+    const primaryLabel = isBills ? 'Left to Pay' : 'Total Owed';
     const primaryRemaining = Math.max(0, primaryTotal - primaryPaid);
 
-    // For Combined Loans/Lending
-    // We want to show "Net Position" or just stacks?
-    // User asked to "Combine them".
-    // Let's modify the card to showing two rows if Loans & Lending.
+    // Simplified Progress for visual feedback
+    const progress = primaryTotal > 0 ? (primaryPaid / primaryTotal) * 100 : 0;
 
     return (
-      <div className="px-6 mb-2 mt-2">
-        <div className="bg-white rounded-2xl p-5 text-gray-800 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] border border-gray-100 relative overflow-hidden">
-
-          {/* Header Row */}
-          <div className="flex justify-between items-start mb-4 relative z-10">
-            <div>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">
-                {type === 'BILLS' ? 'Total Due' : 'Total Owed (Loans)'}
-              </p>
-              <p className="text-3xl font-black tracking-tight text-gray-900">{currencySymbol}{formatCurrency(primaryTotal)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">{type === 'LOANS_LENDING' ? 'Paid Back' : 'Paid'}</p>
-              <p className="text-xl font-bold text-emerald-500">{currencySymbol}{formatCurrency(primaryPaid)}</p>
-            </div>
-          </div>
-
-          {/* Progress Bar (Primary) */}
-          <div className="w-full bg-gray-100 rounded-full h-2 mb-4 overflow-hidden relative z-10">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ease-out ${type === 'LOANS_LENDING' ? 'bg-indigo-500' : 'bg-emerald-500'}`}
-              style={{ width: `${primaryProgress}%` }}
-            ></div>
-          </div>
-
-          <div className="flex justify-between text-xs text-gray-400 font-medium relative z-10 mb-0">
-            <span>{Math.round(primaryProgress)}% {type === 'LOANS_LENDING' ? 'Settled' : 'Settled'}</span>
-            <span>{currencySymbol}{formatCurrency(primaryRemaining)} Remaining</span>
-          </div>
-
-          {/* Secondary Section (Lending) for Loans View */}
-          {type === 'LOANS_LENDING' && typeof secondaryTotal === 'number' && (
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">Total Lent (Receivable)</p>
-                  <p className="text-2xl font-black tracking-tight text-gray-900">{currencySymbol}{formatCurrency(secondaryTotal)}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 opacity-80">Collected</p>
-                  <p className="text-lg font-bold text-emerald-500">{currencySymbol}{formatCurrency(secondaryPaid || 0)}</p>
-                </div>
-              </div>
-              {/* Secondary Progress */}
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-1 overflow-hidden relative z-10">
-                <div
-                  className="h-full rounded-full transition-all duration-700 ease-out bg-blue-400"
-                  style={{ width: `${secondaryTotal > 0 ? ((secondaryPaid || 0) / secondaryTotal) * 100 : 0}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-
-          {/* Categories for Bills */}
-          {type === 'BILLS' && categoryStats && (
-            <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-2">
-              {Object.entries(categoryStats).slice(0, 4).sort(([, a], [, b]) => b - a).map(([catName, amount]) => (
-                <div key={catName} className="flex justify-between text-xs">
-                  <span className="text-gray-500 truncate pr-2">{catName}</span>
-                  <span className="text-gray-900 font-bold">{currencySymbol}{formatCurrency(amount)}</span>
-                </div>
-              ))}
-            </div>
+      <div className="px-6 py-4 mx-4 mt-2 mb-4 bg-white rounded-3xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+        {/* Primary Stat (Big Focus) */}
+        <div className="flex flex-col items-center justify-center text-center mb-4">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{primaryLabel}</span>
+          <span className="text-4xl font-black text-gray-900 tracking-tighter">
+            {currencySymbol}{formatCurrency(primaryRemaining)}
+          </span>
+          {primaryPaid > 0 && (
+            <span className="text-xs font-medium text-emerald-600 mt-1 bg-emerald-50 px-2 py-0.5 rounded-full">
+              {Math.round(progress)}% Paid ({currencySymbol}{formatCurrency(primaryPaid)})
+            </span>
           )}
         </div>
+
+        {/* Secondary Stat (for Loans/Lending Split View) */}
+        {!isBills && typeof secondaryTotal === 'number' && (
+          <div className="border-t border-slate-50 pt-3 flex justify-between items-center text-sm">
+            <span className="text-gray-500 font-medium">To Collect</span>
+            <span className="font-bold text-gray-900">
+              {currencySymbol}{formatCurrency(Math.max(0, secondaryTotal - (secondaryPaid || 0)))}
+            </span>
+          </div>
+        )}
       </div>
     );
   };
 
-  // Row Item for View All
+  // Row Item (Integrated / List Style)
   const renderRowItem = (
     item: Bill | Commitment | (CommitmentInstance & { id: string }) | BillInstance,
     type: 'BILL' | 'LOAN' | 'LENDING'
   ) => {
     // Discriminate Logic
     const isInstance = 'status' in item && 'dueDate' in item;
-    // const coreItem = isInstance ? (item as any).bill || (item as any).commitment : item; 
     let coreItem: Bill | Commitment;
     if ('bill' in item) coreItem = item.bill;
     else if ('commitment' in item) coreItem = item.commitment;
     else coreItem = item as any; // Fallback
 
-    const status = isInstance ? (item as any).status : 'SETTLED'; // or derive
-    const dueDate = isInstance ? (item as any).dueDate : new Date(); // or derive
-    const amount = isInstance ? (item as any).amount : (coreItem as any).amount || 0; // Approx
+    const status = isInstance ? (item as any).status : 'SETTLED';
+    const dueDate = isInstance ? (item as any).dueDate : new Date();
+    const amount = isInstance ? (item as any).amount : (coreItem as any).amount || 0;
 
     // Category & Icon
     let category = categories.find(c => c.id === (coreItem as any).categoryId);
@@ -379,60 +334,80 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
     const isPaid = status === 'PAID';
     const isOverdue = status === 'OVERDUE';
+    const isToday = new Date().toDateString() === new Date(dueDate).toDateString();
 
-    // Dynamic Label
-    let label = 'Commitment';
-    if (type === 'BILL') label = coreItem.type === 'SUBSCRIPTION' ? 'Subscription' : 'Bill';
-    if (type === 'LOAN') label = 'Loan';
-    if (type === 'LENDING') label = 'Lending';
+    // Dynamic styling based on urgency
+    let statusColor = "text-gray-400";
+    if (isOverdue) statusColor = "text-red-500";
+    else if (isToday) statusColor = "text-amber-500";
+    else if (isPaid) statusColor = "text-emerald-500";
 
     return (
       <div
         key={isInstance ? (item as any).id : coreItem.id}
         onClick={() => setDetailsModal({ type: type === 'BILL' ? 'BILL' : 'COMMITMENT', item: coreItem })}
-        // Added horizontal margin (mx-4 or px-4 wrapper) and Rounded corners to simulate "floating" if desired, 
-        // OR just maintain full width but with padding. 
-        // User requested "Proper side spacing (not edge-to-edge)".
-        // Let's wrap inner content or add margin to the row container.
-        className={`flex items-center p-4 mb-2 mx-4 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.99] transition-all ${isPaid ? 'opacity-60' : ''}`}
+        // Remove border/shadow for "Integrated" look, use simple spacing
+        className={`flex items-center py-3 px-6 active:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${isPaid ? 'opacity-50' : ''}`}
       >
-        {/* Icon: Restore rounded-2xl (Squircle) */}
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0 mr-4 ${isPaid ? 'bg-gray-100 grayscale' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#eee') }}>
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 mr-4 ${isPaid ? 'grayscale bg-gray-100' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#f3f4f6') }}>
           {category?.icon}
         </div>
 
-        <div className="flex-1 min-w-0 mr-4">
-          <div className="flex items-center mb-0.5">
-            <h4 className={`font-bold text-gray-900 text-sm truncate ${isPaid ? 'line-through text-gray-500' : ''}`}>{coreItem.name}</h4>
-            {isPaid && <span className="ml-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Paid</span>}
-            {isOverdue && <span className="ml-2 text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded-full">Overdue</span>}
+        <div className="flex-1 min-w-0 mr-2">
+          <div className="flex items-center justify-between mb-0.5">
+            <h4 className={`font-bold text-gray-900 text-sm truncate ${isPaid ? 'line-through decoration-gray-400' : ''}`}>{coreItem.name}</h4>
+            <span className={`font-bold text-sm text-gray-900 ${isPaid ? 'line-through text-gray-400' : ''}`}>{currencySymbol}{formatCurrency(amount)}</span>
           </div>
-          <div className="flex items-center text-xs text-gray-500">
-            <span className="font-medium mr-1.5">{label}</span>
-            <span className="text-gray-300 mr-1.5">•</span>
-            <span className={`${isOverdue ? 'text-red-500 font-bold' : ''}`}>
-              {status === 'SETTLED' ? 'Settled' : generateDueDateText(dueDate, status as any, coreItem.recurrence)}
+          <div className="flex items-center justify-between text-xs">
+            <span className={`font-medium ${statusColor}`}>
+              {status === 'SETTLED' ? 'Settled' : (
+                isOverdue ? `Overdue by ${Math.floor((new Date().getTime() - new Date(dueDate).getTime()) / (1000 * 3600 * 24))} days` :
+                  isToday ? 'Due Today' :
+                    generateDueDateText(dueDate, status as any, coreItem.recurrence)
+              )}
             </span>
+
+            {!isPaid && (
+              <button
+                onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${type === 'LENDING' ? 'text-blue-600 bg-blue-50' : 'text-indigo-600 bg-indigo-50'
+                  }`}
+              >
+                {type === 'LENDING' ? 'Collect' : 'Pay'}
+              </button>
+            )}
           </div>
-        </div>
-
-        <div className="flex flex-col items-end">
-          <span className={`font-bold text-sm text-gray-900 ${isPaid ? 'line-through text-gray-400' : ''}`}>{currencySymbol}{formatCurrency(amount)}</span>
-
-          {!isPaid && status !== 'SETTLED' && (
-            <button
-              onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
-              className={`mt-1 text-[10px] font-bold px-3 py-1.5 rounded-xl transition-colors ${type === 'LENDING'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-indigo-50 text-indigo-600'
-                }`}
-            >
-              {type === 'LENDING' ? 'Collect' : 'Pay'}
-            </button>
-          )}
         </div>
       </div>
     );
+  };
+
+  // Helper to Group Items
+  const groupInstances = (instances: any[]) => {
+    const urgent: any[] = [];
+    const upcoming: any[] = [];
+    const paid: any[] = [];
+
+    const todayStr = new Date().toDateString();
+
+    instances.forEach(item => {
+      const status = item.status;
+      const isOver = status === 'OVERDUE';
+      const isToday = new Date(item.dueDate).toDateString() === todayStr;
+
+      if (status === 'PAID') {
+        paid.push(item);
+      } else if (isOver || (status === 'DUE' && isToday)) {
+        urgent.push(item);
+      } else {
+        upcoming.push(item);
+      }
+    });
+
+    // Sort upcoming by date
+    upcoming.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+    return { urgent, upcoming, paid };
   };
 
   const overlayLoansInstances = useMemo(() => {
@@ -456,18 +431,10 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     return { due, paid };
   }, [overlayLendingInstances]);
 
-  // Enhanced Bill Stats (Category Breakdown)
-  const billCategoryStats = useMemo(() => {
-    const stats: Record<string, number> = {};
-    overlayBillInstances.forEach(i => {
-      let cat = categories.find(c => c.id === (i.bill.type === 'SUBSCRIPTION' ? 'cat_subs' : 'cat_6')); // Default or specific
-      // If we have manual category override? currently bills hardcode subs/bills logic mostly.
-      // Let's use the type name if category missing
-      const catName = cat ? cat.name : (i.bill.type === 'SUBSCRIPTION' ? 'Subscriptions' : 'Bills');
-      stats[catName] = (stats[catName] || 0) + i.bill.amount;
-    });
-    return stats;
-  }, [overlayBillInstances, categories]);
+  // Grouping for Render
+  const groupedBills = useMemo(() => groupInstances(overlayBillInstances), [overlayBillInstances]);
+  const groupedLoans = useMemo(() => groupInstances(overlayLoansInstances), [overlayLoansInstances]);
+  const groupedLending = useMemo(() => groupInstances(overlayLendingInstances), [overlayLendingInstances]);
 
 
   return (
@@ -692,15 +659,57 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
 
           <div className="flex-1 overflow-y-auto pb-24">
-            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS', undefined, undefined, billCategoryStats)}
+            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS')}
 
-            <div className="mt-2">
-              <CommitmentList
-                items={overlayBillInstances}
-                renderItem={(i) => renderRowItem(i, 'BILL')}
-                placeholder={<div className="text-center text-xs text-gray-400 py-12">No bills found for this month</div>}
-              />
-            </div>
+            {/* Smart Action Center List */}
+
+            {/* Urgent */}
+            {groupedBills.urgent.length > 0 && (
+              <div className="mb-2">
+                <h3 className="px-6 py-2 text-xs font-extra-bold text-red-500 uppercase tracking-widest flex items-center">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div> Needs Attention
+                </h3>
+                <div className="bg-white border-t border-b border-gray-100">
+                  <CommitmentList
+                    items={groupedBills.urgent}
+                    renderItem={(i) => renderRowItem(i, 'BILL')}
+                    placeholder={<div className="hidden"></div>}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Upcoming */}
+            {groupedBills.upcoming.length > 0 && (
+              <div className="mb-2">
+                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Upcoming</h3>
+                <div className="bg-white border-t border-b border-gray-100">
+                  <CommitmentList
+                    items={groupedBills.upcoming}
+                    renderItem={(i) => renderRowItem(i, 'BILL')}
+                    placeholder={<div className="hidden"></div>}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Paid */}
+            {groupedBills.paid.length > 0 && (
+              <div className="mb-2">
+                <h3 className="px-6 py-2 text-xs font-bold text-emerald-600 uppercase tracking-widest opacity-60">Completed</h3>
+                <div className="bg-white border-t border-b border-gray-100">
+                  <CommitmentList
+                    items={groupedBills.paid}
+                    renderItem={(i) => renderRowItem(i, 'BILL')}
+                    placeholder={<div className="hidden"></div>}
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeBillInstances.length === 0 && (
+              <div className="text-center text-xs text-gray-400 py-12">No bills found for this month</div>
+            )}
           </div>
         </div>
       )}
@@ -727,27 +736,61 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               lendingStats.paid
             )}
 
-            {/* Split Lists */}
-            {overlayLoansInstances.length > 0 && (
+            {/* Loans - Action Center */}
+            {(groupedLoans.urgent.length > 0 || groupedLoans.upcoming.length > 0) && (
               <div className="mb-6 mt-4">
-                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Loans (Payable)</h3>
-                <div className="mt-1">
+                <h3 className="px-6 py-2 text-sm font-black text-gray-800 tracking-tight flex items-center">
+                  LOANS TO PAY
+                </h3>
+
+                {/* Urgent */}
+                {groupedLoans.urgent.length > 0 && (
+                  <div className="bg-white border-t border-b border-gray-100 mb-2 border-l-4 border-l-red-500">
+                    <CommitmentList
+                      items={groupedLoans.urgent}
+                      renderItem={(i) => renderRowItem(i, 'LOAN')}
+                      placeholder={<div className="hidden"></div>}
+                    />
+                  </div>
+                )}
+
+                {/* Upcoming */}
+                {groupedLoans.upcoming.length > 0 && (
+                  <div className="bg-white border-t border-b border-gray-100">
+                    <CommitmentList
+                      items={groupedLoans.upcoming}
+                      renderItem={(i) => renderRowItem(i, 'LOAN')}
+                      placeholder={<div className="hidden"></div>}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Lending - Action Center */}
+            {(groupedLending.urgent.length > 0 || groupedLending.upcoming.length > 0) && (
+              <div className="mb-6 mt-4">
+                <h3 className="px-6 py-2 text-sm font-black text-gray-800 tracking-tight flex items-center">
+                  PEOPLE WHO OWE YOU
+                </h3>
+                <div className="bg-white border-t border-b border-gray-100">
                   <CommitmentList
-                    items={overlayLoansInstances}
-                    renderItem={(i) => renderRowItem(i, 'LOAN')}
+                    items={[...groupedLending.urgent, ...groupedLending.upcoming]}
+                    renderItem={(i) => renderRowItem(i, i.commitment.type === 'LOAN' ? 'LOAN' : 'LENDING')}
                     placeholder={<div className="hidden"></div>}
                   />
                 </div>
               </div>
             )}
 
-            {overlayLendingInstances.length > 0 && (
-              <div className="mb-6">
-                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Lending (Receivable)</h3>
-                <div className="mt-1">
+            {/* Completed Section (Both) */}
+            {(groupedLoans.paid.length > 0 || groupedLending.paid.length > 0) && (
+              <div className="mb-6 opacity-60 grayscale-[0.5]">
+                <h3 className="px-6 py-2 text-xs font-bold text-gray-400 uppercase tracking-widest">Settled / Collected</h3>
+                <div className="bg-white border-t border-b border-gray-100">
                   <CommitmentList
-                    items={overlayLendingInstances}
-                    renderItem={(i) => renderRowItem(i, 'LENDING')}
+                    items={[...groupedLoans.paid, ...groupedLending.paid]}
+                    renderItem={(i) => renderRowItem(i, i.commitment.type === 'LOAN' ? 'LOAN' : 'LENDING')}
                     placeholder={<div className="hidden"></div>}
                   />
                 </div>
@@ -763,5 +806,3 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
     </>
   );
 };
-
-export default CommitmentsView;
