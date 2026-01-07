@@ -266,175 +266,284 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
   // --- Reusable Components for New Design ---
 
-  // Enhanced Summary Card (Clean / Minimal)
-  const renderEnhancedSummaryCard = (
-    primaryTotal: number,
-    primaryPaid: number,
-    type: 'BILLS' | 'LOANS_LENDING',
-    secondaryTotal?: number,
-    secondaryPaid?: number
-  ) => {
-
-    // Logic remains similar, but visuals change to be "Native"
-    const isBills = type === 'BILLS';
-    const primaryLabel = isBills ? 'Left to Pay' : 'Total Owed';
-    const primaryRemaining = Math.max(0, primaryTotal - primaryPaid);
-
-    // Simplified Progress for visual feedback
-    const progress = primaryTotal > 0 ? (primaryPaid / primaryTotal) * 100 : 0;
-
+  // 1. Critical Alert Banner
+  const CriticalAlertBanner = ({ count, type }: { count: number, type: 'BILL' | 'LOAN' }) => {
+    if (count === 0) return null;
     return (
-      <div className="px-6 py-4 mx-4 mt-2 mb-4 bg-white rounded-3xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
-        {/* Primary Stat (Big Focus) */}
-        <div className="flex flex-col items-center justify-center text-center mb-4">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{primaryLabel}</span>
-          <span className="text-4xl font-black text-gray-900 tracking-tighter">
-            {currencySymbol}{formatCurrency(primaryRemaining)}
-          </span>
-          {primaryPaid > 0 && (
-            <span className="text-xs font-medium text-emerald-600 mt-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-              {Math.round(progress)}% Paid ({currencySymbol}{formatCurrency(primaryPaid)})
-            </span>
-          )}
+      <div className="mx-4 mb-4 bg-red-50 border border-red-100 rounded-xl p-3 flex items-start animate-pulse">
+        <div className="bg-red-100 p-1.5 rounded-full mr-3 text-red-600 mt-0.5">
+          <AlertTriangle className="w-5 h-5" />
         </div>
-
-        {/* Secondary Stat (for Loans/Lending Split View) */}
-        {!isBills && typeof secondaryTotal === 'number' && (
-          <div className="border-t border-slate-50 pt-3 flex justify-between items-center text-sm">
-            <span className="text-gray-500 font-medium">To Collect</span>
-            <span className="font-bold text-gray-900">
-              {currencySymbol}{formatCurrency(Math.max(0, secondaryTotal - (secondaryPaid || 0)))}
-            </span>
-          </div>
-        )}
+        <div className="flex-1">
+          <h4 className="text-sm font-bold text-red-800">Action Required</h4>
+          <p className="text-xs text-red-600 mt-0.5 font-medium">
+            You have {count} overdue {type === 'BILL' ? 'bill' : 'loan'}{count > 1 ? 's' : ''}. Please pay immediately to avoid penalties.
+          </p>
+        </div>
       </div>
     );
   };
 
-  // Row Item (Integrated / List Style)
+  // 2. Enhanced Summary Card (Forecasting)
+  const renderEnhancedSummaryCard = (
+    items: any[],
+    type: 'BILLS' | 'LOANS_LENDING'
+  ) => {
+    // Forecast Logic: Next 7 Days
+    // We need to filter items that are NOT paid and due within today + 7 days
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const textWeek = new Date(today);
+    textWeek.setDate(today.getDate() + 7);
+
+    let dueNext7Days = 0;
+
+    // General Stats
+    let totalDue = 0;
+    let paidCount = 0;
+    let totalCount = items.length;
+
+    items.forEach(item => {
+      const isPaid = item.status === 'PAID';
+      if (isPaid) paidCount++;
+
+      // Use 'amount' from item (instance)
+      const amount = item.amount || 0;
+
+      // Total Due (Remaining)
+      if (!isPaid) totalDue += amount;
+
+      // 7 Day Forecast
+      if (!isPaid) {
+        const d = new Date(item.dueDate);
+        d.setHours(0, 0, 0, 0);
+        if (d >= today && d <= textWeek) {
+          dueNext7Days += amount;
+        }
+      }
+    });
+
+    const primaryLabel = type === 'BILLS' ? 'Due Next 7 Days' : 'Due Next 7 Days';
+
+    return (
+      <div className="px-6 py-5 mx-4 mt-2 mb-4 bg-white rounded-3xl shadow-[0_2px_15px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+        <div className="flex justify-between items-end mb-2">
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{primaryLabel}</p>
+            <p className="text-3xl font-black text-gray-900 tracking-tighter">{currencySymbol}{formatCurrency(dueNext7Days)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Remaining</p>
+            <p className="text-lg font-bold text-gray-700">{currencySymbol}{formatCurrency(totalDue)}</p>
+          </div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
+          <span className="text-xs font-medium text-gray-500">
+            Month Progress
+          </span>
+          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            {paidCount} of {totalCount} Paid
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  // 3. Row Item (Context Rich)
   const renderRowItem = (
     item: Bill | Commitment | (CommitmentInstance & { id: string }) | BillInstance,
     type: 'BILL' | 'LOAN' | 'LENDING'
   ) => {
-    // Discriminate Logic
     const isInstance = 'status' in item && 'dueDate' in item;
     let coreItem: Bill | Commitment;
     if ('bill' in item) coreItem = item.bill;
     else if ('commitment' in item) coreItem = item.commitment;
-    else coreItem = item as any; // Fallback
+    else coreItem = item as any;
 
     const status = isInstance ? (item as any).status : 'SETTLED';
-    const dueDate = isInstance ? (item as any).dueDate : new Date();
+    const dueDate = new Date(isInstance ? (item as any).dueDate : new Date());
     const amount = isInstance ? (item as any).amount : (coreItem as any).amount || 0;
 
-    // Category & Icon
     let category = categories.find(c => c.id === (coreItem as any).categoryId);
     if (!category && 'type' in coreItem && coreItem.type === 'SUBSCRIPTION') category = categories.find(c => c.id === 'cat_subs');
     if (!category && 'type' in coreItem && coreItem.type === 'BILL') category = categories.find(c => c.id === 'cat_6');
 
     const isPaid = status === 'PAID';
     const isOverdue = status === 'OVERDUE';
-    const isToday = new Date().toDateString() === new Date(dueDate).toDateString();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dDate = new Date(dueDate);
+    dDate.setHours(0, 0, 0, 0);
 
-    // Dynamic styling based on urgency
-    let statusColor = "text-gray-400";
-    if (isOverdue) statusColor = "text-red-500";
-    else if (isToday) statusColor = "text-amber-500";
-    else if (isPaid) statusColor = "text-emerald-500";
+    // Formatting Date Text
+    // "Jan 15 (Due in 7 days)" or "Dec 12 (26 days overdue)"
+    const diffTime = dDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    let dateContext = "";
+    if (isPaid) dateContext = "Paid";
+    else if (isOverdue) dateContext = `${Math.abs(diffDays)} days overdue`;
+    else if (diffDays === 0) dateContext = "Due Today";
+    else if (diffDays === 1) dateContext = "Due Tomorrow";
+    else dateContext = `Due in ${diffDays} days`;
+
+    const dateString = dDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const fullDateText = isPaid ? dateString : `${dateString} (${dateContext})`;
+
+    // Logic for Badges (Monthly/Annual)
+    const recurrence = coreItem.recurrence;
+    const recurrenceText = recurrence === 'MONTHLY' ? 'Monthly' : recurrence === 'YEARLY' ? 'Annual' : recurrence === 'WEEKLY' ? 'Weekly' : '';
+
+    // Visuals for Loans/Lending
+    let amountColor = "text-gray-900";
+    let DirectionIcon = null;
+    if (type === 'LOAN') {
+      amountColor = "text-orange-600";
+      DirectionIcon = <ArrowDown className="w-3 h-3 ml-1 text-orange-500" />;
+    } else if (type === 'LENDING') {
+      amountColor = "text-emerald-600";
+      DirectionIcon = <ArrowUp className="w-3 h-3 ml-1 text-emerald-500" />;
+    }
+
+    // Overdue Styling
+    if (isOverdue && !isPaid) amountColor = "text-red-600";
 
     return (
       <div
         key={isInstance ? (item as any).id : coreItem.id}
         onClick={() => setDetailsModal({ type: type === 'BILL' ? 'BILL' : 'COMMITMENT', item: coreItem })}
-        // Remove border/shadow for "Integrated" look, use simple spacing
-        className={`flex items-center py-3 px-6 active:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${isPaid ? 'opacity-50' : ''}`}
+        className={`flex items-center py-4 px-6 active:bg-gray-50 transition-colors border-b border-gray-50 last:border-b-0 ${isPaid ? 'opacity-50' : ''}`}
       >
         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 mr-4 ${isPaid ? 'grayscale bg-gray-100' : ''}`} style={{ backgroundColor: isPaid ? undefined : (category?.color || '#f3f4f6') }}>
           {category?.icon}
         </div>
 
         <div className="flex-1 min-w-0 mr-2">
-          <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center gap-2 mb-1">
             <h4 className={`font-bold text-gray-900 text-sm truncate ${isPaid ? 'line-through decoration-gray-400' : ''}`}>{coreItem.name}</h4>
-            <span className={`font-bold text-sm text-gray-900 ${isPaid ? 'line-through text-gray-400' : ''}`}>{currencySymbol}{formatCurrency(amount)}</span>
+            {recurrenceText && <span className="text-[10px] font-medium bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-md">{recurrenceText}</span>}
           </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className={`font-medium ${statusColor}`}>
-              {status === 'SETTLED' ? 'Settled' : (
-                isOverdue ? `Overdue by ${Math.floor((new Date().getTime() - new Date(dueDate).getTime()) / (1000 * 3600 * 24))} days` :
-                  isToday ? 'Due Today' :
-                    generateDueDateText(dueDate, status as any, coreItem.recurrence)
-              )}
-            </span>
 
-            {!isPaid && (
-              <button
-                onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
-                className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${type === 'LENDING' ? 'text-blue-600 bg-blue-50' : 'text-indigo-600 bg-indigo-50'
-                  }`}
-              >
-                {type === 'LENDING' ? 'Collect' : 'Pay'}
-              </button>
-            )}
+          <div className="flex items-center text-xs text-gray-500 font-medium">
+            <span className={`${isOverdue ? 'text-red-500 font-bold' : ''}`}>
+              {fullDateText}
+            </span>
           </div>
+        </div>
+
+        <div className="flex flex-col items-end">
+          <div className="flex items-center">
+            <span className={`font-black text-sm ${isPaid ? 'line-through text-gray-400' : amountColor}`}>{currencySymbol}{formatCurrency(amount)}</span>
+            {!isPaid && DirectionIcon}
+          </div>
+
+          {!isPaid && (
+            <button
+              onClick={(e) => { e.stopPropagation(); type === 'BILL' ? onPayBill(coreItem as Bill) : onPayCommitment(coreItem as Commitment); }}
+              className={`mt-1 text-[10px] font-bold px-2.5 py-1 rounded-md transition-colors ${type === 'LENDING' ? 'text-emerald-700 bg-emerald-50' : 'text-indigo-600 bg-indigo-50'
+                }`}
+            >
+              {type === 'LENDING' ? 'Collect' : 'Pay'}
+            </button>
+          )}
         </div>
       </div>
     );
   };
 
-  // Helper to Group Items
+  // 4. Filtering Logic
+  const filterItems = (items: any[], type: 'BILL' | 'LOAN') => {
+    // items are instances
+    return items.filter(item => {
+      const status = item.status;
+      const isPaid = status === 'PAID';
+      const isOverdue = status === 'OVERDUE';
+
+      if (filterType === 'UNPAID' && isPaid) return false;
+      if (filterType === 'OVERDUE' && !isOverdue) return false;
+
+      if (type === 'BILL') {
+        const isSub = item.bill.type === 'SUBSCRIPTION';
+        if (filterType === 'BILLS_ONLY' && isSub) return false;
+        if (filterType === 'SUBS_ONLY' && !isSub) return false;
+      }
+      return true;
+    });
+  };
+
+  // Grouping (Reused)
   const groupInstances = (instances: any[]) => {
+    // Same grouping logic as before, just applied AFTER filtering
     const urgent: any[] = [];
     const upcoming: any[] = [];
     const paid: any[] = [];
-
     const todayStr = new Date().toDateString();
 
     instances.forEach(item => {
       const status = item.status;
       const isOver = status === 'OVERDUE';
       const isToday = new Date(item.dueDate).toDateString() === todayStr;
-
-      if (status === 'PAID') {
-        paid.push(item);
-      } else if (isOver || (status === 'DUE' && isToday)) {
-        urgent.push(item);
-      } else {
-        upcoming.push(item);
-      }
+      if (status === 'PAID') paid.push(item);
+      else if (isOver || (status === 'DUE' && isToday)) urgent.push(item);
+      else upcoming.push(item);
     });
-
-    // Sort upcoming by date
     upcoming.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
     return { urgent, upcoming, paid };
   };
 
-  const overlayLoansInstances = useMemo(() => {
-    return overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LOAN);
-  }, [overlayCommitmentInstances]);
+  // Filter Bar Component
+  const FilterBar = ({ type }: { type: 'BILL' | 'LOAN' }) => (
+    <div className="flex px-6 pt-2 pb-2 gap-2 overflow-x-auto no-scrollbar">
+      <button onClick={() => setFilterType('ALL')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap transition-colors ${filterType === 'ALL' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>All</button>
 
-  const overlayLendingInstances = useMemo(() => {
-    return overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LENDING);
-  }, [overlayCommitmentInstances]);
+      {type === 'BILL' && (
+        <>
+          <button onClick={() => setFilterType('BILLS_ONLY')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap transition-colors ${filterType === 'BILLS_ONLY' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Bills</button>
+          <button onClick={() => setFilterType('SUBS_ONLY')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap transition-colors ${filterType === 'SUBS_ONLY' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Subscriptions</button>
+        </>
+      )}
 
-  // Calculate Stats for Loans / Lending Split
-  const loansStats = useMemo(() => {
-    let due = 0; let paid = 0;
-    overlayLoansInstances.forEach(i => { due += i.amount; if (i.status === 'PAID') paid += i.amount; });
-    return { due, paid };
-  }, [overlayLoansInstances]);
+      <button onClick={() => setFilterType('UNPAID')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap transition-colors ${filterType === 'UNPAID' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'}`}>Unpaid</button>
+      <button onClick={() => setFilterType('OVERDUE')} className={`px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap transition-colors ${filterType === 'OVERDUE' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500'}`}>Overdue</button>
+    </div>
+  );
 
-  const lendingStats = useMemo(() => {
-    let due = 0; let paid = 0;
-    overlayLendingInstances.forEach(i => { due += i.amount; if (i.status === 'PAID') paid += i.amount; });
-    return { due, paid };
-  }, [overlayLendingInstances]);
+  // Derived Data
+  const overlayLoansInstances = useMemo(() => overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LOAN), [overlayCommitmentInstances]);
+  const overlayLendingInstances = useMemo(() => overlayCommitmentInstances.filter(i => i.commitment.type === CommitmentType.LENDING), [overlayCommitmentInstances]);
 
-  // Grouping for Render
-  const groupedBills = useMemo(() => groupInstances(overlayBillInstances), [overlayBillInstances]);
-  const groupedLoans = useMemo(() => groupInstances(overlayLoansInstances), [overlayLoansInstances]);
-  const groupedLending = useMemo(() => groupInstances(overlayLendingInstances), [overlayLendingInstances]);
+  // Filtered Lists
+  const filteredBills = useMemo(() => filterItems(overlayBillInstances, 'BILL'), [overlayBillInstances, filterType]);
+  // Use filterItems for Loans too? Need to adapt helper signature or usage.
+  // Actually filterItems uses 'item.bill.type' so it's bill specific inside.
+  // Let's make it generic or split.
+  // For simplicty, just inline filter for loans where needed or make generic.
+  // Loan filtering: Only Unpaid/Overdue applies really. (No subs/bills distinction)
+  const filteredLoans = useMemo(() => {
+    return overlayLoansInstances.filter(item => {
+      if (filterType === 'UNPAID' && item.status === 'PAID') return false;
+      if (filterType === 'OVERDUE' && item.status !== 'OVERDUE') return false;
+      // Ignore bill filters for loans
+      if (filterType === 'BILLS_ONLY' || filterType === 'SUBS_ONLY') return true;
+      return true;
+    });
+  }, [overlayLoansInstances, filterType]);
+
+  const filteredLending = useMemo(() => {
+    return overlayLendingInstances.filter(item => {
+      if (filterType === 'UNPAID' && item.status === 'PAID') return false;
+      if (filterType === 'OVERDUE' && item.status !== 'OVERDUE') return false;
+      // Ignore bill filters
+      if (filterType === 'BILLS_ONLY' || filterType === 'SUBS_ONLY') return true;
+      return true;
+    });
+  }, [overlayLendingInstances, filterType]);
+
+  // Grouping
+  const groupedBills = useMemo(() => groupInstances(filteredBills), [filteredBills]);
+  const groupedLoans = useMemo(() => groupInstances(filteredLoans), [filteredLoans]);
+  const groupedLending = useMemo(() => groupInstances(filteredLending), [filteredLending]);
 
 
   return (
@@ -494,7 +603,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               className="px-6 flex-shrink-0"
               title="BILLS & SUBSCRIPTIONS"
               count={activeBillInstances.length}
-              onViewAll={() => { setOverlay('ALL_BILLS'); setOverlayMonth(new Date(currentDate)); }}
+              onViewAll={() => { setOverlay('ALL_BILLS'); setOverlayMonth(new Date(currentDate)); setFilterType('ALL'); }}
             />
             <div data-testid="commitment-stack-bills" className="w-full px-6 mt-2">
               <CommitmentStack
@@ -537,7 +646,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               className="px-6 flex-shrink-0"
               title="LOANS & LENDING"
               count={activeCommitmentInstances.length}
-              onViewAll={() => { setOverlay('ALL_COMMITMENTS'); setOverlayMonth(new Date(currentDate)); }}
+              onViewAll={() => { setOverlay('ALL_COMMITMENTS'); setOverlayMonth(new Date(currentDate)); setFilterType('ALL'); }}
             />
             <div data-testid="commitment-stack-loans" className="w-full px-6 mt-2">
               <CommitmentStack
@@ -658,8 +767,13 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
 
+          <FilterBar type="BILL" />
+
           <div className="flex-1 overflow-y-auto pb-24">
-            {renderEnhancedSummaryCard(billsSummary.totalDue, billsSummary.totalPaid, 'BILLS')}
+            {renderEnhancedSummaryCard(filteredBills, 'BILLS')}
+
+            {/* Critical Alerts */}
+            <CriticalAlertBanner count={groupedBills.urgent.filter(i => i.status === 'OVERDUE').length} type="BILL" />
 
             {/* Smart Action Center List */}
 
@@ -707,8 +821,9 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               </div>
             )}
 
-            {activeBillInstances.length === 0 && (
-              <div className="text-center text-xs text-gray-400 py-12">No bills found for this month</div>
+            {/* If everything is empty (filtered to nothing) */}
+            {filteredBills.length === 0 && (
+              <div className="text-center text-xs text-gray-400 py-12">No bills found matching filters</div>
             )}
           </div>
         </div>
@@ -726,15 +841,17 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
 
           {renderMonthSelector(overlayMonth, setOverlayMonth)}
 
+          <FilterBar type="LOAN" />
+
           <div className="flex-1 overflow-y-auto pb-24">
-            {/* Combined Summary Card with all stats */}
+            {/* Combined Summary for Forecasts (Sum all loans/lending) */}
             {renderEnhancedSummaryCard(
-              loansStats.due,
-              loansStats.paid,
-              'LOANS_LENDING',
-              lendingStats.due,
-              lendingStats.paid
+              [...filteredLoans, ...filteredLending],
+              'LOANS_LENDING'
             )}
+
+            {/* Critical Alerts */}
+            <CriticalAlertBanner count={groupedLoans.urgent.filter(i => i.status === 'OVERDUE').length} type="LOAN" />
 
             {/* Loans - Action Center */}
             {(groupedLoans.urgent.length > 0 || groupedLoans.upcoming.length > 0) && (
@@ -776,7 +893,7 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
                 <div className="bg-white border-t border-b border-gray-100">
                   <CommitmentList
                     items={[...groupedLending.urgent, ...groupedLending.upcoming]}
-                    renderItem={(i) => renderRowItem(i, i.commitment.type === 'LOAN' ? 'LOAN' : 'LENDING')}
+                    renderItem={(i) => renderRowItem(i, 'LENDING')}
                     placeholder={<div className="hidden"></div>}
                   />
                 </div>
@@ -797,8 +914,8 @@ const CommitmentsView: React.FC<CommitmentsViewProps> = ({ wallets, currencySymb
               </div>
             )}
 
-            {overlayLoansInstances.length === 0 && overlayLendingInstances.length === 0 && (
-              <div className="text-center text-xs text-gray-400 py-12">No loans or lending found for this month</div>
+            {filteredLoans.length === 0 && filteredLending.length === 0 && (
+              <div className="text-center text-xs text-gray-400 py-12">No loans or lending found matching filters</div>
             )}
           </div>
         </div>
