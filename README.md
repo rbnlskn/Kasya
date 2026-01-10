@@ -22,6 +22,11 @@ Kasya helps you master your finances with a focus on privacy, speed, and a strik
 
 ## ⚡ Getting Started
 
+> **[🚀 New Machine Setup Guide](docs/SETUP_NEW_MACHINE.md)**  
+> **Starting fresh?** Read our fail-proof guide for setting up Node, Git, Android Studio, and Java on a new device.
+
+### Prerequisites
+
 ### Prerequisites
 - Node.js (LTS)
 - Git
@@ -42,6 +47,7 @@ npx cap sync
 
 ## 📚 Documentation
 - **[Workflow Guide](docs/WORKFLOW_GUIDE.md)**: How to work with Antigravity, Versioning rules, and PR process.
+- **[New Machine Setup](docs/SETUP_NEW_MACHINE.md)**: Comprehensive guide for clean installations.
 - **[Architecture](docs/ARCHITECTURE.md)**: Codebase map and tech stack details.
 
 ## 🛠️ Tech & Design
