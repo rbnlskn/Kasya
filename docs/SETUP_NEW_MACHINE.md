@@ -1,158 +1,130 @@
 # ⚡ Kasya New Machine Setup Guide
 
-This guide is the definitive "fail-proof" manual for setting up the Kasya development environment on a fresh Windows machine. Follow these steps exactly to ensure a smooth onboarding.
-
-## 1. System Prerequisites
-
-Before cloning the code, you must install the foundation.
-
-### Step 1.1: Node.js (Runtime)
-Kasya is built with React/Vite and requires Node.js.
-1.  Download **Node.js LTS** (Currently v20.x or v22.x) from [nodejs.org](https://nodejs.org/).
-2.  Run the installer. Accept defaults.
-3.  **Verify**: Open PowerShell and run:
-    ```powershell
-    node -v
-    npm -v
-    ```
-    *Success if you see versions printed (e.g., `v20.11.0`).*
-
-### Step 1.2: Git & GitHub CLI
-Required for source control and cloning.
-1.  **Git**: Download from [git-scm.com](https://git-scm.com/download/win).
-    *   *Installer Tip*: Select "Use Git from the Windows Command Prompt" if asked.
-2.  **GitHub CLI**: Open PowerShell and run:
-    ```powershell
-    winget install GitHub.cli
-    ```
-3.  **Authenticate**:
-    ```powershell
-    gh auth login
-    ```
-    *Select `GitHub.com` > `HTTPS` > `Login with a web browser`.*
-
-### Step 1.3: Visual Studio Code
-The recommended IDE.
-1.  Download from [code.visualstudio.com](https://code.visualstudio.com/).
-2.  **Recommended Extensions**:
-    *   **ESLint** (Microsoft)
-    *   **Prettier - Code formatter** (Prettier)
-    *   **Tailwind CSS IntelliSense** (Brad Cornes)
-    *   **Ionic** (Ionic) - *Optional but helpful for Capacitor*
-
-### Step 1.4: Java Development Kit (JDK)
-**CRITICAL**: Android builds require Java.
-1.  Download **OpenJDK 17** (Recommended for new Android Gradle versions).
-    *   Source: [Azul Zulu JDK 17](https://www.azul.com/downloads/?version=java-17-lts&os=windows&architecture=x86-64-bit&package=jdk) (Select `.msi` installer).
-2.  **Install & Set JAVA_HOME**:
-    *   The installer should automatically set the `JAVA_HOME` environment variable.
-    *   **Verify**: Restart PowerShell and run:
-        ```powershell
-        java -version
-        # Should say "openjdk version 17..."
-        ```
-
-### Step 1.5: Android Studio (The Heavy Lifter)
-Required for compiling the Android app.
-1.  Download from [developer.android.com](https://developer.android.com/studio).
-2.  **Installation Wizard**:
-    *   Ensure **Android SDK**, **Android SDK Platform-Tools**, and **Android Virtual Device** are CHECKED.
-3.  **Initial Setup**:
-    *   Open Android Studio.
-    *   Go to **More Actions > SDK Manager**.
-    *   **SDK Platforms Tab**: Ensure "Android 14.0" (or latest stable) is checked.
-    *   **SDK Tools Tab**: Ensure "**Android SDK Command-line Tools (latest)**" is checked. **Apply** to install.
-4.  **Environment Variables** (PowerShell Admin):
-    ```powershell
-    [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
-    ```
+This guide provides two paths to set up your development environment:
+1.  **🚀 Speed Run (CLI)**: For power users who want to automate 90% of the work.
+2.  **🐢 Manual Setup**: The detailed, step-by-step classic approach.
 
 ---
 
-## 2. Project Setup
+## 🚀 Usage Method 1: The Speed Run (CLI)
 
-Now that the tools are ready, let's set up Kasya.
+Use `winget` (built-in Windows Package Manager) to install everything at once.
 
-### Step 2.1: Clone the Repository
-Open PowerShell or VS Code Terminal.
+### 1. Run the Installer Script
+Open **PowerShell as Administrator** and copy-paste this block:
 
 ```powershell
-cd $env:USERPROFILE\Documents
+# 1. Install Core Tools (Node, Git, VS Code)
+winget install -e --id OpenJS.NodeJS.LTS  --accept-package-agreements --accept-source-agreements
+winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
+winget install -e --id Microsoft.VisualStudioCode --accept-package-agreements --accept-source-agreements
+winget install -e --id GitHub.cli --accept-package-agreements --accept-source-agreements
+
+# 2. Install Mobile Dev Tools (Java 17 & Android Studio)
+winget install -e --id Azul.Zulu.17.JDK --accept-package-agreements --accept-source-agreements
+winget install -e --id Google.AndroidStudio --accept-package-agreements --accept-source-agreements
+
+# 3. Environment Setup (Sets JAVA_HOME automatically for Azul JDK)
+$javaPath = "C:\Program Files\Zulu\zulu-17"
+[System.Environment]::SetEnvironmentVariable("JAVA_HOME", $javaPath, [System.EnvironmentVariableTarget]::User)
+[System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", [System.EnvironmentVariableTarget]::User)
+
+Write-Host "✅ Installation commands sent. Please restart your terminal!" -ForegroundColor Green
+```
+
+### 2. Final Manual Touches
+Even with the speed run, you need to do these two things manually:
+1.  **Login to GitHub**:
+    ```powershell
+    gh auth login
+    ```
+2.  **Initialize Android Studio**:
+    *   Open **Android Studio**.
+    *   Click "Next" through the wizard.
+    *   **CRITICAL**: Ensure **Android SDK Command-line Tools** is installed via *More Actions > SDK Manager > SDK Tools*.
+
+---
+
+## 🐢 Usage Method 2: Manual Setup
+
+If you prefer to click and download, follow these steps.
+
+### 1. System Prerequisites
+
+#### Step 1.1: Node.js (Runtime)
+Kasya is built with React/Vite and requires Node.js.
+1.  Download **Node.js LTS** (Currently v20.x or v22.x) from [nodejs.org](https://nodejs.org/).
+2.  Run the installer. Accept defaults.
+3.  **Verify**: `node -v` (Should be v20+).
+
+#### Step 1.2: Git & GitHub CLI
+1.  **Git**: Download from [git-scm.com](https://git-scm.com/download/win).
+2.  **GitHub CLI**: Run `winget install GitHub.cli` or download from [cli.github.com](https://cli.github.com/).
+3.  **Authenticate**: Run `gh auth login`.
+
+#### Step 1.3: Visual Studio Code
+1.  Download from [code.visualstudio.com](https://code.visualstudio.com/).
+2.  **Extensions to Install**:
+    *   ESLint, Prettier, Tailwind CSS IntelliSense.
+
+#### Step 1.4: Java Development Kit (JDK)
+**CRITICAL**: Android builds require Java 17.
+1.  Download **OpenJDK 17** (Azul Zulu recommended): [Download MSI](https://www.azul.com/downloads/?version=java-17-lts&os=windows&architecture=x86-64-bit&package=jdk).
+2.  **Verify**: Run `java -version`.
+
+#### Step 1.5: Android Studio
+1.  Download from [developer.android.com](https://developer.android.com/studio).
+2.  **Setup**: Install standard components (SDK, Emulator).
+3.  **Env Var**: Set `ANDROID_HOME` to `%LOCALAPPDATA%\Android\Sdk`.
+
+---
+
+## 🤖 Antigravity & Agent Setup
+
+To ensure you can work with AI agents (like Antigravity) effectively:
+
+1.  **Repo Access**: Ensure you have cloned the repo using `gh repo clone rbnlskn/Kasya`.
+2.  **Docs Access**: Agents rely heavily on the `docs/` folder. Do not delete `docs/ARCHITECTURE.md` or `docs/WORKFLOW_GUIDE.md`.
+3.  **Artifacts**: Agents write to `.gemini/`. Ensure this folder is in your `.gitignore` (it is by default).
+
+---
+
+## 3. Project Initialization
+
+Once your tools are installed (Method 1 or 2), run these commands to start:
+
+```powershell
+# 1. Clone
 gh repo clone rbnlskn/Kasya
 cd Kasya
-```
 
-### Step 2.2: Install Dependencies
-This installs all the JavaScript libraries needed.
-
-```powershell
+# 2. Install Deps
 npm install
-```
 
-### Step 2.3: Sync Architecture
-This downloads the native Android project headers and plugins. **Do not skip this.**
-
-```powershell
+# 3. Sync Native Engine (REQUIRED)
 npx cap sync
 ```
 
 ---
 
-## 3. Running the Application
+## 4. Running the App
 
-### Option A: Web Development (Fastest)
-For working on UI, logic, and general features.
-
+### Web Mode
 ```powershell
 npm run dev
 ```
-*   Opens the app at `http://localhost:5173`.
-*   Changes update instantly (Hot Module Replacement).
 
-### Option B: Android Emulation
-For testing native features (StatusBar, Navigation Bar, Performance).
-
-1.  **Open in Android Studio**:
-    ```powershell
-    npx cap open android
-    ```
-2.  Wait for Gradle to "Sync" (watch the bottom bar in Android Studio).
-3.  **In Android Studio**:
-    *   Top Bar: Select a Device (e.g., "Pixel 3a API 34").
-    *   If no device exists, click **Device Manager > Create Device** to make one.
-    *   Click the **Run (Green Play Button)**.
-
-### Option C: Physical Device (Real World Testing)
-1.  Enable **Developer Options** on your phone (Settings > About Phone > Tap Build Number 7 times).
-2.  Enable **USB Debugging** in Developer Options.
-3.  Plug phone into PC via USB.
-4.  Run `npx cap open android` and select your physical phone in the device dropdown dropdown.
+### Android Mode
+```powershell
+npx cap open android
+```
 
 ---
 
-## 4. Verification Checklist
+## 5. Troubleshooting checklist
 
-Run these commands to ensure your environment is 100% ready.
-
-| Command | Purpose | Expected Output |
-| :--- | :--- | :--- |
-| `npm run type-check` | Verifies TypeScript | `Found 0 errors.` |
-| `npm test` | Runs Unit/E2E tests | `passed` |
-| `npm run build` | Checks production build | `dist/` folder created |
-
----
-
-## 5. Troubleshooting Common Issues
-
-### "JAVA_HOME is not set"
-*   **Fix**: Search Windows for "Edit the system environment variables" -> Environment Variables. Add `JAVA_HOME` pointing to your JDK folder (e.g., `C:\Program Files\Zulu\zulu-17`).
-
-### "SDK location not found"
-*   **Fix**: Create a file named `local.properties` in the `android/` folder with this line (escape backslashes):
-    `sdk.dir=C\:\\Users\\YOUR_USERNAME\\AppData\\Local\\Android\\Sdk`
-
-### Gradle Sync Fails
-*   **Fix**: In Android Studio, go to **File > Invalidate Caches / Restart**. This fixes 90% of "random" build errors.
-
-### "script not found"
-*   **Fix**: Make sure you are in the root `Kasya` folder, not inside `src` or `android`.
+| Issue | Solution |
+| :--- | :--- |
+| **`npm` not found** | Restart your terminal after installing Node. |
+| **Gradle Sync Error** | Open Android Studio > File > Invalidate Caches / Restart. |
+| **Emulator fast-closes** | Ensure you have plenty of disk space (10GB+) and Hyper-V enabled. |
