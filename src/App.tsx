@@ -514,6 +514,12 @@ const App: React.FC = () => {
         handleOpenModal('TX_FORM');
     };
 
+    const handleQuickAdd = (type: TransactionType) => {
+        setPresetTransaction({ type, date: new Date().toISOString() });
+        setTransactionModalTitle("New " + (type === TransactionType.TRANSFER ? "Transfer" : type.charAt(0) + type.slice(1).toLowerCase()));
+        handleOpenModal('TX_FORM');
+    };
+
     const editingTransaction = useMemo(() => presetTransaction ? presetTransaction as Transaction : data.transactions.find(t => t.id === selectedTxId), [data.transactions, selectedTxId, presetTransaction]);
     const editingWallet = useMemo(() => data.wallets.find(w => w.id === selectedWalletId), [data.wallets, selectedWalletId]);
     const editingBudget = useMemo(() => data.budgets.find(b => b.id === selectedBudgetId), [data.budgets, selectedBudgetId]);
@@ -620,7 +626,7 @@ const App: React.FC = () => {
                 )}
             </div>
 
-            {overlay === 'NONE' && (<BottomNav activeTab={activeTab} onTabChange={handleTabChange} onAddClick={() => { setSelectedTxId(null); setPresetTransaction(undefined); setTransactionModalTitle(undefined); handleOpenModal('TX_FORM'); }} />)}
+            {overlay === 'NONE' && (<BottomNav activeTab={activeTab} onTabChange={handleTabChange} onQuickAdd={handleQuickAdd} onAddClick={() => { setSelectedTxId(null); setPresetTransaction(undefined); setTransactionModalTitle(undefined); handleOpenModal('TX_FORM'); }} />)}
 
             {overlay === 'WALLET_DETAIL' && selectedWalletForDetail && (<WalletDetailView wallet={selectedWalletForDetail} transactions={sortTransactions(data.transactions.filter(t => t.walletId === selectedWalletId || t.transferToWalletId === selectedWalletId))} categories={data.categories} allWallets={data.wallets} commitments={data.commitments} onBack={handleBack} onEdit={() => { handleOpenModal('WALLET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} />)}
             {overlay === 'BUDGET_DETAIL' && editingBudget && (<BudgetDetailView budget={editingBudget} transactions={sortTransactions(data.transactions.filter(t => t.categoryId === editingBudget.categoryId))} categories={data.categories} wallets={data.wallets} commitments={data.commitments} onBack={handleBack} onEdit={() => { handleOpenModal('BUDGET_FORM'); }} onTransactionClick={(t) => { setSelectedTxId(t.id); handleOpenModal('TX_FORM'); }} currencySymbol={currentCurrency.symbol} isExiting={isOverlayExiting} spending={spendingMap[editingBudget.id] || 0} />)}
