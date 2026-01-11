@@ -1,0 +1,30 @@
+name: "Issue Ready Automation"
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  process-ready-issue:
+    if: github.event.label.name == 'ready'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Action Dependencies
+        run: npm install @actions/core @actions/github
+
+      - name: Run Automation Script
+        run: node scripts/issue-automation.cjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
